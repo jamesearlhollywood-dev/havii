@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f4ef;
+  --foreground: #1c2b2d;
+  --havii-teal: #0f766e;
+  --havii-teal-dark: #0b5a54;
+  --havii-coral: #e07a5f;
+  --havii-coral-dark: #c45d44;
+  --havii-cream: #f7f4ef;
+  --havii-sand: #efe8dc;
+  --havii-mist: #d9d2c5;
+  --havii-ink: #1c2b2d;
+  --havii-muted: #5c6b6d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-havii-teal: var(--havii-teal);
+  --color-havii-teal-dark: var(--havii-teal-dark);
+  --color-havii-coral: var(--havii-coral);
+  --color-havii-coral-dark: var(--havii-coral-dark);
+  --color-havii-cream: var(--havii-cream);
+  --color-havii-sand: var(--havii-sand);
+  --color-havii-mist: var(--havii-mist);
+  --color-havii-ink: var(--havii-ink);
+  --color-havii-muted: var(--havii-muted);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Accessible focus defaults */
+:focus-visible {
+  outline: 2px solid var(--havii-teal);
+  outline-offset: 2px;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
