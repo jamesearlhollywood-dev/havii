@@ -47,6 +47,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-havii-cream text-havii-ink">
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}`,
+          }}
+        />
       </body>
     </html>
   );
