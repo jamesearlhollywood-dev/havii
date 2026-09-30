@@ -6,34 +6,8 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ---------------------------------------------------------------------------
--- Helper: is_staff_or_admin() — security definer for RLS
+-- Generic trigger helper (no table dependency)
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.is_staff_or_admin()
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.profiles p
-    WHERE p.user_id = auth.uid()
-      AND p.role IN ('staff', 'administrator')
-      AND p.account_status = 'active'
-  );
-$$;
-
-CREATE OR REPLACE FUNCTION public.current_profile_id()
-RETURNS uuid
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1;
-$$;
-
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -45,7 +19,7 @@ END;
 $$;
 
 -- ---------------------------------------------------------------------------
--- profiles
+-- profiles table (must exist before functions that reference it)
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -86,7 +60,38 @@ CREATE TRIGGER profiles_set_updated_at
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Users manage own profile
+-- ---------------------------------------------------------------------------
+-- Helper functions (depend on profiles table existing)
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.is_staff_or_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.profiles p
+    WHERE p.user_id = auth.uid()
+      AND p.role IN ('staff', 'administrator')
+      AND p.account_status = 'active'
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.current_profile_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- profiles RLS policies (depend on is_staff_or_admin)
+-- ---------------------------------------------------------------------------
 CREATE POLICY profiles_select_own
   ON public.profiles FOR SELECT
   TO authenticated
@@ -98,14 +103,11 @@ CREATE POLICY profiles_update_own
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
--- Insert only via trigger / service / own signup path
 CREATE POLICY profiles_insert_own
   ON public.profiles FOR INSERT
   TO authenticated
   WITH CHECK (user_id = auth.uid());
 
--- Staff/admin select already covered in profiles_select_own via OR
--- No delete for regular users
 CREATE POLICY profiles_delete_staff
   ON public.profiles FOR DELETE
   TO authenticated

@@ -26,6 +26,18 @@ const helpOptions = HELP_AREAS.map((v) => ({
   label: HELP_AREA_LABELS[v],
 }));
 
+function calculateAge(dob: string): number | null {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const hasHadBirthday =
+    now.getMonth() > birth.getMonth() ||
+    (now.getMonth() === birth.getMonth() && now.getDate() >= birth.getDate());
+  if (!hasHadBirthday) age--;
+  return age;
+}
+
 export function OnboardingForm({ profile }: { profile: Profile }) {
   const [state, action, pending] = useActionState(completeOnboardingAction, initial);
   const [interests, setInterests] = useState<string[]>([]);
@@ -33,15 +45,46 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
   const [mentoringInterests, setMentoringInterests] = useState<string[]>([]);
   const [supportAreas, setSupportAreas] = useState<string[]>([]);
   const [mentorshipInterested, setMentorshipInterested] = useState(true);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [dob, setDob] = useState(profile.date_of_birth ?? "");
+
+  const isYouth = profile.role === "youth";
+  const age = calculateAge(dob);
+  const isMinor = isYouth && age !== null && age < 18;
 
   return (
     <form action={action} className="space-y-6">
       {state.error ? <Alert tone="error">{state.error}</Alert> : null}
+      {state.success ? <Alert tone="success">{state.success}</Alert> : null}
 
       <div className="rounded-2xl border border-havii-mist bg-havii-sand/40 px-4 py-3 text-sm text-havii-muted">
         Setting up your <strong className="text-havii-ink">{displayRoleName(profile.role)}</strong> profile.
         You can update details later.
       </div>
+
+      {/* Consent section */}
+      <section className="space-y-4 rounded-2xl border border-havii-teal/30 bg-havii-teal/5 p-4">
+        <h2 className="text-base font-semibold text-havii-ink">Consent &amp; agreement</h2>
+        <p className="text-sm text-havii-muted">
+          Please review and agree to the following before continuing.
+        </p>
+        <div className="space-y-3">
+          <label className="flex items-start gap-3 text-sm text-havii-ink">
+            <input
+              type="checkbox"
+              checked={consentAccepted}
+              onChange={(e) => setConsentAccepted(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-havii-mist text-havii-teal focus:ring-havii-teal"
+            />
+            <span>
+              I understand that <strong>HAVII is not an emergency service</strong> and is not
+              monitored 24/7. If I or someone else is in danger, I will call 911 or 988. I agree
+              to HAVII&apos;s Terms of Use and Privacy Policy, and I consent to participate.
+            </span>
+          </label>
+        </div>
+        <input type="hidden" name="consent_accepted" value={consentAccepted ? "true" : "false"} />
+      </section>
 
       <section className="space-y-4">
         <h2 className="text-base font-semibold text-havii-ink">About you</h2>
@@ -69,18 +112,38 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
           <Input name="state" label="State" defaultValue={profile.state ?? ""} />
         </div>
         <Input name="phone" label="Phone (optional)" type="tel" />
-        {(profile.role === "youth" || profile.role === "mentor") && (
+        {(isYouth || profile.role === "mentor") && (
           <Input
             name="date_of_birth"
             label="Date of birth"
             type="date"
-            required={profile.role === "youth"}
+            required={isYouth}
             defaultValue={profile.date_of_birth ?? ""}
+            onChange={(e) => setDob(e.target.value)}
           />
         )}
       </section>
 
-      {profile.role === "youth" ? (
+      {isMinor && (
+        <section className="space-y-4 rounded-2xl border border-havii-coral/30 bg-havii-coral/5 p-4">
+          <h2 className="text-base font-semibold text-havii-ink">Caregiver permission</h2>
+          <Alert tone="warning">
+            You are under 18, so we need a caregiver or guardian&apos;s permission. Please
+            provide their contact information — we&apos;ll reach out to confirm.
+          </Alert>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input name="caregiver_name" label="Caregiver name" required />
+            <Input name="caregiver_email" label="Caregiver email" type="email" required />
+          </div>
+          <Input
+            name="caregiver_relationship"
+            label="Relationship (optional)"
+            placeholder="e.g. parent, guardian, grandparent"
+          />
+        </section>
+      )}
+
+      {isYouth ? (
         <section className="space-y-4">
           <h2 className="text-base font-semibold text-havii-ink">Youth details</h2>
           <Input

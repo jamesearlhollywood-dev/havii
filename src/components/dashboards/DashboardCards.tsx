@@ -7,12 +7,21 @@ import {
 } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import type {
+  EmotionalCheckIn,
+  Goal,
+  JournalEntry,
   MentorProfile,
   PartnerProfile,
   Profile,
+  SessionInfo,
   YouthProfile,
 } from "@/lib/types";
 import { displayName } from "@/lib/utils";
+import { MoodCheckIn } from "@/components/dashboards/youth/MoodCheckIn";
+import { GoalsWidget } from "@/components/dashboards/youth/GoalsWidget";
+import { JournalWidget } from "@/components/dashboards/youth/JournalWidget";
+import { SessionsWidget } from "@/components/dashboards/youth/SessionsWidget";
+import { MentorConnection } from "@/components/dashboards/youth/MentorConnection";
 
 function PlaceholderCard({
   title,
@@ -48,9 +57,19 @@ function PlaceholderCard({
 export function YouthDashboard({
   profile,
   youth,
+  todayCheckIn,
+  goals,
+  journalEntries,
+  sessions,
+  hasMatch,
 }: {
   profile: Profile;
   youth: YouthProfile | null;
+  todayCheckIn: EmotionalCheckIn | null;
+  goals: Goal[];
+  journalEntries: JournalEntry[];
+  sessions: SessionInfo[];
+  hasMatch: boolean;
 }) {
   const name = displayName(profile);
   return (
@@ -64,39 +83,49 @@ export function YouthDashboard({
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <PlaceholderCard
-          title="How are you feeling?"
-          description="Quick emotional check-ins will live here."
-        />
-        <Card className="flex h-full flex-col border-havii-teal/30 bg-gradient-to-br from-white to-havii-teal/5">
-          <CardTitle>My Mentor</CardTitle>
-          <CardDescription className="mt-2 flex-1">
-            {youth?.mentorship_interested
-              ? "Ready to find someone in your corner?"
-              : "Mentorship is optional — explore when you're ready."}
-          </CardDescription>
+        {/* Mood check-in */}
+        <Card>
+          <CardTitle className="text-base mb-3">How are you feeling?</CardTitle>
+          <MoodCheckIn todayCheckIn={todayCheckIn} />
+        </Card>
+
+        {/* Mentor connection */}
+        <Card className="border-havii-teal/30 bg-gradient-to-br from-white to-havii-teal/5">
+          <CardTitle className="text-base mb-3">My Mentor</CardTitle>
+          <MentorConnection youth={youth} hasMatch={hasMatch} />
+        </Card>
+
+        {/* Goals */}
+        <Card>
+          <CardTitle className="text-base mb-3">My Goals</CardTitle>
+          <GoalsWidget goals={goals} />
+        </Card>
+
+        {/* Journal */}
+        <Card>
+          <CardTitle className="text-base mb-3">My Journal</CardTitle>
+          <JournalWidget entries={journalEntries} />
+        </Card>
+
+        {/* Upcoming sessions */}
+        <Card>
+          <CardTitle className="text-base mb-3">Upcoming Sessions</CardTitle>
+          <SessionsWidget sessions={sessions} />
+        </Card>
+
+        {/* Support */}
+        <Card className="flex h-full flex-col border-havii-coral/20">
+          <CardTitle className="text-base mb-3">Support Hub</CardTitle>
+          <p className="flex-1 text-sm text-havii-muted">
+            Need help? Reach out — HAVII staff are available during business hours.
+            HAVII is not monitored 24/7.
+          </p>
           <div className="mt-4">
-            <Link href="/coming-next/find-a-mentor">
-              <Button size="sm">Find a Mentor</Button>
+            <Link href="/help">
+              <Button size="sm" variant="outline">Get Help</Button>
             </Link>
           </div>
-          <p className="mt-3 text-xs text-havii-muted">
-            Matching launches in a future phase — no mentors assigned yet.
-          </p>
         </Card>
-        <PlaceholderCard title="My Goals" description="Set and track personal goals." />
-        <PlaceholderCard title="My Journal" description="Private space for your thoughts." />
-        <PlaceholderCard title="Programs" description="Explore cohorts and activities." />
-        <PlaceholderCard
-          title="Support Hub"
-          description="Ask for help and find resources."
-          href="/help"
-          cta="Get Help"
-        />
-        <PlaceholderCard
-          title="HAVII Companion"
-          description="Guided support tools are on the way."
-        />
       </div>
     </div>
   );

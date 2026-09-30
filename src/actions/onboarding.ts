@@ -55,6 +55,45 @@ export async function completeOnboardingAction(
       return { error: "Please provide at least a preferred or first name." };
     }
 
+    // --- Consent (required for all users) ---
+    const consentAccepted = formData.get("consent_accepted") === "true";
+    if (!consentAccepted) {
+      return { error: "Please review and accept the consent terms to continue." };
+    }
+
+    // --- Determine if user is a minor ---
+    let isMinor = false;
+    let caregiverConsentStatus: "not_required" | "pending" = "not_required";
+
+    if (dateOfBirth) {
+      const dob = new Date(dateOfBirth);
+      const now = new Date();
+      let age = now.getFullYear() - dob.getFullYear();
+      const hasHadBirthday =
+        now.getMonth() > dob.getMonth() ||
+        (now.getMonth() === dob.getMonth() && now.getDate() >= dob.getDate());
+      if (!hasHadBirthday) age--;
+      isMinor = age < 18;
+    }
+
+    // Caregiver consent for minors
+    let caregiverName: string | null = null;
+    let caregiverEmail: string | null = null;
+    let caregiverRelationship: string | null = null;
+
+    if (isMinor && role === "youth") {
+      caregiverName = String(formData.get("caregiver_name") || "").trim();
+      caregiverEmail = String(formData.get("caregiver_email") || "").trim();
+      caregiverRelationship = String(formData.get("caregiver_relationship") || "").trim();
+
+      if (!caregiverName || !caregiverEmail) {
+        return {
+          error: "Caregiver name and email are required for accounts under 18.",
+        };
+      }
+      caregiverConsentStatus = "pending";
+    }
+
     const { error: profileUpdateError } = await supabase
       .from("profiles")
       .update({
@@ -67,6 +106,8 @@ export async function completeOnboardingAction(
         phone: phone || null,
         date_of_birth: dateOfBirth || null,
         onboarding_completed: true,
+        consent_accepted_at: new Date().toISOString(),
+        caregiver_consent_status: caregiverConsentStatus,
         updated_at: new Date().toISOString(),
       })
       .eq("id", profile.id);
@@ -94,6 +135,9 @@ export async function completeOnboardingAction(
           mentorship_interested: mentorshipInterested,
           location_general: locationGeneral || [city, state].filter(Boolean).join(", ") || null,
           school_or_program: schoolOrProgram || null,
+          caregiver_name: caregiverName,
+          caregiver_email: caregiverEmail,
+          caregiver_relationship: caregiverRelationship,
         },
         { onConflict: "profile_id" }
       );
@@ -161,6 +205,18 @@ export async function completeOnboardingAction(
       );
       if (ppError) return { error: ppError.message };
     }
+
+    // --- Record consent in consent_records ---
+    await supabase.from("consent_records").insert({
+      profile_id: profile.id,
+      consent_type: "platform_terms",
+      granted: true,
+      metadata: {
+        role,
+        is_minor: isMinor,
+        caregiver_consent_status: caregiverConsentStatus,
+      },
+    });
 
     redirect("/dashboard");
   } catch (e) {
