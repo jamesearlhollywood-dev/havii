@@ -204,6 +204,88 @@ export const HELP_AREA_LABELS: Record<HelpArea, string> = {
   other: "Other",
 };
 
+export interface MentorRequest {
+  id: string;
+  youth_profile_id: string;
+  interests: string[] | null;
+  help_areas: string[] | null;
+  availability_notes: string | null;
+  status: "pending" | "matched" | "cancelled";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MentorMatch {
+  id: string;
+  youth_profile_id: string;
+  mentor_profile_id: string;
+  status: "proposed" | "active" | "paused" | "ended" | "declined";
+  matched_by: string | null;
+  notes: string | null;
+  status_changed_by: string | null;
+  status_changed_at: string | null;
+  ended_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MentorSession {
+  id: string;
+  cohort_id: string | null;
+  mentor_match_id: string | null;
+  title: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  location: string | null;
+  status: "scheduled" | "confirmed" | "cancelled" | "completed";
+  requested_by: string | null;
+  timezone: string | null;
+  notes: string | null;
+  cancel_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Message {
+  id: string;
+  mentor_match_id: string | null;
+  sender_profile_id: string;
+  body: string;
+  is_flagged: boolean;
+  created_at: string;
+}
+
+export interface MessageReport {
+  id: string;
+  message_id: string;
+  reporter_profile_id: string;
+  reason: string;
+  status: "open" | "under_review" | "resolved" | "dismissed";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  resolution_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const AVAILABILITY_OPTIONS = [
+  "weekday_mornings",
+  "weekday_afternoons",
+  "weekday_evenings",
+  "weekend_mornings",
+  "weekend_afternoons",
+  "weekend_evenings",
+] as const;
+
+export const AVAILABILITY_LABELS: Record<string, string> = {
+  weekday_mornings: "Weekday mornings",
+  weekday_afternoons: "Weekday afternoons",
+  weekday_evenings: "Weekday evenings",
+  weekend_mornings: "Weekend mornings",
+  weekend_afternoons: "Weekend afternoons",
+  weekend_evenings: "Weekend evenings",
+};
+
 export const INTEREST_OPTIONS = [
   "sports",
   "arts",

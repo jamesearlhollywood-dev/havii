@@ -58,11 +58,36 @@ function SupportIcon(active: boolean) {
   );
 }
 
+function MentorIcon(active: boolean) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM12 14c-4 0-7 2-7 5v2h14v-2c0-3-3-5-7-5Z"
+        stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CalendarIcon(active: boolean) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} />
+      <path d="M3 9h18M8 2v4M16 2v4" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const youthNav: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: HomeIcon },
   { label: "My Group", href: "/dashboard/group", icon: GroupIcon },
-  { label: "Journal", href: "/dashboard/journal", icon: JournalIcon },
+  { label: "My Mentor", href: "/dashboard/my-mentor", icon: MentorIcon },
   { label: "Goals", href: "/dashboard/goals", icon: GoalsIcon },
+  { label: "Support", href: "/help", icon: SupportIcon },
+];
+
+const mentorNav: NavItem[] = [
+  { label: "Home", href: "/dashboard", icon: HomeIcon },
+  { label: "Mentees", href: "/dashboard/mentor/mentees", icon: GroupIcon },
+  { label: "Sessions", href: "/dashboard/sessions", icon: CalendarIcon },
   { label: "Support", href: "/help", icon: SupportIcon },
 ];
 
@@ -73,7 +98,7 @@ const simplifiedNav: NavItem[] = [
 
 export function BottomNav({ role }: { role: UserRole }) {
   const pathname = usePathname();
-  const items = role === "youth" ? youthNav : simplifiedNav;
+  const items = role === "youth" ? youthNav : role === "mentor" ? mentorNav : simplifiedNav;
 
   return (
     <nav

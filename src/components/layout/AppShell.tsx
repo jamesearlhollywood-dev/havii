@@ -44,12 +44,17 @@ export function AppShell({
                 <Link className="text-havii-muted hover:text-havii-teal rounded" href="/dashboard">
                   Dashboard
                 </Link>
-                <Link className="text-havii-muted hover:text-havii-teal rounded" href="/dashboard/staff">
-                  Staff
+                <Link className="text-havii-muted hover:text-havii-teal rounded" href="/dashboard/staff/applications">
+                  Applications
                 </Link>
-                <Link className="text-havii-muted hover:text-havii-teal rounded" href="/dashboard/admin">
-                  Admin
+                <Link className="text-havii-muted hover:text-havii-teal rounded" href="/dashboard/staff/matches">
+                  Matching
                 </Link>
+                {profile.role === "administrator" && (
+                  <Link className="text-havii-muted hover:text-havii-teal rounded" href="/dashboard/admin">
+                    Admin
+                  </Link>
+                )}
               </nav>
             )}
           </div>

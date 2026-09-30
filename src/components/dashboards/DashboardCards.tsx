@@ -149,49 +149,97 @@ export function MentorDashboard({
 }) {
   const name = displayName(profile);
   const appStatus = mentor?.application_status ?? "application_not_started";
+  const isApproved = appStatus === "approved";
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-havii-ink">
           Welcome, {name}
         </h1>
-        <p className="mt-1 text-havii-muted">
+        <p className="mt-1 text-sm text-havii-muted">
           Thank you for showing up for young people.
         </p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardTitle>Application status</CardTitle>
-          <p className="mt-3 inline-flex rounded-full bg-havii-sand px-3 py-1 text-sm font-medium capitalize text-havii-teal-dark">
+
+      {/* Application status card */}
+      <Card>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-base">Application status</CardTitle>
+            <CardDescription className="mt-1">
+              {isApproved
+                ? "You're approved! Staff can match you with youth."
+                : "Submit your application to get started."}
+            </CardDescription>
+          </div>
+          <span className={`inline-flex rounded-full px-3 py-1 text-sm font-medium capitalize ${
+            isApproved ? "bg-green-100 text-green-700" :
+            appStatus === "submitted" ? "bg-amber-100 text-amber-700" :
+            "bg-havii-sand text-havii-muted"
+          }`}>
             {appStatus.replace(/_/g, " ")}
-          </p>
+          </span>
+        </div>
+        <div className="mt-4">
+          <Link href="/dashboard/mentor/application">
+            <Button size="sm" variant={isApproved ? "outline" : "default"}>
+              {appStatus === "application_not_started" || appStatus === "pending_application"
+                ? "Complete application"
+                : "View application"}
+            </Button>
+          </Link>
+        </div>
+      </Card>
+
+      {/* Mentees */}
+      <Card>
+        <CardTitle className="text-base">My Mentees</CardTitle>
+        {isApproved ? (
+          <>
+            <CardDescription className="mt-2">
+              View your assigned participants and their interests.
+            </CardDescription>
+            <div className="mt-4">
+              <Link href="/dashboard/mentor/mentees">
+                <Button size="sm" variant="outline">View mentees</Button>
+              </Link>
+            </div>
+          </>
+        ) : (
           <CardDescription className="mt-2">
-            Completing your profile starts an application — approval is a separate step.
+            Mentees appear after your application is approved by staff.
           </CardDescription>
+        )}
+      </Card>
+
+      {/* Sessions */}
+      <Card>
+        <CardTitle className="text-base">Sessions</CardTitle>
+        <CardDescription className="mt-2">
+          Schedule and manage meetings with your mentees.
+        </CardDescription>
+        <div className="mt-4">
+          <Link href="/dashboard/sessions">
+            <Button size="sm" variant="outline">View sessions</Button>
+          </Link>
+        </div>
+      </Card>
+
+      {/* Screening & Training */}
+      <div className="grid grid-cols-2 gap-3">
+        <Card>
+          <CardTitle className="text-sm">Screening</CardTitle>
+          <p className="mt-2 text-sm text-havii-muted capitalize">
+            {(mentor?.screening_status ?? "not_started").replace(/_/g, " ")}
+          </p>
         </Card>
         <Card>
-          <CardTitle>Profile completion</CardTitle>
-          <CardDescription className="mt-2">
-            {mentor?.profession
-              ? `Profession on file: ${mentor.profession}`
-              : "Add profession and interests in onboarding."}
-          </CardDescription>
+          <CardTitle className="text-sm">Training</CardTitle>
+          <p className="mt-2 text-sm text-havii-muted capitalize">
+            {(mentor?.training_status ?? "not_started").replace(/_/g, " ")}
+          </p>
         </Card>
-        <PlaceholderCard
-          title="Screening"
-          description={`Status: ${(mentor?.screening_status ?? "not_started").replace(/_/g, " ")}`}
-        />
-        <PlaceholderCard
-          title="Training"
-          description={`Status: ${(mentor?.training_status ?? "not_started").replace(/_/g, " ")}`}
-        />
-        <Card className="sm:col-span-2">
-          <CardTitle>Your mentees</CardTitle>
-          <CardDescription className="mt-2">
-            No mentees yet. Matches are made after approval and screening — we will never show fake mentees.
-          </CardDescription>
-        </Card>
-        <PlaceholderCard title="Mentor resources" description="Guides and community tools." />
       </div>
     </div>
   );
@@ -265,28 +313,48 @@ export function PartnerDashboard({
 
 export function StaffDashboard({ profile }: { profile: Profile }) {
   const name = displayName(profile);
-  const links = [
-    "Overview",
-    "Youth",
-    "Mentors",
-    "Applications",
-    "Matching",
+
+  const activeLinks = [
+    { label: "Mentor Applications", href: "/dashboard/staff/applications", desc: "Review and approve mentor applications." },
+    { label: "Matching", href: "/dashboard/staff/matches", desc: "Assign mentors to youth, manage matches." },
+  ];
+
+  const comingNextLinks = [
+    "Youth directory",
     "Programs",
     "Support Requests",
-    "Safety",
-    "Resources",
+    "Safety cases",
     "Reports",
   ];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Staff workspace
         </h1>
-        <p className="mt-1 text-havii-muted">Hello, {name}. Operational shells only — no fake stats.</p>
+        <p className="mt-1 text-havii-muted">Hello, {name}.</p>
       </div>
+
+      {/* Active tools */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-havii-ink">Mentorship</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {activeLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              <Card className="flex h-full flex-col transition hover:border-havii-teal/40">
+                <CardTitle className="text-base">{link.label}</CardTitle>
+                <CardDescription className="mt-1 flex-1">{link.desc}</CardDescription>
+                <span className="mt-3 text-sm font-medium text-havii-teal">Open →</span>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Coming next */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {links.map((label) => (
+        {comingNextLinks.map((label) => (
           <Card key={label} className="bg-slate-50">
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="text-base">{label}</CardTitle>
