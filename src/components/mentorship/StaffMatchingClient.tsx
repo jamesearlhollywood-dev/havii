@@ -144,9 +144,9 @@ function MatchStatusUpdater({ match }: { match: MatchInfo }) {
 
       {/* Audit info */}
       <div className="text-xs text-havii-muted border-t border-havii-mist pt-2">
-        <p>Created: {new Date(match.created_at).toLocaleString()}</p>
+        <p>Created: {new Date(match.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</p>
         {match.status_changed_at && (
-          <p>Last changed: {new Date(match.status_changed_at).toLocaleString()}</p>
+          <p>Last changed: {new Date(match.status_changed_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</p>
         )}
         {match.status_changed_by && (
           <p>Changed by: {match.status_changed_by.slice(0, 8)}…</p>
@@ -236,7 +236,7 @@ export function StaffMatchingClient({
               {r.availability_notes && (
                 <p className="text-sm text-havii-muted">Availability: {r.availability_notes}</p>
               )}
-              <p className="text-xs text-havii-muted">Requested: {new Date(r.created_at).toLocaleDateString()}</p>
+              <p className="text-xs text-havii-muted">Requested: {new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
             </div>
           ))
         ) : (

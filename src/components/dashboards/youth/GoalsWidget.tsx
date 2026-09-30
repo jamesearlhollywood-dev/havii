@@ -77,7 +77,7 @@ function GoalItem({ goal }: { goal: Goal }) {
           ) : null}
           {goal.target_date ? (
             <p className="mt-1 text-xs text-havii-muted">
-              Target: {new Date(goal.target_date).toLocaleDateString()}
+              Target: {new Date(goal.target_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </p>
           ) : null}
         </div>

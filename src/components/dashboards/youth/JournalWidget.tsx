@@ -44,7 +44,7 @@ export function JournalWidget({ entries }: { entries: JournalEntry[] }) {
                 {entry.body}
               </p>
               <p className="mt-1 text-xs text-havii-muted">
-                {new Date(entry.created_at).toLocaleDateString()}
+                {new Date(entry.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               </p>
             </Link>
           ))}
