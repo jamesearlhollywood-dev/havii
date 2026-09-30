@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import {
   completeOnboardingAction,
   type OnboardingState,
@@ -38,6 +38,13 @@ function calculateAge(dob: string): number | null {
   return age;
 }
 
+type StepDef = {
+  id: string;
+  title: string;
+  subtitle: string;
+  canShow: () => boolean;
+};
+
 export function OnboardingForm({ profile }: { profile: Profile }) {
   const [state, action, pending] = useActionState(completeOnboardingAction, initial);
   const [interests, setInterests] = useState<string[]>([]);
@@ -47,242 +54,468 @@ export function OnboardingForm({ profile }: { profile: Profile }) {
   const [mentorshipInterested, setMentorshipInterested] = useState(true);
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [dob, setDob] = useState(profile.date_of_birth ?? "");
+  const [stepIdx, setStepIdx] = useState(0);
+  const [stepError, setStepError] = useState<string | null>(null);
 
   const isYouth = profile.role === "youth";
   const age = calculateAge(dob);
   const isMinor = isYouth && age !== null && age < 18;
 
-  return (
-    <form action={action} className="space-y-6">
-      {state.error ? <Alert tone="error">{state.error}</Alert> : null}
-      {state.success ? <Alert tone="success">{state.success}</Alert> : null}
+  const role = profile.role;
 
-      <div className="rounded-2xl border border-havii-mist bg-havii-sand/40 px-4 py-3 text-sm text-havii-muted">
-        Setting up your <strong className="text-havii-ink">{displayRoleName(profile.role)}</strong> profile.
-        You can update details later.
+  const allSteps: StepDef[] = useMemo(() => [
+    {
+      id: "consent",
+      title: "Consent & agreement",
+      subtitle: "Please review before you continue.",
+      canShow: () => true,
+    },
+    {
+      id: "name",
+      title: "What should we call you?",
+      subtitle: "Your name and pronouns.",
+      canShow: () => true,
+    },
+    {
+      id: "dob",
+      title: "Your birthday",
+      subtitle: "This helps us personalize your experience.",
+      canShow: () => isYouth || role === "mentor",
+    },
+    {
+      id: "location",
+      title: "Where you live",
+      subtitle: "City and state are enough — keep it comfortable.",
+      canShow: () => isYouth || role === "caregiver",
+    },
+    {
+      id: "caregiver",
+      title: "Caregiver permission",
+      subtitle: "We need a caregiver or guardian's permission.",
+      canShow: () => isMinor,
+    },
+    {
+      id: "interests",
+      title: "What are you into?",
+      subtitle: "Pick anything that feels like you.",
+      canShow: () => isYouth,
+    },
+    {
+      id: "support",
+      title: "Where do you want support?",
+      subtitle: "Pick areas where you'd like help.",
+      canShow: () => isYouth,
+    },
+    {
+      id: "youth-extra",
+      title: "Mentorship & school",
+      subtitle: "A couple more things for your profile.",
+      canShow: () => isYouth,
+    },
+    {
+      id: "mentor-profession",
+      title: "Your profession",
+      subtitle: "Tell us about your background.",
+      canShow: () => role === "mentor",
+    },
+    {
+      id: "mentor-interests",
+      title: "Mentoring interests",
+      subtitle: "What can you help with?",
+      canShow: () => role === "mentor",
+    },
+    {
+      id: "caregiver-notes",
+      title: "Anything else?",
+      subtitle: "Optional notes about your connection.",
+      canShow: () => role === "caregiver",
+    },
+    {
+      id: "partner-org",
+      title: "Your organization",
+      subtitle: "Tell us about your organization.",
+      canShow: () => role === "community_partner",
+    },
+    {
+      id: "review",
+      title: "Ready to go?",
+      subtitle: "Review and finish your setup.",
+      canShow: () => true,
+    },
+  ], [isYouth, role, isMinor]);
+
+  const visibleSteps = useMemo(() => allSteps.filter((s) => s.canShow()), [allSteps]);
+  const currentStep = visibleSteps[stepIdx];
+  const totalSteps = visibleSteps.length;
+  const isLastStep = stepIdx === totalSteps - 1;
+  const progress = totalSteps > 1 ? (stepIdx / (totalSteps - 1)) * 100 : 100;
+
+  function nextStep() {
+    setStepError(null);
+
+    // Validate current step
+    const form = document.getElementById("onboarding-form") as HTMLFormElement | null;
+    if (!form) return;
+
+    // Check required fields in the current visible step
+    const stepEl = form.querySelector(`[data-step="${currentStep.id}"]`);
+    if (stepEl) {
+      const requiredFields = stepEl.querySelectorAll("[required]");
+      for (const field of requiredFields) {
+        const input = field as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+        if (!input.value?.trim()) {
+          input.focus();
+          setStepError("Please fill in this field to continue.");
+          return;
+        }
+      }
+    }
+
+    // Consent validation
+    if (currentStep.id === "consent" && !consentAccepted) {
+      setStepError("Please review and accept the consent terms to continue.");
+      return;
+    }
+
+    if (stepIdx < totalSteps - 1) {
+      setStepIdx(stepIdx + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function prevStep() {
+    setStepError(null);
+    if (stepIdx > 0) {
+      setStepIdx(stepIdx - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  return (
+    <form id="onboarding-form" action={action} className="space-y-0">
+      {/* Server action feedback */}
+      {state.error ? <Alert tone="error" className="mb-4">{state.error}</Alert> : null}
+      {state.success ? <Alert tone="success" className="mb-4">{state.success}</Alert> : null}
+
+      {/* Progress bar */}
+      <div className="mb-6">
+        <div className="mb-2 flex items-center justify-between text-xs text-havii-muted">
+          <span>Step {stepIdx + 1} of {totalSteps}</span>
+          <span>{displayRoleName(profile.role)} setup</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-havii-sand">
+          <div
+            className="h-full rounded-full bg-havii-teal transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
 
-      {/* Consent section */}
-      <section className="space-y-4 rounded-2xl border border-havii-teal/30 bg-havii-teal/5 p-4">
-        <h2 className="text-base font-semibold text-havii-ink">Consent &amp; agreement</h2>
-        <p className="text-sm text-havii-muted">
-          Please review and agree to the following before continuing.
-        </p>
-        <div className="space-y-3">
-          <label className="flex items-start gap-3 text-sm text-havii-ink">
-            <input
-              type="checkbox"
-              checked={consentAccepted}
-              onChange={(e) => setConsentAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-havii-mist text-havii-teal focus:ring-havii-teal"
-            />
-            <span>
-              I understand that <strong>HAVII is not an emergency service</strong> and is not
-              monitored 24/7. If I or someone else is in danger, I will call 911 or 988. I agree
-              to HAVII&apos;s Terms of Use and Privacy Policy, and I consent to participate.
-            </span>
-          </label>
-        </div>
-        <input type="hidden" name="consent_accepted" value={consentAccepted ? "true" : "false"} />
-      </section>
+      {/* Step error */}
+      {stepError ? (
+        <Alert tone="error" className="mb-4">{stepError}</Alert>
+      ) : null}
 
-      <section className="space-y-4">
-        <h2 className="text-base font-semibold text-havii-ink">About you</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            name="first_name"
-            label="First name"
-            defaultValue={profile.first_name ?? ""}
-          />
-          <Input
-            name="last_name"
-            label="Last name"
-            defaultValue={profile.last_name ?? ""}
-          />
-        </div>
-        <Input
-          name="preferred_name"
-          label="Preferred name"
-          defaultValue={profile.preferred_name ?? profile.first_name ?? ""}
-          required
-        />
-        <Input name="pronouns" label="Pronouns (optional)" placeholder="e.g. they/them" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input name="city" label="City" defaultValue={profile.city ?? ""} />
-          <Input name="state" label="State" defaultValue={profile.state ?? ""} />
-        </div>
-        <Input name="phone" label="Phone (optional)" type="tel" />
-        {(isYouth || profile.role === "mentor") && (
-          <Input
-            name="date_of_birth"
-            label="Date of birth"
-            type="date"
-            required={isYouth}
-            defaultValue={profile.date_of_birth ?? ""}
-            onChange={(e) => setDob(e.target.value)}
-          />
-        )}
-      </section>
-
-      {isMinor && (
-        <section className="space-y-4 rounded-2xl border border-havii-coral/30 bg-havii-coral/5 p-4">
-          <h2 className="text-base font-semibold text-havii-ink">Caregiver permission</h2>
-          <Alert tone="warning">
-            You are under 18, so we need a caregiver or guardian&apos;s permission. Please
-            provide their contact information — we&apos;ll reach out to confirm.
-          </Alert>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input name="caregiver_name" label="Caregiver name" required />
-            <Input name="caregiver_email" label="Caregiver email" type="email" required />
-          </div>
-          <Input
-            name="caregiver_relationship"
-            label="Relationship (optional)"
-            placeholder="e.g. parent, guardian, grandparent"
-          />
-        </section>
-      )}
-
-      {isYouth ? (
-        <section className="space-y-4">
-          <h2 className="text-base font-semibold text-havii-ink">Youth details</h2>
-          <Input
-            name="location_general"
-            label="General location"
-            hint="City/region is enough — keep it comfortable"
-            placeholder="e.g. Atlanta area"
-          />
-          <Input name="school_or_program" label="School or program (optional)" />
-          <CheckboxGroup
-            legend="Interests"
-            name="interests"
-            options={interestOptions}
-            values={interests}
-            onChange={setInterests}
-          />
-          {interests.map((v) => (
-            <input key={v} type="hidden" name="interests" value={v} />
-          ))}
-          <CheckboxGroup
-            legend="Areas where you'd like support"
-            name="help_areas"
-            options={helpOptions}
-            values={helpAreas}
-            onChange={setHelpAreas}
-          />
-          {helpAreas.map((v) => (
-            <input key={v} type="hidden" name="help_areas" value={v} />
-          ))}
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium text-havii-ink">
-              Interested in mentorship?
-            </legend>
-            <div className="flex gap-3">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="mentorship_interested_ui"
-                  checked={mentorshipInterested}
-                  onChange={() => setMentorshipInterested(true)}
-                />
-                Yes
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="mentorship_interested_ui"
-                  checked={!mentorshipInterested}
-                  onChange={() => setMentorshipInterested(false)}
-                />
-                Not right now
-              </label>
+      {/* Step content — all steps in DOM, only current visible */}
+      {visibleSteps.map((step) => {
+        const isCurrent = step.id === currentStep.id;
+        return (
+          <div key={step.id} data-step={step.id} className={isCurrent ? "" : "hidden"}>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold tracking-tight text-havii-ink">
+                {step.title}
+              </h2>
+              <p className="mt-1 text-sm text-havii-muted">{step.subtitle}</p>
             </div>
-            <input
-              type="hidden"
-              name="mentorship_interested"
-              value={mentorshipInterested ? "true" : "false"}
-            />
-          </fieldset>
-        </section>
-      ) : null}
 
-      {profile.role === "mentor" ? (
-        <section className="space-y-4">
-          <Alert tone="info">
-            Completing this profile starts your mentor application — it does{" "}
-            <strong>not</strong> mean you are an approved mentor yet. Screening and
-            training come next.
-          </Alert>
-          <Input
-            name="profession"
-            label="Profession / role"
-            required
-            placeholder="e.g. Software engineer, counselor, entrepreneur"
-          />
-          <Textarea
-            name="background_summary"
-            label="Background summary"
-            hint="A short note about your experience and why you want to mentor"
-          />
-          <Input name="location_general" label="General location" />
-          <CheckboxGroup
-            legend="Mentoring interests"
-            name="mentoring_interests"
-            options={interestOptions}
-            values={mentoringInterests}
-            onChange={setMentoringInterests}
-          />
-          {mentoringInterests.map((v) => (
-            <input key={v} type="hidden" name="mentoring_interests" value={v} />
-          ))}
-          <CheckboxGroup
-            legend="Support areas you can offer"
-            name="support_areas"
-            options={helpOptions}
-            values={supportAreas}
-            onChange={setSupportAreas}
-          />
-          {supportAreas.map((v) => (
-            <input key={v} type="hidden" name="support_areas" value={v} />
-          ))}
-        </section>
-      ) : null}
+            {/* CONSENT STEP */}
+            {step.id === "consent" && (
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-havii-teal/30 bg-havii-teal/5 p-4">
+                  <div className="space-y-3">
+                    <label className="flex items-start gap-3 text-sm text-havii-ink">
+                      <input
+                        type="checkbox"
+                        checked={consentAccepted}
+                        onChange={(e) => setConsentAccepted(e.target.checked)}
+                        className="mt-0.5 h-5 w-5 rounded border-havii-mist text-havii-teal focus:ring-havii-teal"
+                      />
+                      <span>
+                        I understand that <strong>HAVII is not an emergency service</strong> and is not
+                        monitored 24/7. If I or someone else is in danger, I will call 911 or 988. I agree
+                        to HAVII&apos;s Terms of Use and Privacy Policy, and I consent to participate.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+                <input type="hidden" name="consent_accepted" value={consentAccepted ? "true" : "false"} />
+              </div>
+            )}
 
-      {profile.role === "caregiver" ? (
-        <section className="space-y-4">
-          <h2 className="text-base font-semibold text-havii-ink">Caregiver details</h2>
-          <Textarea
-            name="relationship_notes"
-            label="Notes (optional)"
-            hint="Youth connections are set up later with consent — nothing is linked automatically."
-          />
-        </section>
-      ) : null}
+            {/* NAME STEP */}
+            {step.id === "name" && (
+              <div className="space-y-4">
+                <Input name="first_name" label="First name" defaultValue={profile.first_name ?? ""} />
+                <Input name="last_name" label="Last name" defaultValue={profile.last_name ?? ""} />
+                <Input
+                  name="preferred_name"
+                  label="Preferred name"
+                  hint="What should we call you?"
+                  defaultValue={profile.preferred_name ?? profile.first_name ?? ""}
+                  required
+                />
+                <Input name="pronouns" label="Pronouns (optional)" placeholder="e.g. they/them" />
+              </div>
+            )}
 
-      {profile.role === "community_partner" ? (
-        <section className="space-y-4">
-          <h2 className="text-base font-semibold text-havii-ink">Organization</h2>
-          <Input name="organization_name" label="Organization name" required />
-          <Input name="title_role" label="Your title / role" />
-          <Input name="contact_email" type="email" label="Contact email" />
-          <Textarea
-            name="reason_for_use"
-            label="Reason for using HAVII"
-            required
-            hint="Your account will be pending review after you submit."
-          />
-        </section>
-      ) : null}
+            {/* DOB STEP */}
+            {step.id === "dob" && (
+              <div className="space-y-4">
+                <Input
+                  name="date_of_birth"
+                  label="Date of birth"
+                  type="date"
+                  required={isYouth}
+                  defaultValue={profile.date_of_birth ?? ""}
+                  onChange={(e) => setDob(e.target.value)}
+                />
+                {isMinor && (
+                  <Alert tone="info">
+                    Since you&apos;re under 18, we&apos;ll ask for a caregiver&apos;s permission next.
+                  </Alert>
+                )}
+              </div>
+            )}
 
-      {(profile.role === "staff" || profile.role === "administrator") && (
-        <Alert tone="info">
-          Staff/admin onboarding is minimal in Phase 1. Confirm your name and continue.
-        </Alert>
-      )}
+            {/* LOCATION STEP */}
+            {step.id === "location" && (
+              <div className="space-y-4">
+                <Input name="city" label="City" defaultValue={profile.city ?? ""} />
+                <Input name="state" label="State" defaultValue={profile.state ?? ""} />
+                <Input name="phone" label="Phone (optional)" type="tel" />
+              </div>
+            )}
 
-      <Button type="submit" className="w-full sm:w-auto" loading={pending}>
-        Save and continue
-      </Button>
+            {/* CAREGIVER PERMISSION STEP */}
+            {step.id === "caregiver" && (
+              <div className="space-y-4">
+                <Alert tone="warning">
+                  You are under 18, so we need a caregiver or guardian&apos;s permission.
+                  We&apos;ll reach out to confirm.
+                </Alert>
+                <Input name="caregiver_name" label="Caregiver name" required />
+                <Input name="caregiver_email" label="Caregiver email" type="email" required />
+                <Input
+                  name="caregiver_relationship"
+                  label="Relationship (optional)"
+                  placeholder="e.g. parent, guardian, grandparent"
+                />
+              </div>
+            )}
+
+            {/* INTERESTS STEP */}
+            {step.id === "interests" && (
+              <div className="space-y-4">
+                <CheckboxGroup
+                  legend="Interests"
+                  name="interests"
+                  options={interestOptions}
+                  values={interests}
+                  onChange={setInterests}
+                />
+                {interests.map((v) => (
+                  <input key={v} type="hidden" name="interests" value={v} />
+                ))}
+              </div>
+            )}
+
+            {/* SUPPORT AREAS STEP */}
+            {step.id === "support" && (
+              <div className="space-y-4">
+                <CheckboxGroup
+                  legend="Areas where you'd like support"
+                  name="help_areas"
+                  options={helpOptions}
+                  values={helpAreas}
+                  onChange={setHelpAreas}
+                />
+                {helpAreas.map((v) => (
+                  <input key={v} type="hidden" name="help_areas" value={v} />
+                ))}
+              </div>
+            )}
+
+            {/* YOUTH EXTRA STEP */}
+            {step.id === "youth-extra" && (
+              <div className="space-y-4">
+                <Input
+                  name="location_general"
+                  label="General location"
+                  hint="City/region is enough — keep it comfortable"
+                  placeholder="e.g. Atlanta area"
+                />
+                <Input name="school_or_program" label="School or program (optional)" />
+                <fieldset className="space-y-2">
+                  <legend className="text-sm font-medium text-havii-ink">
+                    Interested in mentorship?
+                  </legend>
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="mentorship_interested_ui"
+                        checked={mentorshipInterested}
+                        onChange={() => setMentorshipInterested(true)}
+                        className="h-5 w-5 text-havii-teal"
+                      />
+                      Yes
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="mentorship_interested_ui"
+                        checked={!mentorshipInterested}
+                        onChange={() => setMentorshipInterested(false)}
+                        className="h-5 w-5 text-havii-teal"
+                      />
+                      Not right now
+                    </label>
+                  </div>
+                  <input
+                    type="hidden"
+                    name="mentorship_interested"
+                    value={mentorshipInterested ? "true" : "false"}
+                  />
+                </fieldset>
+              </div>
+            )}
+
+            {/* MENTOR PROFESSION STEP */}
+            {step.id === "mentor-profession" && (
+              <div className="space-y-4">
+                <Alert tone="info">
+                  Completing this profile starts your mentor application — it does{" "}
+                  <strong>not</strong> mean you are an approved mentor yet.
+                </Alert>
+                <Input
+                  name="profession"
+                  label="Profession / role"
+                  placeholder="e.g. Software engineer, counselor, entrepreneur"
+                  required
+                />
+                <Textarea
+                  name="background_summary"
+                  label="Background summary"
+                  hint="A short note about your experience and why you want to mentor"
+                />
+                <Input name="location_general" label="General location" />
+              </div>
+            )}
+
+            {/* MENTOR INTERESTS STEP */}
+            {step.id === "mentor-interests" && (
+              <div className="space-y-4">
+                <CheckboxGroup
+                  legend="Mentoring interests"
+                  name="mentoring_interests"
+                  options={interestOptions}
+                  values={mentoringInterests}
+                  onChange={setMentoringInterests}
+                />
+                {mentoringInterests.map((v) => (
+                  <input key={v} type="hidden" name="mentoring_interests" value={v} />
+                ))}
+                <CheckboxGroup
+                  legend="Support areas you can offer"
+                  name="support_areas"
+                  options={helpOptions}
+                  values={supportAreas}
+                  onChange={setSupportAreas}
+                />
+                {supportAreas.map((v) => (
+                  <input key={v} type="hidden" name="support_areas" value={v} />
+                ))}
+              </div>
+            )}
+
+            {/* CAREGIVER NOTES STEP */}
+            {step.id === "caregiver-notes" && (
+              <div className="space-y-4">
+                <Textarea
+                  name="relationship_notes"
+                  label="Notes (optional)"
+                  hint="Youth connections are set up later with consent — nothing is linked automatically."
+                />
+              </div>
+            )}
+
+            {/* PARTNER ORG STEP */}
+            {step.id === "partner-org" && (
+              <div className="space-y-4">
+                <Input name="organization_name" label="Organization name" required />
+                <Input name="title_role" label="Your title / role" />
+                <Input name="contact_email" type="email" label="Contact email" />
+                <Textarea
+                  name="reason_for_use"
+                  label="Reason for using HAVII"
+                  hint="Your account will be pending review after you submit."
+                  required
+                />
+              </div>
+            )}
+
+            {/* REVIEW STEP */}
+            {step.id === "review" && (
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-havii-mist bg-havii-sand/40 p-4 text-sm text-havii-muted">
+                  Setting up your <strong className="text-havii-ink">{displayRoleName(profile.role)}</strong> profile.
+                  You can update details later.
+                </div>
+                {(profile.role === "staff" || profile.role === "administrator") && (
+                  <Alert tone="info">
+                    Staff/admin onboarding is minimal. Confirm your name and continue.
+                  </Alert>
+                )}
+                <p className="text-sm text-havii-muted">
+                  Tap &quot;Finish&quot; to complete your setup. You can always change
+                  your details later.
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Navigation buttons — fixed bottom bar on mobile */}
+      <div className="sticky bottom-0 z-30 mt-6 -mx-4 flex items-center gap-3 border-t border-havii-mist bg-white/95 px-4 py-3 backdrop-blur-md pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+        {stepIdx > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={prevStep}
+            className="flex-1"
+          >
+            Back
+          </Button>
+        )}
+        {!isLastStep ? (
+          <Button
+            type="button"
+            onClick={nextStep}
+            className="flex-1"
+          >
+            Continue
+          </Button>
+        ) : (
+          <Button
+            type="submit"
+            loading={pending}
+            className="flex-1"
+          >
+            Finish
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

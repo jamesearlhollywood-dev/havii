@@ -73,60 +73,69 @@ export function YouthDashboard({
 }) {
   const name = displayName(profile);
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-havii-ink sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-havii-ink">
           Welcome, {name}
         </h1>
-        <p className="mt-1 text-havii-muted">
+        <p className="mt-1 text-sm text-havii-muted">
           A calm place to connect, grow, and find support.
         </p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Mood check-in */}
-        <Card>
-          <CardTitle className="text-base mb-3">How are you feeling?</CardTitle>
-          <MoodCheckIn todayCheckIn={todayCheckIn} />
-        </Card>
 
-        {/* Mentor connection */}
-        <Card className="border-havii-teal/30 bg-gradient-to-br from-white to-havii-teal/5">
-          <CardTitle className="text-base mb-3">My Mentor</CardTitle>
-          <MentorConnection youth={youth} hasMatch={hasMatch} />
-        </Card>
+      {/* Mood check-in — featured at top */}
+      <Card>
+        <CardTitle className="text-base mb-3">How are you feeling?</CardTitle>
+        <MoodCheckIn todayCheckIn={todayCheckIn} />
+      </Card>
 
-        {/* Goals */}
-        <Card>
-          <CardTitle className="text-base mb-3">My Goals</CardTitle>
-          <GoalsWidget goals={goals} />
-        </Card>
+      {/* Upcoming sessions */}
+      <Card>
+        <CardTitle className="text-base mb-3">Upcoming Sessions</CardTitle>
+        <SessionsWidget sessions={sessions} />
+      </Card>
 
-        {/* Journal */}
-        <Card>
-          <CardTitle className="text-base mb-3">My Journal</CardTitle>
-          <JournalWidget entries={journalEntries} />
-        </Card>
+      {/* Mentor connection */}
+      <Card className="border-havii-teal/30 bg-gradient-to-br from-white to-havii-teal/5">
+        <CardTitle className="text-base mb-3">My Mentor</CardTitle>
+        <MentorConnection youth={youth} hasMatch={hasMatch} />
+      </Card>
 
-        {/* Upcoming sessions */}
-        <Card>
-          <CardTitle className="text-base mb-3">Upcoming Sessions</CardTitle>
-          <SessionsWidget sessions={sessions} />
-        </Card>
-
-        {/* Support */}
-        <Card className="flex h-full flex-col border-havii-coral/20">
-          <CardTitle className="text-base mb-3">Support Hub</CardTitle>
-          <p className="flex-1 text-sm text-havii-muted">
-            Need help? Reach out — HAVII staff are available during business hours.
-            HAVII is not monitored 24/7.
-          </p>
-          <div className="mt-4">
-            <Link href="/help">
-              <Button size="sm" variant="outline">Get Help</Button>
-            </Link>
-          </div>
-        </Card>
+      {/* Quick links to Goals & Journal */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link href="/dashboard/goals">
+          <Card className="flex h-full flex-col items-center gap-1 py-4 text-center transition hover:border-havii-teal/40">
+            <span className="text-2xl">🎯</span>
+            <span className="text-sm font-medium text-havii-ink">My Goals</span>
+            <span className="text-xs text-havii-muted">
+              {goals.length} active
+            </span>
+          </Card>
+        </Link>
+        <Link href="/dashboard/journal">
+          <Card className="flex h-full flex-col items-center gap-1 py-4 text-center transition hover:border-havii-teal/40">
+            <span className="text-2xl">📖</span>
+            <span className="text-sm font-medium text-havii-ink">My Journal</span>
+            <span className="text-xs text-havii-muted">
+              {journalEntries.length} entries
+            </span>
+          </Card>
+        </Link>
       </div>
+
+      {/* Support */}
+      <Card className="flex flex-col border-havii-coral/20">
+        <CardTitle className="text-base mb-3">Support Hub</CardTitle>
+        <p className="flex-1 text-sm text-havii-muted">
+          Need help? Reach out — HAVII staff are available during business hours.
+          HAVII is not monitored 24/7.
+        </p>
+        <div className="mt-4">
+          <Link href="/help">
+            <Button size="sm" variant="outline">Get Help</Button>
+          </Link>
+        </div>
+      </Card>
     </div>
   );
 }

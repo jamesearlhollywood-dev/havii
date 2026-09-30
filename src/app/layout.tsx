@@ -19,6 +19,20 @@ export const metadata: Metadata = {
   },
   description:
     "HAVII is a youth wellness, mentorship, and personal development platform by Together For You, Inc. Ages 13–24.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "HAVII",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport = {
+  themeColor: "#0f766e",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

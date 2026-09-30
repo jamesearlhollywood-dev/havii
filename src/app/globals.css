@@ -45,3 +45,28 @@ body {
 details > summary::-webkit-details-marker {
   display: none;
 }
+
+/* Mobile safe areas */
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Prevent horizontal scroll on mobile */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Larger touch targets on mobile */
+@media (max-width: 767px) {
+  button, a, input, select, textarea, label {
+    touch-action: manipulation;
+  }
+}
+
+/* Smooth scrolling for in-page anchors */
+html {
+  scroll-behavior: smooth;
+}
