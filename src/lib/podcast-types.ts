@@ -10,8 +10,24 @@ export type EpisodeStatus =
   | "recording"
   | "editing"
   | "scheduled"
+  | "recorded"
+  | "ready_for_review"
   | "published"
   | "archived";
+
+/**
+ * Statuses exposed in the admin UI, in the order they appear in filters.
+ * "recording" is kept in the DB type for backward compat but not surfaced.
+ */
+export const EPISODE_STATUSES: EpisodeStatus[] = [
+  "planned",
+  "scheduled",
+  "recorded",
+  "editing",
+  "ready_for_review",
+  "published",
+  "archived",
+];
 
 export type GuestBookingStatus =
   | "invited"
@@ -91,6 +107,24 @@ export interface Episode {
   featured: boolean;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Episode enriched with related show + guest data (for table rows, cards, etc.).
+ */
+export interface EpisodeWithShow extends Episode {
+  show: { show_name: string; slug: string; category: string | null } | null;
+  guest: {
+    id: string;
+    first_name: string;
+    last_name: string | null;
+    professional_title: string | null;
+    organization: string | null;
+    biography: string | null;
+    headshot: string | null;
+    website: string | null;
+    linkedin_url: string | null;
+  } | null;
 }
 
 export interface Guest {
@@ -176,10 +210,12 @@ export const SHOW_CATEGORIES = [
 ] as const;
 
 export const EPISODE_STATUS_LABELS: Record<EpisodeStatus, string> = {
-  planned: "Planned",
+  planned: "Draft",
   recording: "Recording",
   editing: "Editing",
   scheduled: "Scheduled",
+  recorded: "Recorded",
+  ready_for_review: "Ready for Review",
   published: "Published",
   archived: "Archived",
 };

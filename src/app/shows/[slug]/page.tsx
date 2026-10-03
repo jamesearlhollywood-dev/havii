@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { PublicPage } from "@/components/layout/PublicNav";
 import { ArtworkFrame } from "@/components/visual/ArtworkFrame";
 import { Waveform } from "@/components/visual/Waveform";
+import { EpisodeCard } from "@/components/podcast/EpisodeCard";
 import { getShowBySlug, getPublishedEpisodesByShow } from "@/lib/podcast-data";
-import { EPISODE_STATUS_LABELS } from "@/lib/podcast-types";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +21,6 @@ export async function generateMetadata({
     title: show.show_name,
     description: show.short_description ?? show.full_description ?? undefined,
   };
-}
-
-function formatDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
-  });
 }
 
 function PlatformLinks({ show }: { show: { spotify_url: string | null; apple_podcast_url: string | null; youtube_url: string | null; rss_feed_url: string | null; website_url: string | null } }) {
@@ -151,29 +144,9 @@ export default async function ShowPage({
             </p>
           </div>
         ) : (
-          <div className="mt-4 space-y-3">
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {episodes.map((ep) => (
-              <Link
-                key={ep.id}
-                href={`/episodes#${ep.slug}`}
-                className="flex items-center gap-4 rounded-2xl border border-studio-line bg-studio-charcoal p-4 transition hover:border-studio-gold/40"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-studio-line bg-studio-surface">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-studio-gold"><polygon points="6 4 20 12 6 20 6 4" /></svg>
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-studio-ink">{ep.title}</p>
-                  <p className="text-xs text-studio-muted">
-                    {formatDate(ep.publish_date)}
-                    {ep.duration ? ` · ${ep.duration}` : ""}
-                  </p>
-                </div>
-                {ep.short_description && (
-                  <p className="hidden truncate text-sm text-studio-muted lg:block lg:max-w-xs">
-                    {ep.short_description}
-                  </p>
-                )}
-              </Link>
+              <EpisodeCard key={ep.id} episode={ep} />
             ))}
           </div>
         )}

@@ -2,8 +2,14 @@ import Link from "next/link";
 import { PublicHeader, PublicFooter } from "@/components/layout/PublicNav";
 import { ArtworkFrame } from "@/components/visual/ArtworkFrame";
 import { Waveform } from "@/components/visual/Waveform";
+import { EpisodeCard } from "@/components/podcast/EpisodeCard";
+import { getFeaturedEpisodes } from "@/lib/podcast-data";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const featuredEpisodes = await getFeaturedEpisodes();
+
   return (
     <div className="flex min-h-screen flex-col bg-studio-black">
       <PublicHeader />
@@ -92,6 +98,33 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Episodes */}
+      {featuredEpisodes.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-16">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-studio-gold">
+                Featured
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-studio-ink">
+                Featured Episodes
+              </h2>
+            </div>
+            <Link
+              href="/episodes"
+              className="hidden rounded-lg border border-studio-line px-4 py-2 text-sm text-studio-ink transition hover:border-studio-gold/50 hover:text-studio-gold sm:inline-flex"
+            >
+              All Episodes →
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredEpisodes.map((ep) => (
+              <EpisodeCard key={ep.id} episode={ep} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Network pillars */}
       <section className="mx-auto max-w-6xl px-4 py-16">

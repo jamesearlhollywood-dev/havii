@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   Show,
   Episode,
+  EpisodeWithShow,
   Guest,
   Sponsor,
   ContactMessage,
@@ -238,16 +239,16 @@ export async function getPublicShows(): Promise<Show[]> {
 // Episodes for a show
 // ---------------------------------------------------------------------------
 
-export async function getPublishedEpisodesByShow(showId: string): Promise<Episode[]> {
+export async function getPublishedEpisodesByShow(showId: string): Promise<EpisodeWithShow[]> {
   const supabase = await getClient();
   if (!supabase) return [];
   const { data } = await supabase
     .from("episodes")
-    .select("*")
+    .select(EPISODE_RELATION_SELECT)
     .eq("show_id", showId)
     .eq("episode_status", "published")
-    .order("publish_date", { ascending: false });
-  return (data ?? []) as Episode[];
+    .order("publish_date", { ascending: false, nullsFirst: false });
+  return (data ?? []).map(mapEpisodeWithShow);
 }
 
 export async function getEpisodeCountByShow(showId: string): Promise<number> {
@@ -258,4 +259,181 @@ export async function getEpisodeCountByShow(showId: string): Promise<number> {
     .select("id", { count: "exact", head: true })
     .eq("show_id", showId);
   return count ?? 0;
+}
+
+// ---------------------------------------------------------------------------
+// Episodes (admin + public)
+// ---------------------------------------------------------------------------
+
+const EPISODE_RELATION_SELECT = `
+  *,
+  show:shows!inner(show_name, slug, category),
+  guest:guests(id, first_name, last_name, professional_title, organization, biography, headshot, website, linkedin_url)
+`;
+
+function mapEpisodeWithShow(row: Record<string, unknown>): EpisodeWithShow {
+  return row as unknown as EpisodeWithShow;
+}
+
+/** Admin: all episodes with show + guest relations, newest first. */
+export async function getAllEpisodes(): Promise<EpisodeWithShow[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("episodes")
+    .select(EPISODE_RELATION_SELECT)
+    .order("updated_at", { ascending: false });
+  return (data ?? []).map(mapEpisodeWithShow);
+}
+
+/** Admin: single episode by ID (any status) with show + guest. */
+export async function getEpisodeById(id: string): Promise<EpisodeWithShow | null> {
+  const supabase = await getClient();
+  if (!supabase) return null;
+  const { data } = await supabase
+    .from("episodes")
+    .select(EPISODE_RELATION_SELECT)
+    .eq("id", id)
+    .maybeSingle();
+  return data ? mapEpisodeWithShow(data) : null;
+}
+
+/** Public: single published episode by show slug + episode slug. */
+export async function getPublishedEpisodeBySlug(
+  showSlug: string,
+  episodeSlug: string
+): Promise<EpisodeWithShow | null> {
+  const supabase = await getClient();
+  if (!supabase) return null;
+
+  // Verify the show exists and is active, then fetch the published episode.
+  const { data: show } = await supabase
+    .from("shows")
+    .select("id")
+    .eq("slug", showSlug)
+    .eq("status", "active")
+    .maybeSingle();
+  if (!show) return null;
+
+  const { data } = await supabase
+    .from("episodes")
+    .select(EPISODE_RELATION_SELECT)
+    .eq("show_id", show.id)
+    .eq("slug", episodeSlug)
+    .eq("episode_status", "published")
+    .maybeSingle();
+  return data ? mapEpisodeWithShow(data) : null;
+}
+
+/** Public: all published episodes with show + guest, newest publish date first. */
+export async function getPublishedEpisodes(): Promise<EpisodeWithShow[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("episodes")
+    .select(EPISODE_RELATION_SELECT)
+    .eq("episode_status", "published")
+    .order("publish_date", { ascending: false, nullsFirst: false });
+  return (data ?? []).map(mapEpisodeWithShow);
+}
+
+/** Public: featured published episodes with show + guest. */
+export async function getFeaturedEpisodes(): Promise<EpisodeWithShow[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("episodes")
+    .select(EPISODE_RELATION_SELECT)
+    .eq("episode_status", "published")
+    .eq("featured", true)
+    .order("publish_date", { ascending: false, nullsFirst: false })
+    .limit(6);
+  return (data ?? []).map(mapEpisodeWithShow);
+}
+
+/** Public: related published episodes from the same show (excluding one). */
+export async function getRelatedEpisodes(
+  showId: string,
+  excludeId: string,
+  limit = 4
+): Promise<EpisodeWithShow[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("episodes")
+    .select(EPISODE_RELATION_SELECT)
+    .eq("show_id", showId)
+    .eq("episode_status", "published")
+    .neq("id", excludeId)
+    .order("publish_date", { ascending: false, nullsFirst: false })
+    .limit(limit);
+  return (data ?? []).map(mapEpisodeWithShow);
+}
+
+export interface EpisodeSearchFilters {
+  showId?: string;
+  guestId?: string;
+  category?: string;
+}
+
+/** Public: search published episodes by query text + filters. */
+export async function searchPublishedEpisodes(
+  query: string,
+  filters: EpisodeSearchFilters = {}
+): Promise<EpisodeWithShow[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+
+  let q = supabase
+    .from("episodes")
+    .select(EPISODE_RELATION_SELECT)
+    .eq("episode_status", "published");
+
+  if (filters.showId) q = q.eq("show_id", filters.showId);
+  if (filters.guestId) q = q.eq("guest_id", filters.guestId);
+
+  // Category lives on the shows table — resolve matching show IDs first.
+  if (filters.category) {
+    const { data: catShows } = await supabase
+      .from("shows")
+      .select("id")
+      .eq("category", filters.category)
+      .eq("status", "active");
+    const catIds = (catShows ?? []).map((s) => s.id);
+    if (catIds.length === 0) return [];
+    q = q.in("show_id", catIds);
+  }
+
+  // Full-text search across title + short_description + show_notes + transcript
+  const term = query.trim();
+  if (term) {
+    q = q.or(
+      `title.ilike.%${term}%,short_description.ilike.%${term}%,show_notes.ilike.%${term}%,transcript.ilike.%${term}%`
+    );
+  }
+
+  q = q.order("publish_date", { ascending: false, nullsFirst: false });
+  const { data } = await q;
+  return (data ?? []).map(mapEpisodeWithShow);
+}
+
+// ---------------------------------------------------------------------------
+// Guests (for episode form select + public info)
+// ---------------------------------------------------------------------------
+
+export async function getAllGuests(): Promise<Guest[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("guests")
+    .select("*")
+    .order("first_name", { ascending: true });
+  return (data ?? []) as Guest[];
+}
+
+export async function getGuestById(id: string): Promise<Guest | null> {
+  const supabase = await getClient();
+  if (!supabase) return null;
+  const { data } = await supabase.from("guests").select("*").eq("id", id).maybeSingle();
+  return data as Guest | null;
 }
