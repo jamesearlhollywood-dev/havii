@@ -1,22 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f4ef;
-  --foreground: #1c2b2d;
-  --havii-teal: #0f766e;
-  --havii-teal-dark: #0b5a54;
-  --havii-coral: #e07a5f;
-  --havii-coral-dark: #c45d44;
-  --havii-cream: #f7f4ef;
-  --havii-sand: #efe8dc;
-  --havii-mist: #d9d2c5;
-  --havii-ink: #1c2b2d;
-  --havii-muted: #5c6b6d;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+
+  /* Career AI palette — white, slate, dark navy, blue accents */
+  --career-navy: #0f172a;
+  --career-navy-2: #1e293b;
+  --career-blue: #2563eb;
+  --career-blue-dark: #1d4ed8;
+  --career-blue-light: #3b82f6;
+  --career-slate: #64748b;
+  --career-slate-light: #94a3b8;
+  --career-border: #e2e8f0;
+  --career-bg: #f8fafc;
+  --career-surface: #f1f5f9;
+
+  /* Legacy aliases mapped to new palette so existing components adopt the new look */
+  --havii-teal: var(--career-blue);
+  --havii-teal-dark: var(--career-blue-dark);
+  --havii-coral: var(--career-blue);
+  --havii-coral-dark: var(--career-blue-dark);
+  --havii-cream: var(--career-bg);
+  --havii-sand: var(--career-surface);
+  --havii-mist: var(--career-border);
+  --havii-ink: var(--career-navy);
+  --havii-muted: var(--career-slate);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-career-navy: var(--career-navy);
+  --color-career-navy-2: var(--career-navy-2);
+  --color-career-blue: var(--career-blue);
+  --color-career-blue-dark: var(--career-blue-dark);
+  --color-career-blue-light: var(--career-blue-light);
+  --color-career-slate: var(--career-slate);
+  --color-career-slate-light: var(--career-slate-light);
+  --color-career-border: var(--career-border);
+  --color-career-bg: var(--career-bg);
+  --color-career-surface: var(--career-surface);
   --color-havii-teal: var(--havii-teal);
   --color-havii-teal-dark: var(--havii-teal-dark);
   --color-havii-coral: var(--havii-coral);
@@ -36,9 +60,8 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-/* Accessible focus defaults */
 :focus-visible {
-  outline: 2px solid var(--havii-teal);
+  outline: 2px solid var(--career-blue);
   outline-offset: 2px;
 }
 

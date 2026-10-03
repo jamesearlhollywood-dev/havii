@@ -1,101 +1,128 @@
 import Link from "next/link";
-import { MarketingHeader } from "@/components/layout/AppShell";
-import { Button } from "@/components/ui/Button";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  let user = null;
+  try {
+    const supabase = await createClient();
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch {
+    // Supabase not configured — show landing page
+  }
+
+  if (user) redirect("/app/dashboard");
+
   return (
-    <div className="min-h-screen bg-havii-cream">
-      <MarketingHeader />
-      <main>
-        <section className="relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(15,118,110,0.12),_transparent_45%),radial-gradient(circle_at_bottom_left,_rgba(224,122,95,0.12),_transparent_40%)]" />
-          <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:py-24 lg:grid-cols-2 lg:items-center">
-            <div>
-              <p className="mb-3 text-sm font-medium uppercase tracking-wide text-havii-teal">
-                For youth ages 13–24
-              </p>
-              <h1 className="text-4xl font-semibold tracking-tight text-havii-ink sm:text-5xl">
-                A place to connect, grow, and find support.
-              </h1>
-              <p className="mt-4 max-w-xl text-lg text-havii-muted">
-                HAVII helps young people build confidence, find mentors, and access
-                caring support — calm, trustworthy, and built for real life. From{" "}
-                <span className="font-medium text-havii-ink">Together For You, Inc.</span>
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/auth/sign-up">
-                  <Button size="lg">Join HAVII</Button>
-                </Link>
-                <Link href="/auth/login">
-                  <Button size="lg" variant="outline">
-                    Log in
-                  </Button>
-                </Link>
-                <Link href="/help">
-                  <Button size="lg" variant="ghost">
-                    Need help now?
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {[
-                {
-                  title: "Mentorship",
-                  body: "Find someone in your corner — when matching opens.",
-                },
-                {
-                  title: "Growth",
-                  body: "Goals, programs, and skills that fit your path.",
-                },
-                {
-                  title: "Support",
-                  body: "Resources and a Support Hub designed with care.",
-                },
-                {
-                  title: "Safety-first",
-                  body: "Clear help paths. Privacy respected. No clinical diagnosis.",
-                },
-              ].map((item) => (
-                <Card key={item.title}>
-                  <CardTitle>{item.title}</CardTitle>
-                  <CardDescription>{item.body}</CardDescription>
-                </Card>
-              ))}
-            </div>
+    <div className="min-h-screen bg-career-bg">
+      {/* Header */}
+      <header className="border-b border-career-border bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-career-blue text-sm font-bold text-white">
+              C
+            </span>
+            <span className="font-semibold text-career-navy">Career AI</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/auth/login"
+              className="text-sm font-medium text-career-slate hover:text-career-navy"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/auth/sign-up"
+              className="rounded-lg bg-career-blue px-4 py-2 text-sm font-medium text-white hover:bg-career-blue-dark"
+            >
+              Get Started
+            </Link>
           </div>
-        </section>
+        </div>
+      </header>
 
-        <section className="border-t border-havii-mist bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-14">
-            <h2 className="text-2xl font-semibold text-havii-ink">Who HAVII is for</h2>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                ["Youth", "Explore support, mentors, goals, and community."],
-                ["Mentors", "Apply, train, and walk alongside young people."],
-                ["Caregivers", "Stay connected with consent and privacy."],
-                ["Partners", "Collaborate on programs and referrals."],
-              ].map(([title, body]) => (
-                <Card key={title} className="bg-havii-cream/60">
-                  <CardTitle className="text-base">{title}</CardTitle>
-                  <CardDescription>{body}</CardDescription>
-                </Card>
-              ))}
-            </div>
-            <p className="mt-8 text-sm text-havii-muted">
-              Staff and administrators use invitation-only accounts for operations.
-            </p>
-          </div>
-        </section>
-      </main>
-      <footer className="border-t border-havii-mist bg-havii-cream">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-havii-muted sm:flex-row sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} HAVII · Together For You, Inc.
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(37,99,235,0.08),_transparent_50%)]" />
+        <div className="relative mx-auto max-w-6xl px-4 py-20 text-center">
+          <p className="mb-3 text-sm font-medium uppercase tracking-wide text-career-blue">
+            Your career command center
           </p>
-          <Link href="/help" className="hover:text-havii-teal">
-            Help & crisis resources
+          <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-career-navy sm:text-5xl">
+            Organize your job search. Land your next role.
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-career-slate">
+            Career AI helps you track applications, tailor resumes, prepare for
+            interviews, and discover new opportunities — all in one professional workspace.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/auth/sign-up"
+              className="rounded-xl bg-career-blue px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-career-blue-dark"
+            >
+              Start free
+            </Link>
+            <Link
+              href="/auth/login"
+              className="rounded-xl border border-career-border bg-white px-6 py-3 text-base font-medium text-career-navy hover:bg-career-surface"
+            >
+              Log in
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="border-t border-career-border bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                title: "Job Tracker",
+                body: "Track every application from saved to offer with a clear status pipeline.",
+              },
+              {
+                title: "Find Jobs",
+                body: "Search and discover opportunities through connected job APIs.",
+              },
+              {
+                title: "Resume AI",
+                body: "Tailor resumes and generate cover letters with AI assistance.",
+              },
+              {
+                title: "Interview Prep",
+                body: "Practice with AI-powered mock interviews and get instant feedback.",
+              },
+              {
+                title: "Career Profile",
+                body: "Define your target roles, skills, and preferences to guide your search.",
+              },
+              {
+                title: "Dashboard",
+                body: "See your career stats at a glance — applications, interviews, offers.",
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="rounded-xl border border-career-border bg-career-bg p-5"
+              >
+                <h3 className="font-semibold text-career-navy">{f.title}</h3>
+                <p className="mt-1.5 text-sm text-career-slate">{f.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-career-border bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 text-sm text-career-slate">
+          <p>© {new Date().getFullYear()} Career AI</p>
+          <Link href="/auth/login" className="hover:text-career-navy">
+            Log in
           </Link>
         </div>
       </footer>

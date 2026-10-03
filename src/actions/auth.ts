@@ -72,7 +72,7 @@ export async function signUpAction(
     }
 
     if (data.session) {
-      redirect("/onboarding");
+      redirect("/app/dashboard");
     }
 
     return {
@@ -112,7 +112,7 @@ export async function loginAction(
     if (error) {
       return { error: error.message };
     }
-    redirect(next.startsWith("/") ? next : "/dashboard");
+    redirect(next.startsWith("/") ? next : "/app/dashboard");
   } catch (e) {
     if (e && typeof e === "object" && "digest" in e) {
       throw e;

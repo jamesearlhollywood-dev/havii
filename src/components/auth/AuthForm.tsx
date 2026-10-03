@@ -11,17 +11,9 @@ import {
 } from "@/actions/auth";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Alert } from "@/components/ui/Alert";
 
 const initial: AuthActionState = {};
-
-const roleOptions = [
-  { value: "youth", label: "Youth (13–24)" },
-  { value: "mentor", label: "Mentor" },
-  { value: "caregiver", label: "Caregiver / Family" },
-  { value: "community_partner", label: "Community Partner" },
-];
 
 export function SignUpForm() {
   const [state, action, pending] = useActionState(signUpAction, initial);
@@ -33,13 +25,6 @@ export function SignUpForm() {
         <Input name="first_name" label="First name" autoComplete="given-name" />
         <Input name="last_name" label="Last name" autoComplete="family-name" />
       </div>
-      <Input
-        name="preferred_name"
-        label="Preferred name"
-        hint="What should we call you?"
-        autoComplete="nickname"
-      />
-      <Select name="role" label="I am joining as" options={roleOptions} defaultValue="youth" />
       <Input
         name="email"
         type="email"
@@ -56,15 +41,13 @@ export function SignUpForm() {
         autoComplete="new-password"
         hint="At least 8 characters"
       />
-      <p className="text-xs text-havii-muted">
-        Staff and administrator accounts are invitation-only and cannot be selected here.
-      </p>
+      <input type="hidden" name="role" value="youth" />
       <Button type="submit" className="w-full" loading={pending}>
         Create account
       </Button>
-      <p className="text-center text-sm text-havii-muted">
+      <p className="text-center text-sm text-career-slate">
         Already have an account?{" "}
-        <Link href="/auth/login" className="font-medium text-havii-teal hover:underline">
+        <Link href="/auth/login" className="font-medium text-career-blue hover:underline">
           Log in
         </Link>
       </p>
@@ -72,7 +55,7 @@ export function SignUpForm() {
   );
 }
 
-export function LoginForm({ next = "/dashboard" }: { next?: string }) {
+export function LoginForm({ next = "/app/dashboard" }: { next?: string }) {
   const [state, action, pending] = useActionState(loginAction, initial);
   return (
     <form action={action} className="space-y-4">
@@ -87,16 +70,16 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
         autoComplete="current-password"
       />
       <div className="flex justify-end">
-        <Link href="/auth/forgot-password" className="text-sm text-havii-teal hover:underline">
+        <Link href="/auth/forgot-password" className="text-sm text-career-blue hover:underline">
           Forgot password?
         </Link>
       </div>
       <Button type="submit" className="w-full" loading={pending}>
         Log in
       </Button>
-      <p className="text-center text-sm text-havii-muted">
+      <p className="text-center text-sm text-career-slate">
         New here?{" "}
-        <Link href="/auth/sign-up" className="font-medium text-havii-teal hover:underline">
+        <Link href="/auth/sign-up" className="font-medium text-career-blue hover:underline">
           Create an account
         </Link>
       </p>
@@ -114,8 +97,8 @@ export function ForgotPasswordForm() {
       <Button type="submit" className="w-full" loading={pending}>
         Send reset link
       </Button>
-      <p className="text-center text-sm text-havii-muted">
-        <Link href="/auth/login" className="text-havii-teal hover:underline">
+      <p className="text-center text-sm text-career-slate">
+        <Link href="/auth/login" className="text-career-blue hover:underline">
           Back to log in
         </Link>
       </p>

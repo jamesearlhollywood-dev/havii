@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "HAVII — Connect, grow, and find support",
-    template: "%s · HAVII",
+    default: "Career AI — Your career command center",
+    template: "%s · Career AI",
   },
   description:
-    "HAVII is a youth wellness, mentorship, and personal development platform by Together For You, Inc. Ages 13–24.",
+    "Career AI helps you organize your job search, manage applications, improve resumes, and prepare for interviews.",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-havii-cream text-havii-ink">
+      <body className="min-h-full flex flex-col bg-career-bg text-career-navy">
         {children}
       </body>
     </html>

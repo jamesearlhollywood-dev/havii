@@ -7,7 +7,7 @@ export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !anonKey) {
+  if (!url || !anonKey || !/^https?:\/\//.test(url)) {
     return supabaseResponse;
   }
 
@@ -47,13 +47,17 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/auth/callback") ||
     isAuthRoute;
 
-  const isProtected =
+  // Career AI app routes — protected
+  const isAppRoute = pathname.startsWith("/app");
+
+  // Legacy HAVII routes — redirect to Career AI equivalents
+  const isLegacyRoute =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/onboarding") ||
     pathname.startsWith("/coming-next") ||
-    pathname.startsWith("/app");
+    pathname.startsWith("/forbidden");
 
-  if (!user && isProtected) {
+  if (!user && isAppRoute) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/auth/login";
     redirectUrl.searchParams.set("next", pathname);
@@ -62,59 +66,16 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthRoute) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/dashboard";
+    redirectUrl.pathname = "/app/dashboard";
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && isProtected) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role, onboarding_completed, account_status")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (profile) {
-      if (
-        !profile.onboarding_completed &&
-        !pathname.startsWith("/onboarding") &&
-        !pathname.startsWith("/help")
-      ) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = "/onboarding";
-        return NextResponse.redirect(redirectUrl);
-      }
-
-      if (
-        profile.onboarding_completed &&
-        pathname.startsWith("/onboarding")
-      ) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = "/dashboard";
-        return NextResponse.redirect(redirectUrl);
-      }
-
-      if (
-        pathname.startsWith("/dashboard/admin") &&
-        profile.role !== "administrator"
-      ) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = "/forbidden";
-        return NextResponse.redirect(redirectUrl);
-      }
-
-      if (
-        pathname.startsWith("/dashboard/staff") &&
-        profile.role !== "staff" &&
-        profile.role !== "administrator"
-      ) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = "/forbidden";
-        return NextResponse.redirect(redirectUrl);
-      }
-    }
+  if (user && isLegacyRoute) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/app/dashboard";
+    return NextResponse.redirect(redirectUrl);
   }
 
-  // Silence unused for future public-route branching
   void isPublicRoute;
 
   return supabaseResponse;
