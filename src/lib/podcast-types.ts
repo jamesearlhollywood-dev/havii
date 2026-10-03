@@ -7,40 +7,107 @@ export type ShowStatus = "draft" | "active" | "paused" | "archived";
 
 export type EpisodeStatus =
   | "planned"
-  | "recording"
-  | "editing"
+  | "idea"
+  | "guest_outreach"
+  | "scheduling"
   | "scheduled"
+  | "recording"
   | "recorded"
+  | "editing"
+  | "review"
   | "ready_for_review"
   | "published"
   | "archived";
 
 /**
  * Statuses exposed in the admin UI, in the order they appear in filters.
- * "recording" is kept in the DB type for backward compat but not surfaced.
+ * Legacy "planned"/"recording" are kept in the DB type for backward compat.
  */
 export const EPISODE_STATUSES: EpisodeStatus[] = [
-  "planned",
+  "idea",
+  "guest_outreach",
+  "scheduling",
   "scheduled",
+  "planned",
   "recorded",
   "editing",
+  "review",
   "ready_for_review",
   "published",
   "archived",
 ];
 
+/**
+ * Ordered production-workflow stages shown as columns on the production board.
+ */
+export const PRODUCTION_STAGES: EpisodeStatus[] = [
+  "idea",
+  "guest_outreach",
+  "scheduling",
+  "scheduled",
+  "recorded",
+  "editing",
+  "review",
+  "ready_for_review",
+  "published",
+];
+
+/**
+ * Maps a stored episode status onto one of the production-board stages.
+ * Legacy/terminal statuses fall back to the nearest stage.
+ */
+export function stageForEpisode(status: EpisodeStatus): EpisodeStatus {
+  switch (status) {
+    case "planned":
+    case "recording":
+      return "idea";
+    default:
+      return PRODUCTION_STAGES.includes(status) ? status : "idea";
+  }
+}
+
 export type GuestBookingStatus =
+  | "prospect"
   | "invited"
+  | "interested"
+  | "scheduling"
   | "confirmed"
   | "recorded"
+  | "published"
   | "declined"
-  | "tentative";
+  | "archived"
+  | "tentative"; // legacy
+
+export const GUEST_BOOKING_STATUSES: GuestBookingStatus[] = [
+  "prospect",
+  "invited",
+  "interested",
+  "scheduling",
+  "confirmed",
+  "recorded",
+  "published",
+  "declined",
+  "archived",
+];
 
 export type ProductionTaskStatus =
   | "not_started"
   | "in_progress"
-  | "blocked"
-  | "completed";
+  | "waiting"
+  | "completed"
+  | "cancelled"
+  | "blocked"; // legacy
+
+export const PRODUCTION_TASK_STATUSES: ProductionTaskStatus[] = [
+  "not_started",
+  "in_progress",
+  "waiting",
+  "completed",
+  "cancelled",
+];
+
+/** Tasks considered "done" for completion-percentage calculations. */
+export const TASK_DONE_STATUSES: ProductionTaskStatus[] = ["completed", "cancelled"];
 
 export type SponsorshipLevel =
   | "platinum"
@@ -124,6 +191,7 @@ export interface EpisodeWithShow extends Episode {
     headshot: string | null;
     website: string | null;
     linkedin_url: string | null;
+    booking_status: GuestBookingStatus;
   } | null;
 }
 
@@ -158,6 +226,53 @@ export interface ProductionTask {
   created_at: string;
   updated_at: string;
 }
+
+/**
+ * Production task enriched with its parent episode title/show (for the board).
+ */
+export interface ProductionTaskWithEpisode extends ProductionTask {
+  episode: {
+    id: string;
+    title: string;
+    show_name: string | null;
+  } | null;
+}
+
+/**
+ * Guest enriched with cross-cutting stats used by the admin table/cards.
+ */
+export interface GuestWithStats extends Guest {
+  episode_count: number;
+  next_recording_date: string | null;
+  next_recording_title: string | null;
+}
+
+/**
+ * Guest with the episodes they appear on, split into upcoming/past for the
+ * admin profile page.
+ */
+export interface GuestWithRelations extends GuestWithStats {
+  episodes: EpisodeWithShow[];
+  upcoming: EpisodeWithShow[];
+  past: EpisodeWithShow[];
+}
+
+/** Common production tasks offered as one-click suggestions (never required). */
+export const SUGGESTED_TASKS: string[] = [
+  "Research Guest",
+  "Prepare Interview Questions",
+  "Confirm Recording",
+  "Record Episode",
+  "Edit Audio",
+  "Edit Video",
+  "Write Show Notes",
+  "Prepare Transcript",
+  "Create Episode Artwork",
+  "Guest Approval",
+  "Final Review",
+  "Schedule Publication",
+  "Create Social Media Assets",
+];
 
 export interface Sponsor {
   id: string;
@@ -211,28 +326,52 @@ export const SHOW_CATEGORIES = [
 
 export const EPISODE_STATUS_LABELS: Record<EpisodeStatus, string> = {
   planned: "Draft",
-  recording: "Recording",
-  editing: "Editing",
+  idea: "Idea",
+  guest_outreach: "Guest Outreach",
+  scheduling: "Scheduling",
   scheduled: "Scheduled",
+  recording: "Recording",
   recorded: "Recorded",
-  ready_for_review: "Ready for Review",
+  editing: "Editing",
+  review: "Review",
+  ready_for_review: "Ready to Publish",
   published: "Published",
   archived: "Archived",
 };
 
+/** Production-board column labels (shortened for compact columns). */
+export const PRODUCTION_STAGE_LABELS: Record<string, string> = {
+  idea: "Idea",
+  guest_outreach: "Outreach",
+  scheduling: "Scheduling",
+  scheduled: "Scheduled",
+  recorded: "Recorded",
+  editing: "Editing",
+  review: "Review",
+  ready_for_review: "Ready",
+  published: "Published",
+};
+
 export const GUEST_BOOKING_LABELS: Record<GuestBookingStatus, string> = {
+  prospect: "Prospect",
   invited: "Invited",
+  interested: "Interested",
+  scheduling: "Scheduling",
   confirmed: "Confirmed",
   recorded: "Recorded",
+  published: "Published",
   declined: "Declined",
+  archived: "Archived",
   tentative: "Tentative",
 };
 
 export const PRODUCTION_TASK_LABELS: Record<ProductionTaskStatus, string> = {
-  not_started: "Not started",
-  in_progress: "In progress",
+  not_started: "Not Started",
+  in_progress: "In Progress",
+  waiting: "Waiting",
+  completed: "Complete",
+  cancelled: "Cancelled",
   blocked: "Blocked",
-  completed: "Completed",
 };
 
 export const SPONSORSHIP_LEVEL_LABELS: Record<SponsorshipLevel, string> = {

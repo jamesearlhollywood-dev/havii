@@ -5,6 +5,7 @@ import {
   getRecentActivity,
   getUpcomingSchedule,
 } from "@/lib/podcast-data";
+import { UpcomingRecordings } from "@/components/admin/UpcomingRecordings";
 import {
   EPISODE_STATUS_LABELS,
   CONTACT_INQUIRY_LABELS,
@@ -132,6 +133,11 @@ export default async function AdminDashboardPage() {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* Upcoming recordings */}
+      <div className="mt-8">
+        <UpcomingRecordings />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">

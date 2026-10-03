@@ -176,6 +176,12 @@ export default async function EpisodePage({
                 </p>
               )}
               <div className="mt-3 flex flex-wrap gap-3">
+                <Link
+                  href={`/guests/${episode.guest.id}`}
+                  className="text-xs font-medium text-studio-gold transition hover:text-studio-gold-light"
+                >
+                  View guest profile →
+                </Link>
                 {episode.guest.website && (
                   <a
                     href={episode.guest.website}

@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
-import { getGuestsWithStats } from "@/lib/podcast-data";
-import { GuestsTable } from "@/components/admin/GuestsTable";
+import { GuestForm } from "@/components/admin/GuestForm";
 
-export const metadata: Metadata = { title: "Guests" };
+export const metadata: Metadata = { title: "Add Guest" };
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminGuestsPage() {
-  const guests = await getGuestsWithStats();
-
+export default function NewGuestPage() {
   return (
     <div>
       <div className="flex flex-col gap-1">
@@ -16,15 +13,15 @@ export default async function AdminGuestsPage() {
           Content Management
         </p>
         <h1 className="text-2xl font-semibold tracking-tight text-studio-ink sm:text-3xl">
-          Guests
+          Add Guest
         </h1>
         <p className="text-sm text-studio-muted">
-          Manage guest profiles — bios, headshots, contact details, social links, and booking status across the network.
+          Create a new guest profile. Email and phone are optional.
         </p>
       </div>
 
       <div className="mt-8">
-        <GuestsTable guests={guests} />
+        <GuestForm />
       </div>
     </div>
   );

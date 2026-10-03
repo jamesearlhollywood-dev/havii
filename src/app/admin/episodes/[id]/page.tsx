@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getEpisodeById, getAllShows, getAllGuests } from "@/lib/podcast-data";
+import {
+  getEpisodeById,
+  getAllShows,
+  getAllGuests,
+  getProductionTasksByEpisode,
+} from "@/lib/podcast-data";
 import { EpisodeForm } from "@/components/admin/EpisodeForm";
+import { EpisodeProductionPanel } from "@/components/admin/EpisodeProductionPanel";
 
 export const metadata: Metadata = { title: "Edit Episode" };
 
@@ -13,10 +19,11 @@ export default async function EditEpisodePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [episode, shows, guests] = await Promise.all([
+  const [episode, shows, guests, tasks] = await Promise.all([
     getEpisodeById(id),
     getAllShows(),
     getAllGuests(),
+    getProductionTasksByEpisode(id),
   ]);
 
   if (!episode) notFound();
@@ -38,6 +45,9 @@ export default async function EditEpisodePage({
       <div className="mt-8">
         <EpisodeForm episode={episode} shows={shows} guests={guests} />
       </div>
+
+      {/* Production checklist (edit mode only) */}
+      <EpisodeProductionPanel episode={episode} tasks={tasks} />
     </div>
   );
 }

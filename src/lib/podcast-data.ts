@@ -10,6 +10,10 @@ import type {
   Episode,
   EpisodeWithShow,
   Guest,
+  GuestWithStats,
+  GuestWithRelations,
+  ProductionTask,
+  ProductionTaskWithEpisode,
   Sponsor,
   ContactMessage,
 } from "@/lib/podcast-types";
@@ -268,7 +272,7 @@ export async function getEpisodeCountByShow(showId: string): Promise<number> {
 const EPISODE_RELATION_SELECT = `
   *,
   show:shows!inner(show_name, slug, category),
-  guest:guests(id, first_name, last_name, professional_title, organization, biography, headshot, website, linkedin_url)
+  guest:guests(id, first_name, last_name, professional_title, organization, biography, headshot, website, linkedin_url, booking_status)
 `;
 
 function mapEpisodeWithShow(row: Record<string, unknown>): EpisodeWithShow {
@@ -436,4 +440,348 @@ export async function getGuestById(id: string): Promise<Guest | null> {
   if (!supabase) return null;
   const { data } = await supabase.from("guests").select("*").eq("id", id).maybeSingle();
   return data as Guest | null;
+}
+
+// ---------------------------------------------------------------------------
+// Guests with cross-cutting stats (admin table + profile)
+// ---------------------------------------------------------------------------
+
+const GUEST_EPISODE_SELECT = `
+  id, title, slug, episode_status, episode_number, season_number,
+  short_description, cover_image, publish_date, recording_date, duration,
+  show:shows!inner(show_name, slug, category),
+  guest:guests(id, first_name, last_name, professional_title, organization, biography, headshot, website, linkedin_url, booking_status)
+`;
+
+/**
+ * All guests enriched with episode count + next scheduled recording date.
+ * Used by the admin Guests table.
+ */
+export async function getGuestsWithStats(): Promise<GuestWithStats[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("guests")
+    .select("*")
+    .order("updated_at", { ascending: false });
+  const guests = (data ?? []) as Guest[];
+  if (guests.length === 0) return [];
+
+  // One query for episode counts per guest.
+  const { data: epRows } = await supabase
+    .from("episodes")
+    .select("guest_id, id, title, recording_date, episode_status")
+    .not("guest_id", "is", null);
+  const byGuest = new Map<string, { count: number; next: Episode | null }>();
+  for (const row of (epRows ?? []) as Array<
+    Pick<Episode, "guest_id" | "id" | "title" | "recording_date" | "episode_status">
+  >) {
+    if (!row.guest_id) continue;
+    const entry = byGuest.get(row.guest_id) ?? { count: 0, next: null as Episode | null };
+    entry.count += 1;
+    // "next" recording = earliest upcoming recording_date in the future.
+    if (
+      row.recording_date &&
+      new Date(row.recording_date).getTime() >= Date.now() &&
+      (!entry.next ||
+        (entry.next.recording_date &&
+          new Date(row.recording_date).getTime() <
+            new Date(entry.next.recording_date as string).getTime()))
+    ) {
+      entry.next = row as Episode;
+    }
+    byGuest.set(row.guest_id, entry);
+  }
+
+  return guests.map((g) => {
+    const entry = byGuest.get(g.id);
+    return {
+      ...g,
+      episode_count: entry?.count ?? 0,
+      next_recording_date: entry?.next?.recording_date ?? null,
+      next_recording_title: entry?.next?.title ?? null,
+    };
+  });
+}
+
+/**
+ * Single guest with all episodes split into upcoming/past, plus stats.
+ * Used by the admin guest profile page.
+ */
+export async function getGuestWithRelations(
+  id: string
+): Promise<GuestWithRelations | null> {
+  const supabase = await getClient();
+  if (!supabase) return null;
+  const { data: guest } = await supabase
+    .from("guests")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (!guest) return null;
+
+  const { data: epData } = await supabase
+    .from("episodes")
+    .select(GUEST_EPISODE_SELECT)
+    .eq("guest_id", id)
+    .order("recording_date", { ascending: false, nullsFirst: false });
+
+  const episodes = (epData ?? []).map((r) => r as unknown as EpisodeWithShow);
+
+  const now = Date.now();
+  const upcoming = episodes.filter(
+    (e) => e.recording_date && new Date(e.recording_date).getTime() >= now
+  );
+  const past = episodes.filter(
+    (e) => !e.recording_date || new Date(e.recording_date).getTime() < now
+  );
+
+  return {
+    ...(guest as Guest),
+    episode_count: episodes.length,
+    next_recording_date: upcoming[0]?.recording_date ?? null,
+    next_recording_title: upcoming[0]?.title ?? null,
+    episodes,
+    upcoming,
+    past,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Public guest profiles (only guests with ≥1 published episode)
+// ---------------------------------------------------------------------------
+
+export async function getPublicGuestById(
+  id: string
+): Promise<{ guest: Guest; episodes: EpisodeWithShow[] } | null> {
+  const supabase = await getClient();
+  if (!supabase) return null;
+  const { data: guest } = await supabase
+    .from("guests")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (!guest) return null;
+
+  const { data } = await supabase
+    .from("episodes")
+    .select(GUEST_EPISODE_SELECT)
+    .eq("guest_id", id)
+    .eq("episode_status", "published")
+    .order("publish_date", { ascending: false, nullsFirst: false });
+  const episodes = (data ?? []).map((r) => r as unknown as EpisodeWithShow);
+  if (episodes.length === 0) return null; // not public without a published episode
+
+  return { guest: guest as Guest, episodes };
+}
+
+/** Public directory: guests who appear on at least one published episode. */
+export async function getPublicGuests(): Promise<GuestWithStats[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+
+  // Find guest ids that have published episodes.
+  const { data: pubEp } = await supabase
+    .from("episodes")
+    .select("guest_id")
+    .eq("episode_status", "published")
+    .not("guest_id", "is", null);
+  const ids = Array.from(
+    new Set((pubEp ?? []).map((r) => (r as { guest_id: string }).guest_id))
+  );
+  if (ids.length === 0) return [];
+
+  const { data } = await supabase
+    .from("guests")
+    .select("*")
+    .in("id", ids)
+    .order("first_name", { ascending: true });
+  const guests = (data ?? []) as Guest[];
+
+  // Published-episode counts only.
+  const { data: countRows } = await supabase
+    .from("episodes")
+    .select("guest_id")
+    .eq("episode_status", "published")
+    .not("guest_id", "is", null);
+  const counts = new Map<string, number>();
+  for (const r of (countRows ?? []) as Array<{ guest_id: string }>) {
+    counts.set(r.guest_id, (counts.get(r.guest_id) ?? 0) + 1);
+  }
+
+  return guests.map((g) => ({
+    ...g,
+    episode_count: counts.get(g.id) ?? 0,
+    next_recording_date: null,
+    next_recording_title: null,
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// Production tasks
+// ---------------------------------------------------------------------------
+
+const TASK_EPISODE_SELECT = `
+  *,
+  episode:episodes(id, title, show:shows(show_name))
+`;
+
+export async function getAllProductionTasks(): Promise<ProductionTaskWithEpisode[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("production_tasks")
+    .select(TASK_EPISODE_SELECT)
+    .order("due_date", { ascending: true, nullsFirst: false });
+  return (data ?? []).map((r) => {
+    const row = r as Record<string, unknown>;
+    const ep = row.episode as
+      | { id: string; title: string; show: { show_name: string | null } | null }
+      | null;
+    return {
+      ...(row as unknown as ProductionTask),
+      episode: ep
+        ? { id: ep.id, title: ep.title, show_name: ep.show?.show_name ?? null }
+        : null,
+    };
+  });
+}
+
+export async function getProductionTasksByEpisode(
+  episodeId: string
+): Promise<ProductionTask[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("production_tasks")
+    .select("*")
+    .eq("episode_id", episodeId)
+    .order("created_at", { ascending: true });
+  return (data ?? []) as ProductionTask[];
+}
+
+// ---------------------------------------------------------------------------
+// Upcoming recordings (admin dashboard)
+// ---------------------------------------------------------------------------
+
+export interface UpcomingRecording {
+  id: string;
+  title: string;
+  showName: string | null;
+  recordingDate: string | null;
+  episodeStatus: string;
+  guestName: string | null;
+}
+
+export async function getUpcomingRecordings(
+  limit = 6
+): Promise<UpcomingRecording[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("episodes")
+    .select(`
+      id, title, recording_date, episode_status,
+      show:shows!inner(show_name),
+      guest:guests(first_name, last_name)
+    `)
+    .not("recording_date", "is", null)
+    .gte("recording_date", new Date().toISOString())
+    .neq("episode_status", "archived")
+    .order("recording_date", { ascending: true })
+    .limit(limit);
+
+  return ((data ?? []) as unknown as Array<{
+    id: string;
+    title: string;
+    recording_date: string | null;
+    episode_status: string;
+    show: { show_name: string } | null;
+    guest: { first_name: string; last_name: string | null } | null;
+  }>).map((r) => ({
+    id: r.id,
+    title: r.title,
+    showName: r.show?.show_name ?? null,
+    recordingDate: r.recording_date,
+    episodeStatus: r.episode_status,
+    guestName: r.guest
+      ? [r.guest.first_name, r.guest.last_name].filter(Boolean).join(" ") || null
+      : null,
+  }));
+}
+
+/**
+ * Schedule events derived from episode recording_date + publish_date.
+ * Optionally filtered by show and event type.
+ */
+export interface ScheduleEvent {
+  id: string;
+  title: string;
+  type: "recording" | "publication";
+  date: string;
+  showName: string | null;
+  episodeId: string;
+  guestName: string | null;
+}
+
+export async function getScheduleEvents(opts?: {
+  showId?: string;
+  type?: "recording" | "publication" | "all";
+}): Promise<ScheduleEvent[]> {
+  const supabase = await getClient();
+  if (!supabase) return [];
+
+  let q = supabase
+    .from("episodes")
+    .select(`
+      id, title, recording_date, publish_date, episode_status,
+      show:shows!inner(show_name),
+      guest:guests(first_name, last_name)
+    `)
+    .neq("episode_status", "archived");
+
+  if (opts?.showId) q = q.eq("show_id", opts.showId);
+
+  const { data } = await q;
+  const rows = (data ?? []) as unknown as Array<{
+    id: string;
+    title: string;
+    recording_date: string | null;
+    publish_date: string | null;
+    episode_status: string;
+    show: { show_name: string } | null;
+    guest: { first_name: string; last_name: string | null } | null;
+  }>;
+
+  const events: ScheduleEvent[] = [];
+  for (const r of rows) {
+    const guestName = r.guest
+      ? [r.guest.first_name, r.guest.last_name].filter(Boolean).join(" ") || null
+      : null;
+    if (r.recording_date && opts?.type !== "publication") {
+      events.push({
+        id: `${r.id}-rec`,
+        title: r.title,
+        type: "recording",
+        date: r.recording_date,
+        showName: r.show?.show_name ?? null,
+        episodeId: r.id,
+        guestName,
+      });
+    }
+    if (r.publish_date && opts?.type !== "recording") {
+      events.push({
+        id: `${r.id}-pub`,
+        title: r.title,
+        type: "publication",
+        date: r.publish_date,
+        showName: r.show?.show_name ?? null,
+        episodeId: r.id,
+        guestName,
+      });
+    }
+  }
+  return events.sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
 }
