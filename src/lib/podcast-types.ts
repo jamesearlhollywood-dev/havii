@@ -3,7 +3,7 @@
  * Mirrors supabase/migrations/202610030001_podcast_platform.sql
  */
 
-export type ShowStatus = "draft" | "published" | "archived";
+export type ShowStatus = "draft" | "active" | "paused" | "archived";
 
 export type EpisodeStatus =
   | "planned"
@@ -155,9 +155,25 @@ export interface ContactMessage {
 
 export const SHOW_STATUS_LABELS: Record<ShowStatus, string> = {
   draft: "Draft",
-  published: "Published",
+  active: "Active",
+  paused: "Paused",
   archived: "Archived",
 };
+
+export const SHOW_STATUSES: ShowStatus[] = ["draft", "active", "paused", "archived"];
+
+export const SHOW_CATEGORIES = [
+  "Faith",
+  "Leadership",
+  "Personal Development",
+  "Community",
+  "Education",
+  "Business",
+  "Culture",
+  "Interviews",
+  "Social Impact",
+  "Faith / Personal Development",
+] as const;
 
 export const EPISODE_STATUS_LABELS: Record<EpisodeStatus, string> = {
   planned: "Planned",
