@@ -2,13 +2,7 @@
 
 import { searchJobs, isJobsApiConfigured } from "@/lib/career/jobs-api";
 import type { JobSearchRequest, NormalizedJobResult } from "@/lib/career/types";
-
-export type SearchJobsResult = {
-  results: NormalizedJobResult[];
-  provider: string | null;
-  configured: boolean;
-  error?: string;
-};
+import type { SearchJobsResult } from "@/actions/types";
 
 export async function searchJobsAction(
   req: JobSearchRequest

@@ -4,11 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isPublicSignupRole } from "@/lib/roles";
 import type { UserRole } from "@/lib/types";
-
-export type AuthActionState = {
-  error?: string;
-  success?: string;
-};
+import type { AuthActionState } from "@/actions/types";
 
 export async function signUpAction(
   _prev: AuthActionState,

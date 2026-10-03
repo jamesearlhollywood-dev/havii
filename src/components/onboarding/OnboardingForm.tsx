@@ -1,10 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import {
-  completeOnboardingAction,
-  type OnboardingState,
-} from "@/actions/onboarding";
+import { completeOnboardingAction } from "@/actions/onboarding";
+import type { OnboardingState } from "@/actions/types";
 import type { Profile } from "@/lib/types";
 import { HELP_AREAS, HELP_AREA_LABELS, INTEREST_OPTIONS } from "@/lib/types";
 import { displayRoleName } from "@/lib/roles";

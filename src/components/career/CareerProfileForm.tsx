@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { saveCareerProfileAction, type CareerProfileState } from "@/actions/career-profile";
+import { saveCareerProfileAction } from "@/actions/career-profile";
+import type { CareerProfileState } from "@/actions/types";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";

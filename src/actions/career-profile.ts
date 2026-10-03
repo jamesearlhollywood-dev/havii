@@ -2,12 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { CareerProfile } from "@/lib/career/types";
-
-export type CareerProfileState = {
-  error?: string;
-  success?: string;
-  profile?: CareerProfile;
-};
+import type { CareerProfileState } from "@/actions/types";
 
 function parseStringArray(value: FormDataEntryValue | null): string[] {
   if (!value) return [];

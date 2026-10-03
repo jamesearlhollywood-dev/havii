@@ -2,11 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { JobApplication, JobStatus, NormalizedJobResult } from "@/lib/career/types";
-
-export type JobActionState = {
-  error?: string;
-  success?: string;
-};
+import type { JobActionState } from "@/actions/types";
 
 async function getAuthedClient() {
   try {

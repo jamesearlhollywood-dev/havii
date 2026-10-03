@@ -3,11 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/types";
-
-export type OnboardingState = {
-  error?: string;
-  success?: string;
-};
+import type { OnboardingState } from "@/actions/types";
 
 async function getAuthedProfile() {
   const supabase = await createClient();

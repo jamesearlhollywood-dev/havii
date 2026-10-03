@@ -7,8 +7,8 @@ import {
   loginAction,
   resetPasswordAction,
   signUpAction,
-  type AuthActionState,
 } from "@/actions/auth";
+import type { AuthActionState } from "@/actions/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Alert } from "@/components/ui/Alert";
