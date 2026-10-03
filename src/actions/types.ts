@@ -28,3 +28,17 @@ export type JobActionState = {
   error?: string;
   success?: string;
 };
+
+export type ResumeActionState = {
+  error?: string;
+  success?: string;
+};
+
+/** Result returned to the client after parsing an uploaded resume. */
+export type ResumeParseResult = {
+  error?: string;
+  rawText?: string;
+  parsedData?: import("@/lib/career/types").ParsedResumeData;
+  fileName?: string;
+  fileSize?: number;
+};

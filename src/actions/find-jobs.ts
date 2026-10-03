@@ -1,7 +1,7 @@
 "use server";
 
 import { searchJobs, isJobsApiConfigured } from "@/lib/career/jobs-api";
-import type { JobSearchRequest, NormalizedJobResult } from "@/lib/career/types";
+import type { JobSearchRequest } from "@/lib/career/types";
 import type { SearchJobsResult } from "@/actions/types";
 
 export async function searchJobsAction(

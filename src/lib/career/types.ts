@@ -80,6 +80,36 @@ export interface JobApplication {
   updated_at: string;
 }
 
+/** A single work experience entry extracted from a resume. */
+export interface WorkExperienceEntry {
+  job_title: string | null;
+  employer: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  description: string | null;
+}
+
+/** A single education entry extracted from a resume. */
+export interface EducationEntry {
+  institution: string | null;
+  degree: string | null;
+  field: string | null;
+  start_date: string | null;
+  end_date: string | null;
+}
+
+/** Structured data extracted from a resume by the parser. */
+export interface ParsedResumeData {
+  candidate_name: string | null;
+  headline: string | null;
+  summary: string | null;
+  skills: string[];
+  work_experience: WorkExperienceEntry[];
+  education: EducationEntry[];
+  certifications: string[];
+  keywords: string[];
+}
+
 export interface Resume {
   id: string;
   user_id: string;
@@ -91,6 +121,7 @@ export interface Resume {
   source_file_url: string | null;
   parsed_skills: string[] | null;
   parsed_keywords: string[] | null;
+  parsed_data: ParsedResumeData | null;
   created_at: string;
   updated_at: string;
 }
