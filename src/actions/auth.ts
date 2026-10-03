@@ -80,7 +80,21 @@ export async function loginAction(
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
 
-  redirect(next.startsWith("/") ? next : "/app");
+  // If a specific next path was provided, honor it
+  if (next.startsWith("/") && next !== "/app") {
+    redirect(next);
+  }
+
+  // Check profile role — caregivers go to their dashboard
+  const { rows: profileRows } = await query<{ role: string }>(
+    "SELECT role FROM profiles WHERE user_id = $1",
+    [userId]
+  );
+  if (profileRows.length > 0 && profileRows[0].role === "caregiver") {
+    redirect("/caregiver");
+  }
+
+  redirect("/app");
 }
 
 export async function logoutAction() {

@@ -9,12 +9,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (level === "guest") redirect("/auth/login");
   // Not onboarded → onboarding
   if (level === "onboarding") redirect("/onboarding");
-
-  // Ineligible or restricted users can only access /app/restricted and /help
-  if (level === "ineligible" || level === "restricted") {
-    // Allow access to the restricted page itself
-    // (page-level checks handle the rest)
-  }
+  // Caregivers → caregiver dashboard
+  if (level === "caregiver") redirect("/caregiver");
+  // Users who turned 18 → adult consent step
+  if (level === "adult_consent") redirect("/app/adult-consent");
 
   return (
     <div className="min-h-screen bg-havii-cream">

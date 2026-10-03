@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE } from "@/lib/auth";
 
 const AUTH_ROUTES = ["/auth/login", "/auth/sign-up", "/auth/forgot-password", "/auth/reset-password"];
-const PROTECTED_PREFIXES = ["/app", "/onboarding"];
+const PROTECTED_PREFIXES = ["/app", "/onboarding", "/caregiver", "/consent/review"];
 const PUBLIC_PREFIXES = ["/help"];
 
 export async function middleware(request: NextRequest) {

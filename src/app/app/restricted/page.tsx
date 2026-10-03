@@ -2,8 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAccessLevel } from "@/lib/session";
 import { logoutAction } from "@/actions/auth";
+import { getActiveInvitationAction, getYouthConsentStatusAction } from "@/actions/caregiver";
+import { getCaregiverLinkForYouth } from "@/lib/caregiver";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
+import { InvitationForm } from "@/components/caregiver/InvitationForm";
+import { ConsentStatusCard } from "@/components/caregiver/ConsentStatusCard";
 
 export default async function RestrictedPage() {
   const { level, profile } = await getAccessLevel();
@@ -14,9 +18,25 @@ export default async function RestrictedPage() {
   if (level === "guest") redirect("/auth/login");
   // Not onboarded go to onboarding
   if (level === "onboarding") redirect("/onboarding");
+  // Caregivers → caregiver dashboard
+  if (level === "caregiver") redirect("/caregiver");
+  // Adult consent needed → adult consent page
+  if (level === "adult_consent") redirect("/app/adult-consent");
 
   const isIneligible = level === "ineligible";
   const isPendingConsent = level === "restricted";
+
+  // For restricted (pending consent) users, show the consent flow
+  let consentStatus: "invitation_needed" | "awaiting_permission" | "approved" | "not_approved" | null = null;
+  let activeInvitation: { caregiver_name: string; caregiver_email: string } | null = null;
+
+  if (isPendingConsent && profile) {
+    consentStatus = await getYouthConsentStatusAction();
+    activeInvitation = await getActiveInvitationAction();
+
+    // If status is "approved" but level is restricted, something is off — redirect to app
+    if (consentStatus === "approved") redirect("/app");
+  }
 
   return (
     <div className="space-y-6">
@@ -33,19 +53,29 @@ export default async function RestrictedPage() {
         </Alert>
       )}
 
-      {isPendingConsent && (
-        <Alert tone="info">
-          <p className="font-medium">Caregiver consent is pending.</p>
-          <p className="mt-1">
-            Hi{profile?.preferred_name ? `, ${profile.preferred_name}` : ""}! Your account is set up,
-            but a parent or legal guardian needs to provide consent before you can use check-ins and
-            other program features.
-          </p>
-          <p className="mt-1 text-xs">
-            Caregiver consent verification is not available yet. You can still browse public support
-            information and sign out.
-          </p>
-        </Alert>
+      {isPendingConsent && consentStatus && (
+        <>
+          <ConsentStatusCard
+            status={consentStatus}
+            caregiverName={activeInvitation?.caregiver_name}
+            caregiverEmail={activeInvitation?.caregiver_email}
+          />
+
+          {(consentStatus === "invitation_needed" || consentStatus === "not_approved") && (
+            <InvitationForm />
+          )}
+
+          {consentStatus === "awaiting_permission" && (
+            <InvitationForm />
+          )}
+
+          {/* Public support always available */}
+          <div className="pt-2 border-t border-havii-mist">
+            <p className="text-sm text-havii-muted mb-3">
+              While you wait, you can browse public support resources.
+            </p>
+          </div>
+        </>
       )}
 
       <div className="space-y-3">

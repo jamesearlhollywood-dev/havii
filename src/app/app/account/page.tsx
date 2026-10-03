@@ -17,7 +17,7 @@ export default async function AccountPage() {
     <AccountForm
       preferredName={profile.preferred_name}
       timezone={profile.timezone}
-      dateOfBirth={profile.date_of_birth}
+      dateOfBirth={profile.date_of_birth || "1900-01-01"}
       timezones={timezones}
     />
   );
