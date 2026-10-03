@@ -24,6 +24,21 @@ export type SearchJobsResult = {
   error?: string;
 };
 
+export type RecommendationsResult = {
+  error?: string;
+  profileReady: boolean;
+  jobsAvailable: boolean;
+  apiConfigured: boolean;
+  recommendations: import("@/lib/career/types").RecommendedJob[];
+  analyzedCount: number;
+  totalCandidates: number;
+};
+
+export type JobMatchActionResult = {
+  error?: string;
+  analysis?: import("@/lib/career/types").JobMatchAnalysis;
+};
+
 export type JobActionState = {
   error?: string;
   success?: string;

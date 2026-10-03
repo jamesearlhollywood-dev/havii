@@ -129,7 +129,8 @@ export async function createJobApplicationAction(
 }
 
 export async function saveJobFromSearchAction(
-  job: NormalizedJobResult
+  job: NormalizedJobResult,
+  matchScore?: number
 ): Promise<JobActionState> {
   try {
     const { supabase, user } = await getAuthedClient();
@@ -160,6 +161,7 @@ export async function saveJobFromSearchAction(
       description: job.description || null,
       job_url: job.job_url || null,
       status: "Saved",
+      match_score: matchScore ?? null,
       source: job.source || null,
       source_job_id: job.source_job_id || null,
       api_provider: job.api_provider || null,

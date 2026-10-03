@@ -186,3 +186,68 @@ export interface JobSearchRequest {
   salary_min: number | null;
   date_posted: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Job Match Analysis & Recommendations
+// ---------------------------------------------------------------------------
+
+export type MatchLabel = "Excellent Match" | "Strong Match" | "Potential Match" | "Low Match";
+
+export const MATCH_LABELS: MatchLabel[] = [
+  "Excellent Match",
+  "Strong Match",
+  "Potential Match",
+  "Low Match",
+];
+
+export function scoreToLabel(score: number): MatchLabel {
+  if (score >= 90) return "Excellent Match";
+  if (score >= 75) return "Strong Match";
+  if (score >= 60) return "Potential Match";
+  return "Low Match";
+}
+
+export interface JobMatchAnalysis {
+  match_score: number;
+  match_label: MatchLabel;
+  matching_skills: string[];
+  missing_skills: string[];
+  experience_alignment: string;
+  salary_alignment: string;
+  location_alignment: string;
+  work_mode_alignment: string;
+  strengths: string[];
+  gaps: string[];
+  recommendation_reason: string;
+}
+
+/** Cached match analysis record stored in the job_match_analyses table. */
+export interface JobMatchAnalysisRecord extends JobMatchAnalysis {
+  id: string;
+  user_id: string;
+  source_job_id: string;
+  api_provider: string | null;
+  job_data: NormalizedJobResult;
+  ai_provider: string | null;
+  model_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A job with its optional match analysis — null analysis means "not analyzed". */
+export interface RecommendedJob {
+  job: NormalizedJobResult;
+  analysis: JobMatchAnalysis | null;
+  cached: boolean;
+}
+
+export type RecommendationSort = "best_match" | "newest" | "highest_salary" | "most_relevant";
+
+export interface RecommendationFilters {
+  minMatchScore: number;
+  remoteOnly: boolean;
+  salaryMin: number | null;
+  employmentType: string | null;
+  datePosted: string | null;
+  sortBy: RecommendationSort;
+}
