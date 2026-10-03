@@ -4,6 +4,8 @@
 // In development: the invitation link is returned for on-screen display
 // so the flow can be tested without an email server.
 
+import nodemailer from "nodemailer";
+
 export type EmailResult =
   | { delivered: true }
   | { delivered: false; devLink?: string; error?: string };
@@ -29,7 +31,6 @@ export async function sendInvitationEmail(
   }
 
   try {
-    const nodemailer = await import("nodemailer");
     const transporter = nodemailer.createTransport(smtpUrl);
 
     await transporter.sendMail({
