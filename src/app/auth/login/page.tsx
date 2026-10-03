@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/auth/AuthForm";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 
 export const dynamic = "force-dynamic";
 
@@ -13,18 +12,22 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-havii-cream px-4 py-10">
-      <Link href="/" className="mb-6 flex items-center gap-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-havii-teal text-sm font-bold text-white">
-          H
+    <div className="flex min-h-screen flex-col items-center justify-center bg-studio-black px-4 py-10">
+      <Link href="/" className="mb-6 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-studio-gold/40 bg-studio-charcoal font-mono text-sm font-bold text-studio-gold">
+          GH3
         </span>
-        <span className="font-semibold text-havii-ink">HAVII</span>
+        <span className="font-semibold text-studio-ink">James Hollywood III Studios</span>
       </Link>
-      <Card className="w-full max-w-md">
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription className="mb-6">Log in to continue to HAVII.</CardDescription>
-        <LoginForm next={params.next || "/dashboard"} />
-      </Card>
+      <div className="w-full max-w-md rounded-2xl border border-studio-line bg-studio-charcoal p-6">
+        <h1 className="text-lg font-semibold text-studio-ink">Admin sign in</h1>
+        <p className="mt-1 text-sm text-studio-muted">
+          Log in to the studio dashboard.
+        </p>
+        <div className="mt-6">
+          <LoginForm next={params.next || "/admin"} />
+        </div>
+      </div>
     </div>
   );
 }

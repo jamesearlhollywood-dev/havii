@@ -23,7 +23,7 @@ export function CheckboxGroup({
 
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-medium text-havii-ink">{legend}</legend>
+      <legend className="text-sm font-medium text-studio-ink">{legend}</legend>
       <div className="grid gap-2 sm:grid-cols-2">
         {options.map((opt) => {
           const id = `${name}-${opt.value}`;
@@ -34,8 +34,8 @@ export function CheckboxGroup({
               htmlFor={id}
               className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition ${
                 checked
-                  ? "border-havii-teal bg-havii-teal/5 text-havii-ink"
-                  : "border-havii-mist bg-white text-havii-muted hover:border-havii-teal/40"
+                  ? "border-studio-gold bg-studio-gold/10 text-studio-ink"
+                  : "border-studio-line bg-studio-surface text-studio-muted hover:border-studio-gold/40"
               }`}
             >
               <input
@@ -45,7 +45,7 @@ export function CheckboxGroup({
                 value={opt.value}
                 checked={checked}
                 onChange={() => toggle(opt.value)}
-                className="h-4 w-4 rounded border-havii-mist text-havii-teal focus:ring-havii-teal"
+                className="h-4 w-4 rounded border-studio-line text-studio-gold focus:ring-studio-gold"
               />
               {opt.label}
             </label>

@@ -14,15 +14,15 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   return (
     <div className="space-y-1.5">
       {label ? (
-        <label htmlFor={inputId} className="block text-sm font-medium text-havii-ink">
+        <label htmlFor={inputId} className="block text-sm font-medium text-studio-ink">
           {label}
         </label>
       ) : null}
       <select
         ref={ref}
         id={inputId}
-        className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-havii-ink shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-havii-teal ${
-          error ? "border-red-400" : "border-havii-mist"
+        className={`w-full rounded-xl border bg-studio-surface px-3.5 py-2.5 text-studio-ink shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-studio-gold ${
+          error ? "border-red-400" : "border-studio-line"
         } ${className}`}
         {...props}
       >

@@ -7,7 +7,7 @@ export function Card({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`rounded-2xl border border-havii-mist bg-white p-5 shadow-sm ${className}`}
+      className={`rounded-2xl border border-studio-line bg-studio-charcoal p-5 shadow-sm ${className}`}
       {...props}
     >
       {children}
@@ -21,7 +21,7 @@ export function CardTitle({
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={`text-lg font-semibold text-havii-ink ${className}`} {...props}>
+    <h3 className={`text-lg font-semibold text-studio-ink ${className}`} {...props}>
       {children}
     </h3>
   );
@@ -33,7 +33,7 @@ export function CardDescription({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={`mt-1 text-sm text-havii-muted ${className}`} {...props}>
+    <p className={`mt-1 text-sm text-studio-muted ${className}`} {...props}>
       {children}
     </p>
   );
@@ -42,7 +42,7 @@ export function CardDescription({
 export function ComingNextBadge({ className = "" }: { className?: string }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full bg-havii-sand px-2.5 py-0.5 text-xs font-medium text-havii-teal-dark ${className}`}
+      className={`inline-flex items-center rounded-full bg-studio-surface px-2.5 py-0.5 text-xs font-medium text-studio-gold ${className}`}
     >
       Coming Next
     </span>

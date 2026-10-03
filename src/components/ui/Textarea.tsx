@@ -12,21 +12,21 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="space-y-1.5">
         {label ? (
-          <label htmlFor={inputId} className="block text-sm font-medium text-havii-ink">
+          <label htmlFor={inputId} className="block text-sm font-medium text-studio-ink">
             {label}
           </label>
         ) : null}
         <textarea
           ref={ref}
           id={inputId}
-          className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-havii-ink placeholder:text-havii-muted shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-havii-teal focus-visible:border-havii-teal min-h-[100px] ${
-            error ? "border-red-400" : "border-havii-mist"
+          className={`w-full rounded-xl border bg-studio-surface px-3.5 py-2.5 text-studio-ink placeholder:text-studio-muted shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-studio-gold focus-visible:border-studio-gold min-h-[100px] ${
+            error ? "border-red-400" : "border-studio-line"
           } ${className}`}
           aria-invalid={Boolean(error)}
           {...props}
         />
         {hint && !error ? (
-          <p className="text-xs text-havii-muted">{hint}</p>
+          <p className="text-xs text-studio-muted">{hint}</p>
         ) : null}
         {error ? (
           <p className="text-xs text-red-600" role="alert">

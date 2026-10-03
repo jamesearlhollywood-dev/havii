@@ -11,13 +11,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-havii-teal text-white hover:bg-havii-teal-dark focus-visible:ring-havii-teal shadow-sm",
+    "bg-studio-gold text-studio-black hover:bg-studio-gold-light focus-visible:ring-studio-gold shadow-sm",
   secondary:
-    "bg-havii-coral text-white hover:bg-havii-coral-dark focus-visible:ring-havii-coral shadow-sm",
+    "bg-studio-surface text-studio-ink hover:bg-studio-line focus-visible:ring-studio-gold shadow-sm",
   ghost:
-    "bg-transparent text-havii-ink hover:bg-havii-sand focus-visible:ring-havii-teal",
+    "bg-transparent text-studio-ink hover:bg-studio-surface focus-visible:ring-studio-gold",
   outline:
-    "border border-havii-mist bg-white text-havii-ink hover:bg-havii-sand focus-visible:ring-havii-teal",
+    "border border-studio-line bg-studio-charcoal text-studio-ink hover:bg-studio-surface focus-visible:ring-studio-gold",
   danger:
     "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500",
 };

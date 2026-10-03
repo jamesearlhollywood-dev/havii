@@ -1,25 +1,24 @@
 import Link from "next/link";
 import { SignUpForm } from "@/components/auth/AuthForm";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 
 export const metadata = { title: "Sign up" };
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-havii-cream px-4 py-10">
-      <Link href="/" className="mb-6 flex items-center gap-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-havii-teal text-sm font-bold text-white">
-          H
+    <div className="flex min-h-screen flex-col items-center justify-center bg-studio-black px-4 py-10">
+      <Link href="/" className="mb-6 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-studio-gold/40 bg-studio-charcoal font-mono text-sm font-bold text-studio-gold">
+          GH3
         </span>
-        <span className="font-semibold text-havii-ink">HAVII</span>
+        <span className="font-semibold text-studio-ink">James Hollywood III Studios</span>
       </Link>
-      <Card className="w-full max-w-md">
-        <CardTitle>Create your account</CardTitle>
-        <CardDescription className="mb-6">
-          Join a calm space to connect, grow, and find support.
-        </CardDescription>
+      <div className="w-full max-w-md rounded-2xl border border-studio-line bg-studio-charcoal p-6">
+        <h1 className="text-lg font-semibold text-studio-ink">Create your account</h1>
+        <p className="mt-1 mb-6 text-sm text-studio-muted">
+          Join the James Hollywood III Studios network.
+        </p>
         <SignUpForm />
-      </Card>
+      </div>
     </div>
   );
 }

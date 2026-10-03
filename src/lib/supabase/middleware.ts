@@ -7,7 +7,9 @@ export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !anonKey) {
+  // Pass through when Supabase isn't configured with a valid URL — public
+  // routes still render; protected routes handle auth at the layout level.
+  if (!url || !anonKey || !/^https?:\/\//.test(url)) {
     return supabaseResponse;
   }
 
@@ -43,11 +45,18 @@ export async function updateSession(request: NextRequest) {
 
   const isPublicRoute =
     pathname === "/" ||
+    pathname.startsWith("/shows") ||
+    pathname.startsWith("/episodes") ||
+    pathname.startsWith("/guests") ||
+    pathname.startsWith("/about") ||
+    pathname.startsWith("/partner") ||
+    pathname.startsWith("/contact") ||
     pathname.startsWith("/help") ||
     pathname.startsWith("/auth/callback") ||
     isAuthRoute;
 
   const isProtected =
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/onboarding") ||
     pathname.startsWith("/coming-next") ||
@@ -62,7 +71,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthRoute) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/dashboard";
+    redirectUrl.pathname = "/admin";
     return NextResponse.redirect(redirectUrl);
   }
 
@@ -74,8 +83,12 @@ export async function updateSession(request: NextRequest) {
       .maybeSingle();
 
     if (profile) {
+      // Onboarding redirect applies to public-signup roles only;
+      // staff/admin go straight to the studio dashboard.
       if (
         !profile.onboarding_completed &&
+        profile.role !== "staff" &&
+        profile.role !== "administrator" &&
         !pathname.startsWith("/onboarding") &&
         !pathname.startsWith("/help")
       ) {
@@ -90,6 +103,16 @@ export async function updateSession(request: NextRequest) {
       ) {
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = "/dashboard";
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      if (
+        pathname.startsWith("/admin") &&
+        profile.role !== "staff" &&
+        profile.role !== "administrator"
+      ) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = "/forbidden";
         return NextResponse.redirect(redirectUrl);
       }
 

@@ -56,7 +56,7 @@ export function SignUpForm() {
         autoComplete="new-password"
         hint="At least 8 characters"
       />
-      <p className="text-xs text-havii-muted">
+      <p className="text-xs text-studio-muted">
         Staff and administrator accounts are invitation-only and cannot be selected here.
       </p>
       <Button type="submit" className="w-full" loading={pending}>
@@ -64,7 +64,7 @@ export function SignUpForm() {
       </Button>
       <p className="text-center text-sm text-havii-muted">
         Already have an account?{" "}
-        <Link href="/auth/login" className="font-medium text-havii-teal hover:underline">
+        <Link href="/auth/login" className="font-medium text-studio-gold hover:underline">
           Log in
         </Link>
       </p>
@@ -72,7 +72,7 @@ export function SignUpForm() {
   );
 }
 
-export function LoginForm({ next = "/dashboard" }: { next?: string }) {
+export function LoginForm({ next = "/admin" }: { next?: string }) {
   const [state, action, pending] = useActionState(loginAction, initial);
   return (
     <form action={action} className="space-y-4">
@@ -87,7 +87,7 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
         autoComplete="current-password"
       />
       <div className="flex justify-end">
-        <Link href="/auth/forgot-password" className="text-sm text-havii-teal hover:underline">
+        <Link href="/auth/forgot-password" className="text-sm text-studio-gold hover:underline">
           Forgot password?
         </Link>
       </div>
@@ -96,7 +96,7 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
       </Button>
       <p className="text-center text-sm text-havii-muted">
         New here?{" "}
-        <Link href="/auth/sign-up" className="font-medium text-havii-teal hover:underline">
+        <Link href="/auth/sign-up" className="font-medium text-studio-gold hover:underline">
           Create an account
         </Link>
       </p>
@@ -114,8 +114,8 @@ export function ForgotPasswordForm() {
       <Button type="submit" className="w-full" loading={pending}>
         Send reset link
       </Button>
-      <p className="text-center text-sm text-havii-muted">
-        <Link href="/auth/login" className="text-havii-teal hover:underline">
+      <p className="text-center text-sm text-studio-muted">
+        <Link href="/auth/login" className="text-studio-gold hover:underline">
           Back to log in
         </Link>
       </p>
