@@ -6,8 +6,10 @@ const previewHost = process.env.BASE44_PUBLIC_HOST_SUFFIX
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: previewHost ? [previewHost] : [],
-  serverActions: {
-    allowedOrigins: previewHost ? [previewHost] : [],
+  experimental: {
+    serverActions: {
+      allowedOrigins: previewHost ? [previewHost] : [],
+    },
   },
 };
 
