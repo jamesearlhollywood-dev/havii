@@ -42,3 +42,44 @@ export type ResumeParseResult = {
   fileName?: string;
   fileSize?: number;
 };
+
+// ---------------------------------------------------------------------------
+// Career Assistant
+// ---------------------------------------------------------------------------
+
+export type AssistantActionType =
+  | "open_job"
+  | "tailor_resume"
+  | "generate_cover_letter"
+  | "start_interview_prep"
+  | "save_document"
+  | "update_career_profile";
+
+export interface AssistantSuggestedAction {
+  type: AssistantActionType;
+  label: string;
+  job_id?: string;
+  resume_id?: string;
+  document_type?: string;
+}
+
+export interface CareerContextHint {
+  job_application_id?: string;
+  resume_id?: string;
+  company_name?: string;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface CareerAssistantResult {
+  error?: string;
+  response?: string;
+  suggested_actions?: AssistantSuggestedAction[];
+  referenced_job_ids?: string[];
+  referenced_resume_ids?: string[];
+  generated_document_type?: string | null;
+  ai_provider?: string | null;
+}

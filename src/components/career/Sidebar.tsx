@@ -6,6 +6,7 @@ import { logoutAction } from "@/actions/auth";
 
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard", icon: DashboardIcon },
+  { href: "/app/career-assistant", label: "Career Assistant", icon: AssistantIcon },
   { href: "/app/find-jobs", label: "Find Jobs", icon: SearchIcon },
   { href: "/app/job-tracker", label: "Job Tracker", icon: BriefcaseIcon },
   { href: "/app/resume-ai", label: "Resume AI", icon: DocumentIcon },
@@ -84,6 +85,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const items = [
     { href: "/app/dashboard", label: "Home", icon: DashboardIcon },
+    { href: "/app/career-assistant", label: "Assistant", icon: AssistantIcon },
     { href: "/app/find-jobs", label: "Find", icon: SearchIcon },
     { href: "/app/job-tracker", label: "Tracker", icon: BriefcaseIcon },
     { href: "/app/resume-ai", label: "Resume", icon: DocumentIcon },
@@ -168,6 +170,13 @@ function SignOutIcon({ className = "" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function AssistantIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
     </svg>
   );
 }
