@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
-import { saveJournalAction, JOURNAL_PROMPTS, type JournalState, type JournalEntry } from "@/actions/journal";
+import { saveJournalAction, type JournalState, type JournalEntry } from "@/actions/journal";
+import { JOURNAL_PROMPTS } from "@/lib/journalConstants";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";

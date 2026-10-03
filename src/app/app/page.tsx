@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getAccessLevel } from "@/lib/session";
 import { query } from "@/lib/db";
+import { getHomeGoal } from "@/actions/goals";
 import { CheckInForm, type TodayCheckIn } from "@/components/checkin/CheckInForm";
+import { HomeGoalCard } from "@/components/goals/HomeGoalCard";
 
 export default async function HomePage() {
   const { level, profile } = await getAccessLevel();
@@ -15,10 +17,19 @@ export default async function HomePage() {
     [profile.user_id, profile.timezone]
   );
 
+  // Fetch the user's next active goal for the Home card
+  const homeGoal = await getHomeGoal();
+
   return (
-    <CheckInForm
-      todayCheckIn={rows[0] ?? null}
-      preferredName={profile.preferred_name}
-    />
+    <div className="space-y-6">
+      <CheckInForm
+        todayCheckIn={rows[0] ?? null}
+        preferredName={profile.preferred_name}
+      />
+
+      <div className="pt-2">
+        <HomeGoalCard goal={homeGoal} />
+      </div>
+    </div>
   );
 }

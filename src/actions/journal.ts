@@ -14,13 +14,6 @@ export type JournalEntry = {
   updated_at: string;
 };
 
-export const JOURNAL_PROMPTS = [
-  "What has been on your mind today?",
-  "What is one thing you wish someone understood?",
-  "What helped you through a difficult moment?",
-  "What is one small thing you are looking forward to?",
-] as const;
-
 /** Verify the user has full access (eligible + consented). */
 async function requireFullAccess() {
   const session = await getSession();
