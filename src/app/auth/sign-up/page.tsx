@@ -1,25 +1,17 @@
-import Link from "next/link";
-import { SignUpForm } from "@/components/auth/AuthForm";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
-
-export const metadata = { title: "Sign up" };
+import { SignUpForm } from "@/components/auth/SignUpForm";
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-havii-cream px-4 py-10">
-      <Link href="/" className="mb-6 flex items-center gap-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-havii-teal text-sm font-bold text-white">
-          H
-        </span>
-        <span className="font-semibold text-havii-ink">HAVII</span>
-      </Link>
-      <Card className="w-full max-w-md">
-        <CardTitle>Create your account</CardTitle>
-        <CardDescription className="mb-6">
-          Join a calm space to connect, grow, and find support.
-        </CardDescription>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-havii-cream px-6 py-10">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-bold text-havii-ink">Create your HAVII account</h1>
+          <p className="text-sm text-havii-muted">
+            A space to reflect, grow, and connect.
+          </p>
+        </div>
         <SignUpForm />
-      </Card>
+      </div>
     </div>
   );
 }

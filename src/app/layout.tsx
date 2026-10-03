@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s · HAVII",
   },
   description:
-    "HAVII is a youth wellness, mentorship, and personal development platform by Together For You, Inc. Ages 13–24.",
+    "HAVII — A space to reflect, grow, and connect. A youth wellness app for ages 13–24 from Together For You, Inc.",
 };
 
 export default function RootLayout({

@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
+const previewHost = process.env.BASE44_PUBLIC_HOST_SUFFIX
+  ? "3000-" + process.env.BASE44_PUBLIC_HOST_SUFFIX
+  : "";
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  allowedDevOrigins: previewHost ? [previewHost] : [],
+  serverActions: {
+    allowedOrigins: previewHost ? [previewHost] : [],
+  },
 };
 
 export default nextConfig;
