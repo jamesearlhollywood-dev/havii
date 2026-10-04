@@ -14,9 +14,9 @@ export function PhotoPlaceholder({
 }) {
   const tones: Record<string, string> = {
     warm: "from-[#d9c4a9] via-[#e8d5b8] to-[#c9a87c]",
-    forest: "from-[#5a7a6a] via-[#7a9a8a] to-[#415a77]",
+    forest: "from-[#4A7BAB] via-[#6B8EB5] to-[#2C5282]",
     navy: "from-[#1e293b] via-[#334155] to-[#0f172a]",
-    clay: "from-[#e27d60] via-[#d9a08a] to-[#c9684b]",
+    clay: "from-[#D4A93E] via-[#E0BC5C] to-[#B8860B]",
   };
   return (
     <div

@@ -23,7 +23,7 @@ export function ImpactStats() {
     <section className="bg-tfy-parchment">
       <div className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 lg:py-32">
         <div className="mb-16 max-w-2xl">
-          <p className="meta-label text-tfy-clay">Proof in Numbers</p>
+          <p className="meta-label text-tfy-gold">Proof in Numbers</p>
           <h2 className="mt-3 font-display text-4xl text-tfy-navy sm:text-5xl">
             Our Impact
           </h2>
@@ -57,9 +57,9 @@ export function ImpactStats() {
         <div className="mt-12 border-t border-tfy-line pt-8">
           <Link
             href="/impact"
-            className="meta-label text-tfy-navy transition-colors hover:text-tfy-clay"
+            className="meta-label text-tfy-navy transition-colors hover:text-tfy-gold"
           >
-            <span className="border-b border-tfy-navy/30 pb-0.5 hover:border-tfy-clay">
+            <span className="border-b border-tfy-navy/30 pb-0.5 hover:border-tfy-gold">
               View research & full impact report →
             </span>
           </Link>

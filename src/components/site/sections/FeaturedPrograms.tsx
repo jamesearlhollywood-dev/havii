@@ -43,7 +43,7 @@ export function FeaturedPrograms() {
       <div className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 lg:py-32">
         <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="meta-label text-tfy-clay">On the Ground</p>
+            <p className="meta-label text-tfy-gold">On the Ground</p>
             <h2 className="mt-3 font-display text-4xl text-tfy-parchment sm:text-5xl">
               Featured Programs
             </h2>
@@ -52,7 +52,7 @@ export function FeaturedPrograms() {
             <button
               type="button"
               onClick={() => scroll(-1)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-tfy-parchment/20 text-tfy-parchment transition hover:border-tfy-clay hover:text-tfy-clay"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-tfy-parchment/20 text-tfy-parchment transition hover:border-tfy-gold hover:text-tfy-gold"
               aria-label="Scroll programs left"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -62,7 +62,7 @@ export function FeaturedPrograms() {
             <button
               type="button"
               onClick={() => scroll(1)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-tfy-parchment/20 text-tfy-parchment transition hover:border-tfy-clay hover:text-tfy-clay"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-tfy-parchment/20 text-tfy-parchment transition hover:border-tfy-gold hover:text-tfy-gold"
               aria-label="Scroll programs right"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -87,7 +87,7 @@ export function FeaturedPrograms() {
                 className="aspect-[4/3] w-full rounded-3xl shadow-xl"
               />
               <div className="mt-5">
-                <p className="meta-label text-tfy-clay">{p.tag}</p>
+                <p className="meta-label text-tfy-gold">{p.tag}</p>
                 <h3 className="mt-2 font-display text-2xl text-tfy-parchment">
                   {p.title}
                 </h3>
@@ -100,9 +100,9 @@ export function FeaturedPrograms() {
         <div className="mt-10">
           <Link
             href="/programs"
-            className="meta-label text-tfy-parchment/80 transition-colors hover:text-tfy-clay"
+            className="meta-label text-tfy-parchment/80 transition-colors hover:text-tfy-gold"
           >
-            <span className="border-b border-tfy-parchment/30 pb-0.5 hover:border-tfy-clay">
+            <span className="border-b border-tfy-parchment/30 pb-0.5 hover:border-tfy-gold">
               Explore all programs →
             </span>
           </Link>

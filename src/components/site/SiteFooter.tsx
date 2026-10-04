@@ -19,7 +19,7 @@ export function SiteFooter() {
           {/* TFY at a glance */}
           <div className="lg:col-span-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-tfy-clay text-sm font-semibold text-white">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-tfy-gold text-sm font-semibold text-white">
                 TFY
               </span>
               <span className="font-display text-xl text-tfy-parchment">
@@ -31,7 +31,7 @@ export function SiteFooter() {
               communities thrive. Together, we build the foundations for a
               thriving Maryland.
             </p>
-            <p className="mt-6 meta-label text-tfy-clay">
+            <p className="mt-6 meta-label text-tfy-gold">
               501(c)(3) — [EIN Placeholder]
             </p>
           </div>
@@ -44,7 +44,7 @@ export function SiteFooter() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-tfy-parchment/75 transition-colors hover:text-tfy-clay"
+                    className="text-sm text-tfy-parchment/75 transition-colors hover:text-tfy-gold"
                   >
                     {item.label}
                   </Link>
@@ -63,7 +63,7 @@ export function SiteFooter() {
               <p className="pt-2">
                 <a
                   href="mailto:hello@togetherforyou.org"
-                  className="transition-colors hover:text-tfy-clay"
+                  className="transition-colors hover:text-tfy-gold"
                 >
                   hello@togetherforyou.org
                 </a>
@@ -71,7 +71,7 @@ export function SiteFooter() {
               <p>
                 <a
                   href="tel:+10000000000"
-                  className="transition-colors hover:text-tfy-clay"
+                  className="transition-colors hover:text-tfy-gold"
                 >
                   [Phone Placeholder]
                 </a>
@@ -87,7 +87,7 @@ export function SiteFooter() {
                 <li key={s}>
                   <Link
                     href="#"
-                    className="text-sm text-tfy-parchment/75 transition-colors hover:text-tfy-clay"
+                    className="text-sm text-tfy-parchment/75 transition-colors hover:text-tfy-gold"
                   >
                     {s}
                   </Link>
@@ -103,16 +103,16 @@ export function SiteFooter() {
             © {new Date().getFullYear()} Together For You, Inc. All rights reserved.
           </p>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link href="#" className="transition-colors hover:text-tfy-clay">
+            <Link href="#" className="transition-colors hover:text-tfy-gold">
               Privacy Policy
             </Link>
-            <Link href="#" className="transition-colors hover:text-tfy-clay">
+            <Link href="#" className="transition-colors hover:text-tfy-gold">
               Terms of Use
             </Link>
-            <Link href="#" className="transition-colors hover:text-tfy-clay">
+            <Link href="#" className="transition-colors hover:text-tfy-gold">
               Accessibility
             </Link>
-            <Link href="/help" className="transition-colors hover:text-tfy-clay">
+            <Link href="/help" className="transition-colors hover:text-tfy-gold">
               Crisis Resources
             </Link>
           </div>

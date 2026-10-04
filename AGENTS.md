@@ -15,7 +15,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **HAVII youth platform** (`/auth/*`, `/onboarding`, `/dashboard/*`, `/help`) — the app product. Uses `AppShell` for authenticated pages and `MarketingHeader` for legacy landing surfaces.
 
 ## Design system (TFY)
-- Colors live in `src/app/globals.css` as `--tfy-*` tokens (Navy `#0F172A`, Clay `#E27D60`, Parchment `#F8F7F2`, Forest `#415A77`). Legacy `--havii-*` tokens are kept so existing app routes still render.
+- Colors live in `src/app/globals.css` as `--tfy-*` tokens (Navy `#0F172A`, Blue `#2C5282`, Gold `#B8860B`, Parchment `#F8F7F2`). Legacy `--havii-*` tokens are kept so existing app routes still render.
 - Fonts: **Fraunces** (serif headings, `font-display` class) + **Inter** (body). Loaded via `next/font/google` in `src/app/layout.tsx`.
 - Homepage sections are individual components in `src/components/site/sections/`. The homepage composes them in `src/app/page.tsx`.
 - `PhotoPlaceholder` (`src/components/site/PhotoPlaceholder.tsx`) stands in for photography — swap with real `<Image>` when assets arrive.

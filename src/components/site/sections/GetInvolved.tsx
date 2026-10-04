@@ -22,10 +22,10 @@ const ACTIONS = [
 
 export function GetInvolved() {
   return (
-    <section className="bg-tfy-parchment">
-      <div className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 lg:py-32">
+    <section className="bg-tfy-parchment-warm">
+      <div className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8 lg:py-28">
         <div className="mb-14 max-w-2xl">
-          <p className="meta-label text-tfy-clay">Be Part of It</p>
+          <p className="meta-label text-tfy-gold">Be Part of It</p>
           <h2 className="mt-3 font-display text-4xl text-tfy-navy sm:text-5xl">
             Get Involved
           </h2>
@@ -39,7 +39,7 @@ export function GetInvolved() {
           {ACTIONS.map((a) => (
             <div
               key={a.title}
-              className="group overflow-hidden rounded-[2.5rem] border border-tfy-line bg-white"
+              className="group overflow-hidden rounded-[2rem] border border-tfy-line bg-white"
             >
               <PhotoPlaceholder
                 label={a.label}
@@ -53,7 +53,7 @@ export function GetInvolved() {
                 </p>
                 <Link
                   href={a.href}
-                  className="mt-8 inline-flex items-center gap-2 rounded-full border border-tfy-navy/20 px-6 py-3 text-sm font-semibold text-tfy-navy transition-all hover:border-tfy-clay hover:bg-tfy-clay hover:text-white"
+                  className="mt-8 inline-flex items-center gap-2 rounded-full border border-tfy-navy/20 px-6 py-3 text-sm font-semibold text-tfy-navy transition-all hover:border-tfy-navy hover:bg-tfy-navy hover:text-white"
                 >
                   {a.cta}
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>

@@ -2,21 +2,22 @@
 
 /* ============================================================
    TFY — Together For You, Inc. Design System
-   "Empathetic Rigor" — Earth & Institution palette
+   Professional nonprofit — Navy / Blue / Gold / Parchment
    ============================================================ */
 
 :root {
   /* TFY brand tokens */
-  --tfy-navy: #0F172A;          /* The Foundation — text, primary brand */
+  --tfy-navy: #0F172A;          /* Deep navy — primary brand, text, buttons */
   --tfy-navy-soft: #1E293B;
-  --tfy-clay: #E27D60;          /* The Human Element — primary action */
-  --tfy-clay-dark: #C9684B;
-  --tfy-clay-tint: #F4E0D6;
-  --tfy-parchment: #F8F7F2;     /* The Canvas — main background */
+  --tfy-blue: #2C5282;          /* Medium blue — secondary, links, icons */
+  --tfy-blue-light: #4A7BAB;
+  --tfy-blue-tint: #E8EFF7;
+  --tfy-gold: #B8860B;          /* Warm gold — accent, highlights */
+  --tfy-gold-light: #D4A93E;
+  --tfy-gold-dark: #8B6914;
+  --tfy-gold-tint: #F5EDD8;
+  --tfy-parchment: #F8F7F2;     /* Soft neutral — main background */
   --tfy-parchment-warm: #F3F0E8;
-  --tfy-forest: #415A77;         /* The Research — secondary icons/rules */
-  --tfy-forest-light: #6B8AAB;
-  --tfy-forest-tint: #E8EDF2;
   --tfy-line: #E2DED4;           /* hairline divider */
   --tfy-muted: #5B6573;
 
@@ -38,14 +39,15 @@
   /* TFY tokens */
   --color-tfy-navy: var(--tfy-navy);
   --color-tfy-navy-soft: var(--tfy-navy-soft);
-  --color-tfy-clay: var(--tfy-clay);
-  --color-tfy-clay-dark: var(--tfy-clay-dark);
-  --color-tfy-clay-tint: var(--tfy-clay-tint);
+  --color-tfy-blue: var(--tfy-blue);
+  --color-tfy-blue-light: var(--tfy-blue-light);
+  --color-tfy-blue-tint: var(--tfy-blue-tint);
+  --color-tfy-gold: var(--tfy-gold);
+  --color-tfy-gold-light: var(--tfy-gold-light);
+  --color-tfy-gold-dark: var(--tfy-gold-dark);
+  --color-tfy-gold-tint: var(--tfy-gold-tint);
   --color-tfy-parchment: var(--tfy-parchment);
   --color-tfy-parchment-warm: var(--tfy-parchment-warm);
-  --color-tfy-forest: var(--tfy-forest);
-  --color-tfy-forest-light: var(--tfy-forest-light);
-  --color-tfy-forest-tint: var(--tfy-forest-tint);
   --color-tfy-line: var(--tfy-line);
   --color-tfy-muted: var(--tfy-muted);
 
@@ -85,7 +87,7 @@ body {
 }
 
 ::selection {
-  background: var(--tfy-clay);
+  background: var(--tfy-gold);
   color: #fff;
 }
 
@@ -103,22 +105,22 @@ body {
   line-height: 1.5;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-/* Hairline "Data Rule" divider */
+/* Hairline divider */
 .data-rule {
   border-top: 0.5px solid var(--tfy-line);
 }
 
-/* "Support Arch" — large rounded container */
+/* Rounded container */
 .support-arch {
-  border-radius: 64px;
+  border-radius: 48px;
 }
 
 /* Accessible focus defaults */
 :focus-visible {
-  outline: 2px solid var(--tfy-clay);
+  outline: 2px solid var(--tfy-blue);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -127,7 +129,7 @@ details > summary::-webkit-details-marker {
   display: none;
 }
 
-/* ---- Growth underline (nav hover) ---- */
+/* ---- Nav underline (hover) ---- */
 .nav-underline {
   position: relative;
 }
@@ -138,7 +140,7 @@ details > summary::-webkit-details-marker {
   bottom: -4px;
   height: 1.5px;
   width: 0;
-  background: var(--tfy-clay);
+  background: var(--tfy-gold);
   transform: translateX(-50%);
   transition: width 0.28s ease;
 }
@@ -149,7 +151,7 @@ details > summary::-webkit-details-marker {
 
 /* ---- Subtle reveal animations ---- */
 @keyframes tfy-fade-up {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes tfy-fade-in {
@@ -177,6 +179,7 @@ details > summary::-webkit-details-marker {
 .delay-3 { animation-delay: 0.24s; }
 .delay-4 { animation-delay: 0.32s; }
 .delay-5 { animation-delay: 0.40s; }
+.delay-6 { animation-delay: 0.48s; }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal-fade, .reveal-scale { animation: none; }

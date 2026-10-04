@@ -41,8 +41,8 @@ export function SiteHeader() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-tfy-parchment/85 backdrop-blur-xl shadow-[0_1px_0_0_rgba(15,23,42,0.06)]"
-          : "bg-tfy-parchment/40 backdrop-blur-md"
+          ? "bg-tfy-parchment/95 backdrop-blur-sm shadow-[0_1px_0_0_rgba(15,23,42,0.08)]"
+          : "bg-tfy-parchment"
       }`}
     >
       <div
@@ -52,7 +52,7 @@ export function SiteHeader() {
       >
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3" aria-label="Together For You, Inc. — Home">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-tfy-navy text-sm font-semibold tracking-tight text-tfy-parchment">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-tfy-navy text-sm font-semibold tracking-tight text-tfy-parchment">
             TFY
           </span>
           <span className="hidden flex-col leading-none sm:flex">
@@ -84,7 +84,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-3">
           <Link
             href="/donate"
-            className="hidden rounded-full bg-tfy-clay px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_-4px_rgba(226,125,96,0.6)] transition-all hover:bg-tfy-clay-dark hover:shadow-[0_6px_20px_-4px_rgba(226,125,96,0.7)] sm:inline-flex"
+            className="hidden rounded-full bg-tfy-gold px-6 py-2.5 text-sm font-semibold text-tfy-navy transition-all hover:bg-tfy-gold-dark hover:text-white sm:inline-flex"
           >
             Donate
           </Link>
@@ -120,7 +120,7 @@ export function SiteHeader() {
 
       {/* Mobile menu overlay */}
       <div
-        className={`fixed inset-0 top-0 z-40 bg-tfy-navy/95 backdrop-blur-lg transition-all duration-300 lg:hidden ${
+        className={`fixed inset-0 top-0 z-40 bg-tfy-navy/95 backdrop-blur-sm transition-all duration-300 lg:hidden ${
           menuOpen ? "visible opacity-100" : "invisible opacity-0"
         }`}
       >
@@ -135,7 +135,7 @@ export function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 className={`font-display text-3xl transition-colors ${
-                  active ? "text-tfy-clay" : "text-tfy-parchment hover:text-tfy-clay"
+                  active ? "text-tfy-gold" : "text-tfy-parchment hover:text-tfy-gold"
                 } ${menuOpen ? "reveal" : ""}`}
                 style={{ animationDelay: `${0.05 + i * 0.05}s` }}
               >
@@ -145,7 +145,7 @@ export function SiteHeader() {
           })}
           <Link
             href="/donate"
-            className="mt-8 rounded-full bg-tfy-clay px-10 py-3.5 text-base font-semibold text-white shadow-lg transition hover:bg-tfy-clay-dark"
+            className="mt-8 rounded-full bg-tfy-gold px-10 py-3.5 text-base font-semibold text-tfy-navy transition hover:bg-tfy-gold-dark hover:text-white"
           >
             Donate
           </Link>

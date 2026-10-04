@@ -2,7 +2,7 @@ export function NewsletterSignup() {
   return (
     <section className="bg-tfy-parchment-warm">
       <div className="mx-auto max-w-[900px] px-5 py-24 text-center sm:px-8 lg:py-32">
-        <p className="meta-label text-tfy-forest">Stay Connected</p>
+        <p className="meta-label text-tfy-blue">Stay Connected</p>
         <h2 className="mt-4 font-display text-4xl text-tfy-navy sm:text-5xl">
           Join the Movement
         </h2>
@@ -20,7 +20,7 @@ export function NewsletterSignup() {
             type="email"
             required
             placeholder="you@example.com"
-            className="flex-1 rounded-full border border-tfy-line bg-white px-6 py-3.5 text-base text-tfy-navy outline-none transition focus:border-tfy-clay focus:ring-2 focus:ring-tfy-clay/20"
+            className="flex-1 rounded-full border border-tfy-line bg-white px-6 py-3.5 text-base text-tfy-navy outline-none transition focus:border-tfy-blue focus:ring-2 focus:ring-tfy-blue/20"
           />
           <button
             type="submit"
