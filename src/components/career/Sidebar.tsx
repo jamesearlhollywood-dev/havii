@@ -11,6 +11,7 @@ const navItems = [
   { href: "/app/job-alerts", label: "Job Alerts", icon: BellIcon },
   { href: "/app/tasks", label: "Tasks", icon: CheckSquareIcon },
   { href: "/app/job-tracker", label: "Job Tracker", icon: BriefcaseIcon },
+  { href: "/app/network", label: "Network", icon: NetworkIcon },
   { href: "/app/resume-ai", label: "Resume AI", icon: DocumentIcon },
   { href: "/app/interview-prep", label: "Interview Prep", icon: ChatIcon },
   { href: "/app/career-profile", label: "Career Profile", icon: UserIcon },
@@ -92,6 +93,7 @@ export function MobileNav() {
     { href: "/app/job-alerts", label: "Alerts", icon: BellIcon },
     { href: "/app/tasks", label: "Tasks", icon: CheckSquareIcon },
     { href: "/app/job-tracker", label: "Tracker", icon: BriefcaseIcon },
+    { href: "/app/network", label: "Network", icon: NetworkIcon },
     { href: "/app/resume-ai", label: "Resume", icon: DocumentIcon },
     { href: "/app/career-profile", label: "Profile", icon: UserIcon },
   ];
@@ -195,6 +197,16 @@ function CheckSquareIcon({ className = "" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M9 11l3 3 7-7M4 4h16v16H4V4z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function NetworkIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="5" cy="19" r="2.5" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="19" cy="19" r="2.5" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M11 7l-5 9M13 7l5 9M7 19h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
     </svg>
   );
 }

@@ -129,3 +129,12 @@ export type CareerTaskActionState = {
   error?: string;
   success?: string;
 };
+
+// ---------------------------------------------------------------------------
+// Networking & Contact Management
+// ---------------------------------------------------------------------------
+
+export type NetworkingActionState = {
+  error?: string;
+  success?: string;
+};

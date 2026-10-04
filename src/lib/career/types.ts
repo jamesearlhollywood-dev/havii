@@ -426,3 +426,154 @@ export interface CareerTaskInput {
   reminder_date: string | null;
   reminder_time: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Networking & Contact Management
+// ---------------------------------------------------------------------------
+
+export type RelationshipType =
+  | "Recruiter"
+  | "Hiring Manager"
+  | "Colleague"
+  | "Former Colleague"
+  | "Mentor"
+  | "Alumni"
+  | "Referral"
+  | "Professional Contact"
+  | "Employer Contact"
+  | "Other";
+
+export const RELATIONSHIP_TYPES: RelationshipType[] = [
+  "Recruiter",
+  "Hiring Manager",
+  "Colleague",
+  "Former Colleague",
+  "Mentor",
+  "Alumni",
+  "Referral",
+  "Professional Contact",
+  "Employer Contact",
+  "Other",
+];
+
+export type RelationshipStrength = "New" | "Developing" | "Established" | "Strong";
+export const RELATIONSHIP_STRENGTHS: RelationshipStrength[] = [
+  "New",
+  "Developing",
+  "Established",
+  "Strong",
+];
+
+export interface CareerContact {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string | null;
+  organization: string | null;
+  job_title: string | null;
+  email: string | null;
+  phone: string | null;
+  linkedin_url: string | null;
+  relationship_type: RelationshipType;
+  relationship_strength: RelationshipStrength;
+  location: string | null;
+  notes: string | null;
+  source: string | null;
+  last_contact_date: string | null;
+  next_follow_up_date: string | null;
+  related_job_application_id: string | null;
+  created_date: string;
+}
+
+/** Input shape for creating / updating a contact (client → action). */
+export interface CareerContactInput {
+  first_name: string;
+  last_name: string | null;
+  organization: string | null;
+  job_title: string | null;
+  email: string | null;
+  phone: string | null;
+  linkedin_url: string | null;
+  relationship_type: RelationshipType;
+  relationship_strength: RelationshipStrength;
+  location: string | null;
+  notes: string | null;
+  source: string | null;
+  last_contact_date: string | null;
+  next_follow_up_date: string | null;
+  related_job_application_id: string | null;
+}
+
+export type InteractionType =
+  | "Email"
+  | "Phone Call"
+  | "Meeting"
+  | "LinkedIn"
+  | "Event"
+  | "Interview"
+  | "Referral"
+  | "Other";
+
+export const INTERACTION_TYPES: InteractionType[] = [
+  "Email",
+  "Phone Call",
+  "Meeting",
+  "LinkedIn",
+  "Event",
+  "Interview",
+  "Referral",
+  "Other",
+];
+
+export interface ContactInteraction {
+  id: string;
+  user_id: string;
+  career_contact_id: string;
+  interaction_type: InteractionType;
+  interaction_date: string;
+  subject: string | null;
+  notes: string | null;
+  related_job_application_id: string | null;
+  follow_up_required: boolean;
+  follow_up_date: string | null;
+  created_date: string;
+}
+
+/** Input shape for logging an interaction (client → action). */
+export interface ContactInteractionInput {
+  career_contact_id: string;
+  interaction_type: InteractionType;
+  interaction_date: string;
+  subject: string | null;
+  notes: string | null;
+  related_job_application_id: string | null;
+  follow_up_required: boolean;
+  follow_up_date: string | null;
+}
+
+/** Kinds of networking messages the AI service layer can draft. */
+export type NetworkMessageType =
+  | "networking_email"
+  | "recruiter_follow_up"
+  | "referral_request"
+  | "thank_you"
+  | "informational_interview";
+
+export const NETWORK_MESSAGE_TYPES: { value: NetworkMessageType; label: string }[] = [
+  { value: "networking_email", label: "Networking email" },
+  { value: "recruiter_follow_up", label: "Recruiter follow-up" },
+  { value: "referral_request", label: "Referral request" },
+  { value: "thank_you", label: "Thank-you message" },
+  { value: "informational_interview", label: "Informational interview request" },
+];
+
+/** A draft networking message — never claimed as "sent" unless a real email provider confirms delivery. */
+export interface NetworkDraftResult {
+  error?: string;
+  subject: string;
+  body: string;
+  ai_provider: string | null;
+  model: string | null;
+  sent: false; // always false until a real email integration completes a send
+  note: string;
+}

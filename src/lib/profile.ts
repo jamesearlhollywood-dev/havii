@@ -61,3 +61,30 @@ export async function getRoleExtension(profile: Profile) {
 }
 
 export { displayName } from "@/lib/utils";
+
+/**
+ * Returns the signed-in user's display name (preferred_name → first_name →
+ * email handle → "User"). Returns null when not authenticated.
+ */
+export async function getUserName(): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_name, first_name, last_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    return (
+      profile?.preferred_name ||
+      profile?.first_name ||
+      user.email?.split("@")[0] ||
+      "User"
+    );
+  } catch {
+    return null;
+  }
+}
