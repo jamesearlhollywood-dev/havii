@@ -138,3 +138,26 @@ export type NetworkingActionState = {
   error?: string;
   success?: string;
 };
+
+// ---------------------------------------------------------------------------
+// Job Offers (Salary Research, Offer Comparison, Negotiation)
+// ---------------------------------------------------------------------------
+
+export type OfferActionState = {
+  error?: string;
+  success?: string;
+};
+
+// ---------------------------------------------------------------------------
+// Analytics & Goals
+// ---------------------------------------------------------------------------
+
+export type AnalyticsActionState = {
+  error?: string;
+  success?: string;
+};
+
+export type GoalActionState = {
+  error?: string;
+  success?: string;
+};

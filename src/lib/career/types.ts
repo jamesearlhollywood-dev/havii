@@ -577,3 +577,433 @@ export interface NetworkDraftResult {
   sent: false; // always false until a real email integration completes a send
   note: string;
 }
+
+// ---------------------------------------------------------------------------
+// Job Offers (Salary Research, Offer Comparison, Negotiation)
+// ---------------------------------------------------------------------------
+
+export type OfferStatus = "Received" | "Negotiating" | "Accepted" | "Declined" | "Expired";
+
+export const OFFER_STATUSES: OfferStatus[] = [
+  "Received",
+  "Negotiating",
+  "Accepted",
+  "Declined",
+  "Expired",
+];
+
+export type BonusType =
+  | "Annual"
+  | "Performance"
+  | "Signing"
+  | "Profit Sharing"
+  | "Equity"
+  | "None"
+  | "Other";
+
+export const BONUS_TYPES: BonusType[] = [
+  "Annual",
+  "Performance",
+  "Signing",
+  "Profit Sharing",
+  "Equity",
+  "None",
+  "Other",
+];
+
+/** A tracked job offer — optionally linked to a JobApplication. */
+export interface JobOffer {
+  id: string;
+  user_id: string;
+  job_application_id: string | null;
+  company: string;
+  role_title: string | null;
+  base_salary: number | null;
+  bonus_amount: number | null;
+  bonus_type: BonusType | null;
+  equity_value: number | null;
+  signing_bonus: number | null;
+  retirement_match: number | null;
+  health_benefit_value: number | null;
+  paid_time_off_days: number | null;
+  remote_stipend: number | null;
+  relocation_assistance: number | null;
+  other_compensation: string | null;
+  total_estimated_compensation: number | null;
+  location: string | null;
+  work_mode: WorkMode | null;
+  start_date: string | null;
+  response_deadline: string | null;
+  offer_status: OfferStatus;
+  notes: string | null;
+  created_date: string;
+}
+
+/** Input shape for creating / updating a job offer (client → action). */
+export interface JobOfferInput {
+  job_application_id: string | null;
+  company: string;
+  role_title: string | null;
+  base_salary: number | null;
+  bonus_amount: number | null;
+  bonus_type: BonusType | null;
+  equity_value: number | null;
+  signing_bonus: number | null;
+  retirement_match: number | null;
+  health_benefit_value: number | null;
+  paid_time_off_days: number | null;
+  remote_stipend: number | null;
+  relocation_assistance: number | null;
+  other_compensation: string | null;
+  total_estimated_compensation: number | null;
+  location: string | null;
+  work_mode: WorkMode | null;
+  start_date: string | null;
+  response_deadline: string | null;
+  offer_status: OfferStatus;
+  notes: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Salary Research — compensation data provider abstraction
+// ---------------------------------------------------------------------------
+
+/** Company-size buckets supported by the compensation data abstraction. */
+export type CompanySize =
+  | "Startup (1-50)"
+  | "Small (51-200)"
+  | "Mid-size (201-1000)"
+  | "Large (1001-5000)"
+  | "Enterprise (5000+)";
+
+export const COMPANY_SIZES: CompanySize[] = [
+  "Startup (1-50)",
+  "Small (51-200)",
+  "Mid-size (201-1000)",
+  "Large (1001-5000)",
+  "Enterprise (5000+)",
+];
+
+/** Inputs for a salary estimate request. */
+export interface SalaryResearchRequest {
+  title: string;
+  location: string;
+  years_experience: number | null;
+  industry: string | null;
+  company_size: CompanySize | null;
+  work_mode: WorkMode | null;
+}
+
+/** Normalized salary estimate returned by any compensation data provider. */
+export interface SalaryEstimate {
+  salary_min: number | null;
+  salary_median: number | null;
+  salary_max: number | null;
+  percentile_25: number | null;
+  percentile_75: number | null;
+  currency: string;
+  source: string;
+  source_url: string | null;
+  data_date: string | null;
+  location_adjustment: number | null;
+  experience_adjustment: number | null;
+}
+
+/** Result of a salary research query — distinguishes provider state from data. */
+export interface SalaryResearchResult {
+  estimate: SalaryEstimate | null;
+  configured: boolean;
+  error?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Negotiation Prep
+// ---------------------------------------------------------------------------
+
+/** Inputs to the negotiationStrategy AI operation. */
+export interface NegotiationStrategyInput {
+  job_offer_id: string;
+  desired_salary: number | null;
+  minimum_acceptable_salary: number | null;
+  priority_benefits: string[];
+  competing_offer_info: string | null;
+  leverage_points: string | null;
+}
+
+/** Structured strategy returned by the AI (or empty when no AI provider). */
+export interface NegotiationStrategy {
+  negotiation_position: string | null;
+  recommended_target: number | null;
+  recommended_floor: number | null;
+  strongest_leverage_points: string[];
+  risks: string[];
+  recommended_sequence: string[];
+  suggested_talking_points: string[];
+  suggested_email: string | null;
+  suggested_phone_script: string | null;
+}
+
+export interface NegotiationStrategyResult {
+  strategy: NegotiationStrategy | null;
+  ai_configured: boolean;
+  /** Distinguishes data provenance: verified market data, user-entered, AI-generated. */
+  data_sources: {
+    market_data_verified: boolean;
+    user_entered: string[];
+    ai_generated: boolean;
+  };
+  error?: string;
+}
+
+/** Kinds of negotiation documents the AI service layer can draft. */
+export type NegotiationDocumentType =
+  | "salary_negotiation_email"
+  | "counteroffer_email"
+  | "benefits_negotiation_email"
+  | "offer_acceptance_email"
+  | "offer_decline_email";
+
+export const NEGOTIATION_DOCUMENT_TYPES: {
+  value: NegotiationDocumentType;
+  label: string;
+}[] = [
+  { value: "salary_negotiation_email", label: "Salary negotiation email" },
+  { value: "counteroffer_email", label: "Counteroffer email" },
+  { value: "benefits_negotiation_email", label: "Benefits negotiation email" },
+  { value: "offer_acceptance_email", label: "Offer acceptance email" },
+  { value: "offer_decline_email", label: "Offer decline email" },
+];
+
+/** A draft negotiation document — saved to GeneratedDocument only after user review. */
+export interface NegotiationDocumentResult {
+  error?: string;
+  subject: string;
+  body: string;
+  ai_provider: string | null;
+  model: string | null;
+  saved: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Career Goals (Analytics)
+// ---------------------------------------------------------------------------
+
+export type GoalType =
+  | "Applications"
+  | "Networking Contacts"
+  | "Follow-Ups"
+  | "Interviews"
+  | "Resume Tailoring"
+  | "Job Searches";
+
+export const GOAL_TYPES: GoalType[] = [
+  "Applications",
+  "Networking Contacts",
+  "Follow-Ups",
+  "Interviews",
+  "Resume Tailoring",
+  "Job Searches",
+];
+
+export type GoalPeriod = "Weekly" | "Monthly" | "Custom";
+export const GOAL_PERIODS: GoalPeriod[] = ["Weekly", "Monthly", "Custom"];
+
+export type GoalStatus = "Active" | "Completed" | "Archived";
+export const GOAL_STATUSES: GoalStatus[] = ["Active", "Completed", "Archived"];
+
+export interface CareerGoal {
+  id: string;
+  user_id: string;
+  goal_type: GoalType;
+  target_value: number;
+  period: GoalPeriod;
+  start_date: string;
+  end_date: string | null;
+  status: GoalStatus;
+  created_date: string;
+}
+
+export interface CareerGoalInput {
+  goal_type: GoalType;
+  target_value: number;
+  period: GoalPeriod;
+  start_date: string;
+  end_date: string | null;
+  status: GoalStatus;
+}
+
+/** A goal with its actual progress computed from stored records. */
+export interface CareerGoalWithProgress extends CareerGoal {
+  current_value: number;
+  progress_pct: number;
+}
+
+// ---------------------------------------------------------------------------
+// Analytics — aggregated metrics & insights
+// ---------------------------------------------------------------------------
+
+export type AnalyticsRange = "30d" | "90d" | "6m" | "12m" | "all";
+
+export const ANALYSIS_RANGES: { value: AnalyticsRange; label: string }[] = [
+  { value: "30d", label: "Last 30 days" },
+  { value: "90d", label: "Last 90 days" },
+  { value: "6m", label: "Last 6 months" },
+  { value: "12m", label: "Last 12 months" },
+  { value: "all", label: "All time" },
+];
+
+/** Time-series bucket for activity-over-time charts. */
+export interface ActivityBucket {
+  label: string;
+  saved: number;
+  applied: number;
+  interviews: number;
+  offers: number;
+}
+
+/** A single funnel stage with its count and conversion rate from the prior stage. */
+export interface FunnelStage {
+  stage: string;
+  count: number;
+  conversion_from_prior: number | null;
+}
+
+/** Per-source breakdown of opportunities. */
+export interface SourceBreakdown {
+  source: string;
+  found: number;
+  saved: number;
+  applied: number;
+  interviews: number;
+  offers: number;
+}
+
+/** Per-role (title) breakdown. */
+export interface RoleBreakdown {
+  role: string;
+  opportunities: number;
+  applied: number;
+  interviews: number;
+  offers: number;
+  avg_match_score: number | null;
+}
+
+/** Per-location / work-mode breakdown. */
+export interface LocationBreakdown {
+  location: string;
+  jobs: number;
+  applied: number;
+  interview_rate: number | null;
+  offer_rate: number | null;
+}
+
+export interface WorkModeBreakdown {
+  work_mode: string;
+  jobs: number;
+  applied: number;
+  interview_rate: number | null;
+  offer_rate: number | null;
+}
+
+/** The full aggregated analytics payload derived from a user's stored records. */
+export interface AnalyticsMetrics {
+  overview: {
+    total_tracked: number;
+    applications_submitted: number;
+    interviews_received: number;
+    offers_received: number;
+    rejections: number;
+    withdrawn: number;
+    active_opportunities: number;
+    avg_match_score: number | null;
+  };
+  funnel: FunnelStage[];
+  activity: {
+    buckets: ActivityBucket[];
+    granularity: "week" | "month";
+  };
+  velocity: {
+    applications_per_week: number | null;
+    interviews_per_month: number | null;
+    avg_saved_to_applied_days: number | null;
+    avg_applied_to_interview_days: number | null;
+    avg_interview_to_offer_days: number | null;
+  };
+  sources: SourceBreakdown[];
+  matchScore: {
+    avg: number | null;
+    highest: number | null;
+    avg_applied: number | null;
+    avg_interview: number | null;
+    avg_offer: number | null;
+    /** Buckets used by the "outcome patterns by match score" chart. */
+    outcome_buckets: { label: string; applied: number; interviews: number; offers: number }[];
+  };
+  roles: RoleBreakdown[];
+  locations: LocationBreakdown[];
+  workModes: WorkModeBreakdown[];
+  salary: {
+    avg_min: number | null;
+    avg_max: number | null;
+    highest: number | null;
+    avg_interview_stage: number | null;
+    avg_offer_stage: number | null;
+    count_with_salary: number;
+  };
+  responseRate: {
+    applications: number;
+    with_response: number;
+    no_response: number;
+    interview_rate: number | null;
+    rejection_rate: number | null;
+    offer_rate: number | null;
+  };
+  followUps: {
+    created: number;
+    completed: number;
+    overdue: number;
+    avg_completion_days: number | null;
+    completion_rate_applications_with: number | null;
+    completion_rate_applications_without: number | null;
+  };
+  networking: {
+    active_contacts: number;
+    recruiters: number;
+    hiring_managers: number;
+    referrals: number;
+    interactions: number;
+    follow_ups_completed: number;
+    applications_with_contact: number;
+  };
+  documents: { type: string; label: string; count: number }[];
+  interviews: {
+    prepared_for: number;
+    sessions_completed: number;
+    avg_score: number | null;
+    by_type: { type: string; count: number }[];
+  };
+  offers: {
+    received: number;
+    accepted: number;
+    declined: number;
+    negotiating: number;
+    avg_base_salary: number | null;
+    avg_total_comp: number | null;
+  };
+  goals: CareerGoalWithProgress[];
+  /** Deterministic, human-readable insights derived purely from the metrics. */
+  insights: string[];
+}
+
+/** AI-generated interpretation of the aggregated metrics. */
+export interface AnalyticsInsightsResult {
+  error?: string;
+  ai_configured: boolean;
+  patterns: string[];
+  improvements: string[];
+  questions: string[];
+  suggested_actions: string[];
+  ai_provider: string | null;
+  model: string | null;
+}
+

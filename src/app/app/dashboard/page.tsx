@@ -2,11 +2,13 @@ import Link from "next/link";
 import { getJobStats, getRecentJobApplications } from "@/actions/job-application";
 import { getDashboardTasksAction } from "@/actions/career-tasks";
 import { getDashboardNetworkingAction } from "@/actions/networking";
+import { getDashboardOfferDeadlinesAction } from "@/actions/offers";
 import { StatusBadge } from "@/components/career/StatusBadge";
 import { StatCard } from "@/components/career/StatCard";
 import { Card } from "@/components/ui/Card";
 import { DashboardTasks } from "@/components/career/DashboardTasks";
 import { DashboardNetworking } from "@/components/career/DashboardNetworking";
+import { DashboardOfferDeadlines } from "@/components/career/DashboardOfferDeadlines";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -16,11 +18,12 @@ function StatIcon({ children }: { children: React.ReactNode }) {
 }
 
 export default async function DashboardPage() {
-  const [stats, recentJobs, dashboardTasks, networkingData] = await Promise.all([
+  const [stats, recentJobs, dashboardTasks, networkingData, offerDeadlines] = await Promise.all([
     getJobStats(),
     getRecentJobApplications(5),
     getDashboardTasksAction(),
     getDashboardNetworkingAction(),
+    getDashboardOfferDeadlinesAction(),
   ]);
 
   return (
@@ -126,6 +129,9 @@ export default async function DashboardPage() {
 
       {/* Networking follow-ups */}
       <DashboardNetworking data={networkingData} />
+
+      {/* Upcoming offer deadlines */}
+      <DashboardOfferDeadlines deadlines={offerDeadlines.deadlines} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent opportunities */}

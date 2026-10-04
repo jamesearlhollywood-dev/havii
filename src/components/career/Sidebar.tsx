@@ -11,6 +11,8 @@ const navItems = [
   { href: "/app/job-alerts", label: "Job Alerts", icon: BellIcon },
   { href: "/app/tasks", label: "Tasks", icon: CheckSquareIcon },
   { href: "/app/job-tracker", label: "Job Tracker", icon: BriefcaseIcon },
+  { href: "/app/offers", label: "Offers & Salary", icon: DollarIcon },
+  { href: "/app/analytics", label: "Analytics", icon: ChartIcon },
   { href: "/app/network", label: "Network", icon: NetworkIcon },
   { href: "/app/resume-ai", label: "Resume AI", icon: DocumentIcon },
   { href: "/app/interview-prep", label: "Interview Prep", icon: ChatIcon },
@@ -93,6 +95,8 @@ export function MobileNav() {
     { href: "/app/job-alerts", label: "Alerts", icon: BellIcon },
     { href: "/app/tasks", label: "Tasks", icon: CheckSquareIcon },
     { href: "/app/job-tracker", label: "Tracker", icon: BriefcaseIcon },
+    { href: "/app/offers", label: "Offers", icon: DollarIcon },
+    { href: "/app/analytics", label: "Analytics", icon: ChartIcon },
     { href: "/app/network", label: "Network", icon: NetworkIcon },
     { href: "/app/resume-ai", label: "Resume", icon: DocumentIcon },
     { href: "/app/career-profile", label: "Profile", icon: UserIcon },
@@ -207,6 +211,20 @@ function NetworkIcon({ className = "" }: { className?: string }) {
       <circle cx="5" cy="19" r="2.5" stroke="currentColor" strokeWidth="1.75" />
       <circle cx="19" cy="19" r="2.5" stroke="currentColor" strokeWidth="1.75" />
       <path d="M11 7l-5 9M13 7l5 9M7 19h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+function DollarIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 2v20M16 6.5C16 4.5 14 3.5 12 3.5S8 4.5 8 6.5 10 9 12 9.5s4 1 4 3.5-2 3-4 3-4-1-4-3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function ChartIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { updateJobStatusAction, deleteJobApplicationAction } from "@/actions/job-application";
 import { StatusBadge } from "@/components/career/StatusBadge";
 import { JobFollowUpReminder } from "@/components/career/JobFollowUpReminder";
+import { JobOffers } from "@/components/career/JobOffers";
 import { Button } from "@/components/ui/Button";
 import type { JobApplication, JobStatus } from "@/lib/career/types";
 import { JOB_STATUSES } from "@/lib/career/types";
@@ -178,6 +179,9 @@ export function JobDetail({ job }: { job: JobApplication }) {
           </div>
         </div>
       </div>
+
+      {/* Linked offers */}
+      <JobOffers jobId={job.id} />
 
       {/* Follow-up reminders & quick tasks */}
       <JobFollowUpReminder jobId={job.id} />
