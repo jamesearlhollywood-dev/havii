@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { updateJobStatusAction, deleteJobApplicationAction } from "@/actions/job-application";
 import { StatusBadge } from "@/components/career/StatusBadge";
+import { JobFollowUpReminder } from "@/components/career/JobFollowUpReminder";
 import { Button } from "@/components/ui/Button";
 import type { JobApplication, JobStatus } from "@/lib/career/types";
 import { JOB_STATUSES } from "@/lib/career/types";
@@ -177,6 +178,9 @@ export function JobDetail({ job }: { job: JobApplication }) {
           </div>
         </div>
       </div>
+
+      {/* Follow-up reminders & quick tasks */}
+      <JobFollowUpReminder jobId={job.id} />
     </div>
   );
 }

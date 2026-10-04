@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { getJobStats, getRecentJobApplications } from "@/actions/job-application";
+import { getDashboardTasksAction } from "@/actions/career-tasks";
 import { StatusBadge } from "@/components/career/StatusBadge";
 import { StatCard } from "@/components/career/StatCard";
 import { Card } from "@/components/ui/Card";
+import { DashboardTasks } from "@/components/career/DashboardTasks";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -12,9 +14,10 @@ function StatIcon({ children }: { children: React.ReactNode }) {
 }
 
 export default async function DashboardPage() {
-  const [stats, recentJobs] = await Promise.all([
+  const [stats, recentJobs, dashboardTasks] = await Promise.all([
     getJobStats(),
     getRecentJobApplications(5),
+    getDashboardTasksAction(),
   ]);
 
   return (
@@ -114,6 +117,9 @@ export default async function DashboardPage() {
           </div>
         </Link>
       </div>
+
+      {/* Today's tasks & upcoming deadlines */}
+      <DashboardTasks today={dashboardTasks.today} upcoming={dashboardTasks.upcoming} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent opportunities */}

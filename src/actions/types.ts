@@ -120,3 +120,12 @@ export type AlertResultsResult = {
 };
 
 export type { SavedJobSearch, SavedSearchInput, JobAlertResult };
+
+// ---------------------------------------------------------------------------
+// Career Tasks
+// ---------------------------------------------------------------------------
+
+export type CareerTaskActionState = {
+  error?: string;
+  success?: string;
+};

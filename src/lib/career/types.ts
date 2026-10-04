@@ -339,7 +339,8 @@ export type NotificationType =
   | "new_recommendation"
   | "interview_upcoming"
   | "follow_up"
-  | "offer_reminder";
+  | "offer_reminder"
+  | "task_reminder";
 
 export interface AppNotification {
   id: string;
@@ -350,4 +351,78 @@ export interface AppNotification {
   related_id: string | null;
   read_at: string | null;
   created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Career Tasks, Follow-Ups & Deadlines
+// ---------------------------------------------------------------------------
+
+export type TaskType =
+  | "Application"
+  | "Follow-Up"
+  | "Interview"
+  | "Networking"
+  | "Resume"
+  | "Cover Letter"
+  | "Offer"
+  | "Negotiation"
+  | "General";
+
+export const TASK_TYPES: TaskType[] = [
+  "Application",
+  "Follow-Up",
+  "Interview",
+  "Networking",
+  "Resume",
+  "Cover Letter",
+  "Offer",
+  "Negotiation",
+  "General",
+];
+
+export type TaskPriority = "Low" | "Medium" | "High" | "Urgent";
+export const TASK_PRIORITIES: TaskPriority[] = ["Low", "Medium", "High", "Urgent"];
+
+export type TaskStatus = "To Do" | "In Progress" | "Completed" | "Cancelled";
+export const TASK_STATUSES: TaskStatus[] = [
+  "To Do",
+  "In Progress",
+  "Completed",
+  "Cancelled",
+];
+
+/** Active (non-terminal) task statuses — used for "today" / "upcoming" views. */
+export const ACTIVE_TASK_STATUSES: TaskStatus[] = ["To Do", "In Progress"];
+
+export interface CareerTask {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  task_type: TaskType;
+  related_job_application_id: string | null;
+  due_date: string | null;
+  due_time: string | null;
+  priority: TaskPriority;
+  status: TaskStatus;
+  reminder_enabled: boolean;
+  reminder_date: string | null;
+  reminder_time: string | null;
+  completed_at: string | null;
+  created_date: string;
+}
+
+/** Input shape for creating / updating a task (client → action). */
+export interface CareerTaskInput {
+  title: string;
+  description: string | null;
+  task_type: TaskType;
+  related_job_application_id: string | null;
+  due_date: string | null;
+  due_time: string | null;
+  priority: TaskPriority;
+  status: TaskStatus;
+  reminder_enabled: boolean;
+  reminder_date: string | null;
+  reminder_time: string | null;
 }
