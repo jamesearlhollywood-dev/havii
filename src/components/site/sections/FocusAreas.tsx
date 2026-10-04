@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const FOCUS_AREAS = [
   {
     title: "Mentorship & Leadership",
@@ -71,6 +73,17 @@ export function FocusAreas() {
               </p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-12">
+          <Link
+            href="/programs"
+            className="meta-label text-tfy-navy transition-colors hover:text-tfy-gold"
+          >
+            <span className="border-b border-tfy-navy/30 pb-0.5 hover:border-tfy-gold">
+              Explore our programs &rarr;
+            </span>
+          </Link>
         </div>
       </div>
     </section>

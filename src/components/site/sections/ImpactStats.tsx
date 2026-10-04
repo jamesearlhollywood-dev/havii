@@ -60,7 +60,7 @@ export function ImpactStats() {
             className="meta-label text-tfy-navy transition-colors hover:text-tfy-gold"
           >
             <span className="border-b border-tfy-navy/30 pb-0.5 hover:border-tfy-gold">
-              View research & full impact report →
+              View full impact report →
             </span>
           </Link>
         </div>
