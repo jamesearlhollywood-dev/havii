@@ -1,6 +1,26 @@
 @import "tailwindcss";
 
+/* ============================================================
+   TFY — Together For You, Inc. Design System
+   "Empathetic Rigor" — Earth & Institution palette
+   ============================================================ */
+
 :root {
+  /* TFY brand tokens */
+  --tfy-navy: #0F172A;          /* The Foundation — text, primary brand */
+  --tfy-navy-soft: #1E293B;
+  --tfy-clay: #E27D60;          /* The Human Element — primary action */
+  --tfy-clay-dark: #C9684B;
+  --tfy-clay-tint: #F4E0D6;
+  --tfy-parchment: #F8F7F2;     /* The Canvas — main background */
+  --tfy-parchment-warm: #F3F0E8;
+  --tfy-forest: #415A77;         /* The Research — secondary icons/rules */
+  --tfy-forest-light: #6B8AAB;
+  --tfy-forest-tint: #E8EDF2;
+  --tfy-line: #E2DED4;           /* hairline divider */
+  --tfy-muted: #5B6573;
+
+  /* Legacy HAVII tokens (kept for existing app routes) */
   --background: #f7f4ef;
   --foreground: #1c2b2d;
   --havii-teal: #0f766e;
@@ -15,6 +35,21 @@
 }
 
 @theme inline {
+  /* TFY tokens */
+  --color-tfy-navy: var(--tfy-navy);
+  --color-tfy-navy-soft: var(--tfy-navy-soft);
+  --color-tfy-clay: var(--tfy-clay);
+  --color-tfy-clay-dark: var(--tfy-clay-dark);
+  --color-tfy-clay-tint: var(--tfy-clay-tint);
+  --color-tfy-parchment: var(--tfy-parchment);
+  --color-tfy-parchment-warm: var(--tfy-parchment-warm);
+  --color-tfy-forest: var(--tfy-forest);
+  --color-tfy-forest-light: var(--tfy-forest-light);
+  --color-tfy-forest-tint: var(--tfy-forest-tint);
+  --color-tfy-line: var(--tfy-line);
+  --color-tfy-muted: var(--tfy-muted);
+
+  /* Legacy HAVII tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-havii-teal: var(--havii-teal);
@@ -26,22 +61,124 @@
   --color-havii-mist: var(--havii-mist);
   --color-havii-ink: var(--havii-ink);
   --color-havii-muted: var(--havii-muted);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Fonts */
+  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* ---- Base ---- */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background: var(--tfy-parchment);
+  color: var(--tfy-navy);
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--tfy-clay);
+  color: #fff;
+}
+
+/* Headings use the serif display face */
+.font-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Small meta label */
+.meta-label {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Hairline "Data Rule" divider */
+.data-rule {
+  border-top: 0.5px solid var(--tfy-line);
+}
+
+/* "Support Arch" — large rounded container */
+.support-arch {
+  border-radius: 64px;
 }
 
 /* Accessible focus defaults */
 :focus-visible {
-  outline: 2px solid var(--havii-teal);
-  outline-offset: 2px;
+  outline: 2px solid var(--tfy-clay);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 details > summary::-webkit-details-marker {
   display: none;
+}
+
+/* ---- Growth underline (nav hover) ---- */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  height: 1.5px;
+  width: 0;
+  background: var(--tfy-clay);
+  transform: translateX(-50%);
+  transition: width 0.28s ease;
+}
+.nav-underline:hover::after,
+.nav-underline[data-active="true"]::after {
+  width: 100%;
+}
+
+/* ---- Subtle reveal animations ---- */
+@keyframes tfy-fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes tfy-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes tfy-scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.reveal {
+  animation: tfy-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.reveal-fade {
+  animation: tfy-fade-in 0.9s ease both;
+}
+.reveal-scale {
+  animation: tfy-scale-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stagger helpers */
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.16s; }
+.delay-3 { animation-delay: 0.24s; }
+.delay-4 { animation-delay: 0.32s; }
+.delay-5 { animation-delay: 0.40s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-fade, .reveal-scale { animation: none; }
+  html { scroll-behavior: auto; }
 }

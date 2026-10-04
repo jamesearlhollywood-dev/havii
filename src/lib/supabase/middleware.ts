@@ -7,7 +7,14 @@ export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  // Skip session refresh when Supabase isn't properly configured (missing or
+  // invalid URL) so public routes still render.
   if (!url || !anonKey) {
+    return supabaseResponse;
+  }
+  try {
+    new URL(url);
+  } catch {
     return supabaseResponse;
   }
 
