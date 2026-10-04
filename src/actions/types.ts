@@ -98,3 +98,25 @@ export interface CareerAssistantResult {
   generated_document_type?: string | null;
   ai_provider?: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Saved Searches & Job Alerts
+// ---------------------------------------------------------------------------
+
+import type {
+  SavedJobSearch,
+  SavedSearchInput,
+  JobAlertResult,
+} from "@/lib/career/types";
+
+export type SavedSearchActionState = {
+  error?: string;
+  success?: string;
+};
+
+export type AlertResultsResult = {
+  error?: string;
+  results: JobAlertResult[];
+};
+
+export type { SavedJobSearch, SavedSearchInput, JobAlertResult };

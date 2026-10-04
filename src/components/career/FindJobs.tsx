@@ -7,6 +7,7 @@ import { saveJobFromSearchAction } from "@/actions/job-application";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { SaveSearchModal } from "@/components/career/SaveSearchModal";
 import type { NormalizedJobResult } from "@/lib/career/types";
 import { WORK_MODES, EMPLOYMENT_TYPES } from "@/lib/career/types";
 
@@ -40,6 +41,7 @@ export function FindJobs({ apiConfigured }: { apiConfigured: boolean }) {
   const [results, setResults] = useState<NormalizedJobResult[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -141,11 +143,34 @@ export function FindJobs({ apiConfigured }: { apiConfigured: boolean }) {
             />
             Remote jobs only
           </label>
-          <Button type="submit" loading={state === "loading"}>
-            Search Jobs
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSaveModalOpen(true)}
+            >
+              Save Search
+            </Button>
+            <Button type="submit" loading={state === "loading"}>
+              Search Jobs
+            </Button>
+          </div>
         </div>
       </form>
+
+      <SaveSearchModal
+        open={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        filters={{
+          keywords: keyword,
+          location,
+          remote_only: remoteOnly,
+          work_mode: workMode,
+          employment_type: employmentType,
+          minimum_salary: salaryMin,
+          date_posted: datePosted,
+        }}
+      />
 
       {/* Results */}
       {state === "idle" && (

@@ -15,11 +15,13 @@ Career AI is a career management platform built on Next.js 16 (App Router) + Rea
 
 ## Architecture
 - **Routes**: Career AI app lives under `/app/*` (protected by middleware). Auth pages under `/auth/*`. Legacy HAVII routes (`/dashboard`, `/onboarding`) redirect to `/app/dashboard`.
-- **Layout**: `src/app/app/layout.tsx` provides the sidebar + mobile nav shell. Sidebar is in `src/components/career/Sidebar.tsx`.
-- **Database**: Supabase (remote). Tables: `career_profiles`, `job_applications`, `resumes`, `generated_documents`, `interview_sessions` — all with RLS (user can only CRUD own rows). Migration: `supabase/migrations/202603140003_career_ai.sql`.
+- **Layout**: `src/app/app/layout.tsx` provides the sidebar + mobile nav shell + a header bar with the in-app notification bell. Sidebar is in `src/components/career/Sidebar.tsx`.
+- **Database**: Supabase (remote). Tables: `career_profiles`, `job_applications`, `resumes`, `generated_documents`, `interview_sessions`, `saved_job_searches`, `job_alert_results`, `notifications`, `job_match_analyses` — all with RLS (user can only CRUD own rows). Migrations under `supabase/migrations/`.
 - **Jobs API**: Provider-agnostic abstraction in `src/lib/career/jobs-api.ts`. No provider connected yet; UI shows "API not connected" state. Register providers via `registerJobsProvider()`.
-- **Server actions**: `src/actions/career-profile.ts`, `src/actions/job-application.ts`, `src/actions/find-jobs.ts`.
-- **Types**: `src/lib/career/types.ts` — domain types (JobStatus, WorkMode, EmploymentType, entity interfaces, NormalizedJobResult).
+- **Saved Searches & Job Alerts**: `src/lib/career/job-alerts.ts` runs the alert pipeline (load active searches → query jobs API → normalize → dedupe → compare seen → match → record → notify). External jobs API logic stays in `jobs-api.ts`, separate from alert scheduling. `runAllDueAlerts()` is ready for a scheduled Base44 backend job. Actions in `src/actions/saved-searches.ts`.
+- **Notifications**: `src/lib/career/notifications.ts` is a provider-agnostic dispatch layer (in-app always on; email/push no-op until a provider is connected — never faked). The header `NotificationBell` reads real rows from the `notifications` table only. Actions in `src/actions/notifications.ts`.
+- **Server actions**: `src/actions/career-profile.ts`, `src/actions/job-application.ts`, `src/actions/find-jobs.ts`, `src/actions/saved-searches.ts`, `src/actions/notifications.ts`.
+- **Types**: `src/lib/career/types.ts` — domain types (JobStatus, WorkMode, EmploymentType, entity interfaces, NormalizedJobResult, SavedJobSearch, JobAlertResult, AlertFrequency, AppNotification).
 
 ## Color palette
 White, slate, dark navy (#0f172a), blue accents (#2563eb). Defined in `src/app/globals.css` as `--career-*` variables. Legacy `--havii-*` variables are aliased to the new palette so existing UI components inherit the new look.

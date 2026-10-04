@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar, MobileNav } from "@/components/career/Sidebar";
+import { NotificationBell } from "@/components/career/NotificationBell";
 
 export const dynamic = "force-dynamic";
 
@@ -44,14 +45,20 @@ export default async function AppLayout({
       </a>
       <Sidebar userName={userName} />
       <div className="md:pl-64">
-        <header className="sticky top-0 z-30 border-b border-career-border bg-white/90 backdrop-blur md:hidden">
-          <div className="flex items-center justify-between px-4 py-3">
+        <header className="sticky top-0 z-30 border-b border-career-border bg-white/90 backdrop-blur">
+          {/* Mobile brand row */}
+          <div className="flex items-center justify-between px-4 py-3 md:hidden">
             <Link href="/app/dashboard" className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-career-blue text-sm font-bold text-white">
                 C
               </span>
               <span className="font-semibold text-career-navy">Career AI</span>
             </Link>
+            <NotificationBell />
+          </div>
+          {/* Desktop notification bar */}
+          <div className="hidden items-center justify-end px-6 py-2.5 md:flex">
+            <NotificationBell />
           </div>
         </header>
         <main

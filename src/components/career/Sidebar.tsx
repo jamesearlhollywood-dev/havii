@@ -8,6 +8,7 @@ const navItems = [
   { href: "/app/dashboard", label: "Dashboard", icon: DashboardIcon },
   { href: "/app/career-assistant", label: "Career Assistant", icon: AssistantIcon },
   { href: "/app/find-jobs", label: "Find Jobs", icon: SearchIcon },
+  { href: "/app/job-alerts", label: "Job Alerts", icon: BellIcon },
   { href: "/app/job-tracker", label: "Job Tracker", icon: BriefcaseIcon },
   { href: "/app/resume-ai", label: "Resume AI", icon: DocumentIcon },
   { href: "/app/interview-prep", label: "Interview Prep", icon: ChatIcon },
@@ -87,6 +88,7 @@ export function MobileNav() {
     { href: "/app/dashboard", label: "Home", icon: DashboardIcon },
     { href: "/app/career-assistant", label: "Assistant", icon: AssistantIcon },
     { href: "/app/find-jobs", label: "Find", icon: SearchIcon },
+    { href: "/app/job-alerts", label: "Alerts", icon: BellIcon },
     { href: "/app/job-tracker", label: "Tracker", icon: BriefcaseIcon },
     { href: "/app/resume-ai", label: "Resume", icon: DocumentIcon },
     { href: "/app/career-profile", label: "Profile", icon: UserIcon },
@@ -177,6 +179,13 @@ function AssistantIcon({ className = "" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function BellIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

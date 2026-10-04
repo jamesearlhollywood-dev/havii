@@ -251,3 +251,103 @@ export interface RecommendationFilters {
   datePosted: string | null;
   sortBy: RecommendationSort;
 }
+
+// ---------------------------------------------------------------------------
+// Saved Searches & Job Alerts
+// ---------------------------------------------------------------------------
+
+export type AlertFrequency = "Daily" | "Weekdays" | "Weekly" | "Off";
+
+export const ALERT_FREQUENCIES: AlertFrequency[] = [
+  "Daily",
+  "Weekdays",
+  "Weekly",
+  "Off",
+];
+
+export type JobAlertResultStatus = "new" | "alerted" | "dismissed";
+
+/** A saved job search with optional alerting. */
+export interface SavedJobSearch {
+  id: string;
+  user_id: string;
+  name: string;
+  keywords: string;
+  location: string;
+  remote_only: boolean;
+  work_mode: string | null;
+  employment_type: string | null;
+  minimum_salary: number | null;
+  date_posted: string | null;
+  minimum_match_score: number | null;
+  is_active: boolean;
+  alert_frequency: AlertFrequency;
+  last_checked_at: string | null;
+  last_alert_at: string | null;
+  api_provider: string | null;
+  created_date: string;
+}
+
+/** A job surfaced by a saved-search alert run, used to dedupe future alerts. */
+export interface JobAlertResult {
+  id: string;
+  saved_search_id: string;
+  source_job_id: string;
+  api_provider: string | null;
+  job_title: string;
+  company: string;
+  location: string;
+  job_url: string;
+  salary_text: string;
+  match_score: number | null;
+  first_seen_at: string;
+  alert_sent_at: string | null;
+  status: JobAlertResultStatus;
+}
+
+/** Result of running a single saved-search alert. */
+export interface AlertRunSummary {
+  searched: boolean;
+  apiConfigured: boolean;
+  totalFound: number;
+  newResults: number;
+  alerted: number;
+  error?: string;
+}
+
+/** Input shape for creating / updating a saved search (client → action). */
+export interface SavedSearchInput {
+  name: string;
+  keywords: string;
+  location: string;
+  remote_only: boolean;
+  work_mode: string | null;
+  employment_type: string | null;
+  minimum_salary: number | null;
+  date_posted: string | null;
+  minimum_match_score: number | null;
+  alert_frequency: AlertFrequency;
+  is_active: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// In-app notifications
+// ---------------------------------------------------------------------------
+
+export type NotificationType =
+  | "job_alert"
+  | "new_recommendation"
+  | "interview_upcoming"
+  | "follow_up"
+  | "offer_reminder";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  link: string | null;
+  related_id: string | null;
+  read_at: string | null;
+  created_at: string;
+}
