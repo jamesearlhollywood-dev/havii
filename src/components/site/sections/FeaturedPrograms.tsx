@@ -1,110 +1,69 @@
-"use client";
-
 import Link from "next/link";
-import { useRef } from "react";
 import { PhotoPlaceholder } from "../PhotoPlaceholder";
-
-const PROGRAMS = [
-  {
-    title: "[Program Name Placeholder]",
-    location: "[City], Maryland",
-    tag: "Youth Development",
-    tone: "warm" as const,
-  },
-  {
-    title: "[Program Name Placeholder]",
-    location: "[City], Maryland",
-    tag: "Family Support",
-    tone: "forest" as const,
-  },
-  {
-    title: "[Program Name Placeholder]",
-    location: "[City], Maryland",
-    tag: "Community",
-    tone: "navy" as const,
-  },
-  {
-    title: "[Program Name Placeholder]",
-    location: "[City], Maryland",
-    tag: "Mentorship",
-    tone: "clay" as const,
-  },
-];
+import { PROGRAMS } from "../programs-data";
 
 export function FeaturedPrograms() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (dir: 1 | -1) => {
-    scrollRef.current?.scrollBy({ left: dir * 420, behavior: "smooth" });
-  };
+  const featured = PROGRAMS.filter((p) => p.featured);
 
   return (
     <section className="bg-tfy-navy text-tfy-parchment">
-      <div className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 lg:py-32">
-        <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="meta-label text-tfy-gold">On the Ground</p>
-            <h2 className="mt-3 font-display text-4xl text-tfy-parchment sm:text-5xl">
-              Featured Programs
-            </h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => scroll(-1)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-tfy-parchment/20 text-tfy-parchment transition hover:border-tfy-gold hover:text-tfy-gold"
-              aria-label="Scroll programs left"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => scroll(1)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-tfy-parchment/20 text-tfy-parchment transition hover:border-tfy-gold hover:text-tfy-gold"
-              aria-label="Scroll programs right"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </div>
+      <div className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8 lg:py-28">
+        <div className="mb-12 max-w-2xl">
+          <p className="meta-label text-tfy-gold">Our Programs</p>
+          <h2 className="mt-3 font-display text-4xl text-tfy-parchment sm:text-5xl">
+            Featured Programs
+          </h2>
+          <p className="mt-5 text-lg text-tfy-parchment/70">
+            Initiatives that connect young people, families, and communities
+            with the support, skills, and relationships they need to move
+            forward.
+          </p>
         </div>
 
-        <div
-          ref={scrollRef}
-          className="-mx-5 flex snap-x snap-mandatory gap-6 overflow-x-auto px-5 pb-4 [scrollbar-width:none] sm:-mx-8 sm:px-8 [&::-webkit-scrollbar]:hidden"
-        >
-          {PROGRAMS.map((p, i) => (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {featured.map((program, i) => (
             <article
-              key={i}
-              className="group w-[340px] flex-none snap-start sm:w-[400px]"
+              key={program.slug}
+              className={`group flex flex-col overflow-hidden rounded-[1.75rem] border border-tfy-parchment/10 bg-white/5 transition-all duration-300 hover:border-tfy-gold/30 hover:bg-white/10 reveal delay-${i + 1}`}
             >
               <PhotoPlaceholder
-                label={`Program photo — ${p.tag}`}
-                tone={p.tone}
-                className="aspect-[4/3] w-full rounded-3xl shadow-xl"
+                label={program.imageLabel}
+                tone={program.imageTone}
+                className="aspect-[16/9] w-full"
               />
-              <div className="mt-5">
-                <p className="meta-label text-tfy-gold">{p.tag}</p>
+              <div className="flex flex-1 flex-col p-7">
+                <p className="meta-label text-tfy-gold">{program.tag}</p>
                 <h3 className="mt-2 font-display text-2xl text-tfy-parchment">
-                  {p.title}
+                  {program.name}
                 </h3>
-                <p className="mt-1 text-sm text-tfy-parchment/60">{p.location}</p>
+                {program.tagline && (
+                  <p className="mt-1 text-base italic text-tfy-gold-light">
+                    {program.tagline}
+                  </p>
+                )}
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-tfy-parchment/65">
+                  {program.cardDescription}
+                </p>
+                <Link
+                  href={`/programs#${program.slug}`}
+                  className="mt-6 inline-flex items-center gap-2 self-start rounded-full border border-tfy-parchment/25 px-6 py-3 text-sm font-semibold text-tfy-parchment transition-all hover:border-tfy-gold hover:bg-tfy-gold hover:text-tfy-navy"
+                >
+                  {program.cardCta}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M5 12h14m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
               </div>
             </article>
           ))}
         </div>
 
-        <div className="mt-10">
+        <div className="mt-12 flex justify-center">
           <Link
             href="/programs"
-            className="meta-label text-tfy-parchment/80 transition-colors hover:text-tfy-gold"
+            className="rounded-full bg-tfy-gold px-8 py-3.5 text-sm font-semibold text-tfy-navy transition-all hover:bg-tfy-gold-dark hover:text-white"
           >
-            <span className="border-b border-tfy-parchment/30 pb-0.5 hover:border-tfy-gold">
-              Explore all programs →
-            </span>
+            View All Programs
           </Link>
         </div>
       </div>
