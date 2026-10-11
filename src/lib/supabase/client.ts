@@ -10,6 +10,14 @@ export function createClient() {
     );
   }
 
+  try {
+    new URL(url);
+  } catch {
+    throw new Error(
+      "Invalid NEXT_PUBLIC_SUPABASE_URL. Must be a valid HTTP or HTTPS URL. See .env.example and README."
+    );
+  }
+
   return createBrowserClient(url, anonKey);
 }
 
