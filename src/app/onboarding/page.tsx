@@ -1,62 +1,22 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserAndProfile } from "@/lib/profile";
-import { OnboardingForm } from "@/components/onboarding/OnboardingForm";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 
 export const dynamic = "force-dynamic";
-
-export const metadata = { title: "Onboarding" };
+export const metadata = { title: "Welcome to RISE USA" };
 
 export default async function OnboardingPage() {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16">
-        <Card>
-          <CardTitle>Supabase not configured</CardTitle>
-          <CardDescription className="mt-2">
-            Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to
-            your environment, then run migrations. See README.
-          </CardDescription>
-        </Card>
-      </div>
-    );
+  const supabaseConnected = hasValidSupabaseConfig();
+
+  if (!supabaseConnected) {
+    return <OnboardingWizard supabaseConnected={false} />;
   }
 
   const { user, profile } = await getCurrentUserAndProfile();
   if (!user) redirect("/auth/login?next=/onboarding");
-  if (!profile) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16">
-        <Card>
-          <CardTitle>Profile missing</CardTitle>
-          <CardDescription className="mt-2">
-            Your auth user exists but no profile row was found. Ensure the
-            database migrations have been applied, then try signing up again.
-          </CardDescription>
-        </Card>
-      </div>
-    );
-  }
+  if (!profile) redirect("/auth/login?next=/onboarding");
   if (profile.onboarding_completed) redirect("/dashboard");
 
-  return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      <div className="mb-6">
-        <p className="text-sm font-medium text-rise-red">Welcome to RISE USA</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-rise-navy">
-          Let&apos;s set up your profile
-        </h1>
-        <p className="mt-2 text-rise-muted">
-          A few questions so we can personalize your experience. You can change
-          these later.
-        </p>
-      </div>
-      <Card>
-        <OnboardingForm profile={profile} />
-      </Card>
-    </div>
-  );
+  return <OnboardingWizard supabaseConnected={true} />;
 }

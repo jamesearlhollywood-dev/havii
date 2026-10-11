@@ -38,6 +38,7 @@ const ORG_MANAGER_NAV = [
 const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/cms", label: "Content" },
+  { href: "/admin/enrollment", label: "Enrollment" },
   { href: "/course", label: "Course" },
   { href: "/resources", label: "Resources" },
   { href: "/certificates", label: "Certificates" },

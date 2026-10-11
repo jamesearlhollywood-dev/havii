@@ -11,6 +11,80 @@ export const STAFF_ROLES: UserRole[] = ["instructor", "org_manager", "admin"];
 export type AccountStatus = "active" | "inactive" | "suspended" | "pending";
 
 // ---------------------------------------------------------------------------
+// Enrollment
+// ---------------------------------------------------------------------------
+export type EnrollmentStatus =
+  | "invited"
+  | "active"
+  | "not_started"
+  | "in_progress"
+  | "completed"
+  | "withdrawn"
+  | "archived";
+
+export type CertificateStatus = "not_eligible" | "eligible" | "issued";
+
+// ---------------------------------------------------------------------------
+// Activity Progress
+// ---------------------------------------------------------------------------
+export type ActivityStatus =
+  | "not_started"
+  | "in_progress"
+  | "submitted"
+  | "passed"
+  | "needs_retry"
+  | "completed";
+
+export type ActivityType =
+  | "lesson"
+  | "decision_lab"
+  | "knowledge_check"
+  | "reflection"
+  | "action_commitment"
+  | "blueprint_section"
+  | "final_assessment";
+
+// ---------------------------------------------------------------------------
+// Student Onboarding Enums
+// ---------------------------------------------------------------------------
+export type PostGraduationInterest =
+  | "four_year_college"
+  | "community_college"
+  | "trade_technical"
+  | "apprenticeship"
+  | "military"
+  | "workforce"
+  | "entrepreneurship"
+  | "undecided"
+  | "other";
+
+export type LearningGoal =
+  | "managing_paycheck"
+  | "banking"
+  | "budgeting"
+  | "saving_money"
+  | "building_credit"
+  | "avoiding_debt"
+  | "paying_college"
+  | "student_loans"
+  | "investing"
+  | "buying_car"
+  | "renting_apartment"
+  | "insurance"
+  | "avoiding_scams"
+  | "starting_business";
+
+export interface StartingPointSurvey {
+  responses: { question: string; confidence: number }[];
+  completed_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Module Roadmap
+// ---------------------------------------------------------------------------
+export type ModuleStatus = "locked" | "available" | "in_progress" | "completed";
+
+// ---------------------------------------------------------------------------
 // Profile
 // ---------------------------------------------------------------------------
 export interface Profile {
@@ -31,6 +105,13 @@ export interface Profile {
   organization_id: string | null;
   created_at: string;
   updated_at: string;
+  // Student-specific (optional — only set for students during onboarding)
+  grade_level?: string | null;
+  graduation_year?: string | null;
+  school_or_program?: string | null;
+  post_graduation_interest?: PostGraduationInterest | null;
+  learning_goals?: LearningGoal[];
+  starting_point_survey?: StartingPointSurvey | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -71,13 +152,47 @@ export interface Cohort {
 
 export interface Enrollment {
   id: string;
-  cohort_id: string;
-  profile_id: string;
-  status: "enrolled" | "completed" | "withdrawn";
+  student_profile_id: string;
+  course_id: string;
+  organization_id: string | null;
+  cohort_id: string | null;
   enrolled_at: string;
-  completed_at: string | null;
+  status: EnrollmentStatus;
+  start_date: string | null;
+  target_completion_date: string | null;
+  actual_completion_date: string | null;
+  assigned_instructor_id: string | null;
+  overall_progress: number;
+  certificate_status: CertificateStatus;
   created_at: string;
   updated_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Enrollment Code
+// ---------------------------------------------------------------------------
+export interface EnrollmentCode {
+  id: string;
+  code: string;
+  organization_id: string | null;
+  cohort_id: string | null;
+  course_id: string;
+  expires_at: string | null;
+  max_uses: number | null;
+  current_uses: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Instructor Assignment
+// ---------------------------------------------------------------------------
+export interface InstructorAssignment {
+  id: string;
+  instructor_profile_id: string;
+  cohort_id: string;
+  course_id: string;
+  assigned_at: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,6 +222,24 @@ export interface ModuleProgressRow {
   module_completed: boolean;
   completed_at: string | null;
   updated_at: string;
+}
+
+export interface ActivityProgress {
+  id: string;
+  profile_id: string;
+  enrollment_id: string | null;
+  course_id: string;
+  module_id: string;
+  lesson_id: string | null;
+  activity_id: string;
+  activity_type: ActivityType;
+  status: ActivityStatus;
+  started_at: string | null;
+  last_accessed_at: string | null;
+  completed_at: string | null;
+  percentage_complete: number;
+  score: number | null;
+  attempts: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +294,51 @@ export interface Certificate {
   course_name: string;
   issued_at: string;
   status: "issued" | "revoked";
+}
+
+// ---------------------------------------------------------------------------
+// Student Progress Summary (for instructor/admin dashboards)
+// ---------------------------------------------------------------------------
+export interface StudentProgressSummary {
+  profile_id: string;
+  student_name: string;
+  cohort_name: string;
+  organization_name: string;
+  enrollment_status: EnrollmentStatus;
+  lessons_completed: number;
+  modules_completed: number;
+  overall_progress: number;
+  best_quiz_score: number | null;
+  quiz_passed: boolean;
+  decision_labs_completed: number;
+  blueprint_sections_completed: number;
+  has_certificate: boolean;
+  last_activity_date: string | null;
+  is_stalled: boolean;
+  failed_quiz_attempts: number;
+  missing_blueprint_sections: number;
+  eligible_for_completion: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Progress Filters
+// ---------------------------------------------------------------------------
+export interface ProgressFilter {
+  organization_id?: string;
+  cohort_id?: string;
+  module_id?: string;
+  instructor_id?: string;
+  completion_status?: EnrollmentStatus | "all";
+  last_activity?: "all" | "active" | "stalled" | "not_started";
+}
+
+// ---------------------------------------------------------------------------
+// Admin Settings
+// ---------------------------------------------------------------------------
+export interface AdminSettings {
+  stalled_threshold_days: number;
+  allow_public_self_enrollment: boolean;
+  prerequisite_override_enabled: boolean;
 }
 
 // ---------------------------------------------------------------------------

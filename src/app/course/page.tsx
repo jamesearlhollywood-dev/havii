@@ -1,20 +1,35 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { course, modules, TOTAL_LESSONS } from "@/data/course";
+import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My Course" };
 
 export default async function CoursePage() {
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/course");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  const supabaseConnected = hasValidSupabaseConfig();
 
-  const progress = profile.role === "student" ? await getStudentProgress(profile.id) : null;
+  let profile: Profile;
+  let progress: any = null;
+
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/course");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    profile = userProfile;
+    if (profile.role === "student") {
+      progress = await getStudentProgress(profile.id);
+    }
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+    progress = DEMO_STUDENT_PROGRESS;
+  }
 
   return (
     <AppShell profile={profile}>
@@ -31,7 +46,7 @@ export default async function CoursePage() {
           </p>
         </div>
 
-        {/* Module list */}
+        {/* Module list with sequential progression */}
         <div className="space-y-4">
           {modules.map((m) => {
             const mp = progress?.moduleProgress.find((p: any) => p.module_id === m.id);
@@ -63,12 +78,17 @@ export default async function CoursePage() {
                           ✓ Complete
                         </span>
                       )}
+                      {!isComplete && !isLocked && pct > 0 && (
+                        <span className="rounded-full bg-rise-blue-light px-2.5 py-0.5 text-xs font-semibold text-rise-navy">
+                          In Progress
+                        </span>
+                      )}
                     </div>
                     <h2 className="mt-1 text-xl font-bold text-rise-navy">{m.title}</h2>
                     <p className="mt-1 text-sm text-rise-muted">{m.subtitle}</p>
 
                     {/* Progress bar */}
-                    {progress && (
+                    {progress && !isLocked && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between text-xs text-rise-muted">
                           <span>{lessonsComplete}/{m.lessons.length} lessons</span>
@@ -112,6 +132,56 @@ export default async function CoursePage() {
               </Card>
             );
           })}
+
+          {/* Final Assessment — unlocks after Module 6 */}
+          {(() => {
+            const allModulesComplete = progress?.moduleProgress
+              ? modules.every((m) =>
+                  progress.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed)
+                )
+              : false;
+            const finalPassed = progress?.finalAttempts?.some((a: any) => a.passed) ?? false;
+
+            return (
+              <Card className={allModulesComplete ? "" : "opacity-60"}>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-rise-gold/20 text-3xl">
+                    🏆
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-rise-gold">
+                        Capstone
+                      </span>
+                      {finalPassed && (
+                        <span className="rounded-full bg-rise-success-light px-2.5 py-0.5 text-xs font-semibold text-rise-success">
+                          ✓ Passed
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="mt-1 text-xl font-bold text-rise-navy">Final Assessment & Financial Blueprint</h2>
+                    <p className="mt-1 text-sm text-rise-muted">
+                      Complete all six modules, finish your Financial Blueprint, and pass the final assessment to earn your RISE USA Certificate.
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    {allModulesComplete ? (
+                      <Link
+                        href="/course/final-assessment"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-rise-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-rise-navy-light"
+                      >
+                        Take Final Assessment →
+                      </Link>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-xl border border-rise-border px-4 py-2.5 text-sm text-rise-muted">
+                        🔒 Locked
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            );
+          })()}
         </div>
       </div>
     </AppShell>

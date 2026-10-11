@@ -1,43 +1,36 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
-import { modules, blueprintSections, TOTAL_LESSONS } from "@/data/course";
-import { displayName, fullName, formatDate } from "@/lib/utils";
+import { Card } from "@/components/ui/Card";
+import { modules, blueprintSections, TOTAL_LESSONS, getLesson } from "@/data/course";
+import { displayName, formatDate } from "@/lib/utils";
 import { dashboardPathForRole } from "@/lib/roles";
+import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
+import type { Profile, ModuleStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16">
-        <Card>
-          <CardTitle>Supabase not configured</CardTitle>
-          <CardDescription className="mt-2">
-            Configure your environment to use the RISE USA LMS. See README.
-          </CardDescription>
-        </Card>
-      </div>
-    );
+  const supabaseConnected = hasValidSupabaseConfig();
+
+  let profile: Profile;
+  let progress: ReturnType<typeof getStudentProgress> extends Promise<infer T> ? T : never;
+
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/dashboard");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    if (userProfile.role !== "student") redirect(dashboardPathForRole(userProfile.role));
+    profile = userProfile;
+    progress = await getStudentProgress(profile.id);
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+    progress = DEMO_STUDENT_PROGRESS as any;
   }
-
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/dashboard");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
-
-  // Non-students go to their own dashboard
-  if (profile.role !== "student") {
-    redirect(dashboardPathForRole(profile.role));
-  }
-
-  const progress = await getStudentProgress(profile.id);
 
   // Calculate stats
   const completedLessons = progress.lessonProgress.filter((l: any) => l.status === "completed").length;
@@ -56,6 +49,13 @@ export default async function DashboardPage() {
     return !lp || lp.status !== "completed";
   }) ?? currentModule.lessons[0];
 
+  // Last completed activity
+  const completedActivities = progress.lessonProgress
+    .filter((l: any) => l.status === "completed")
+    .sort((a: any, b: any) => new Date(b.completed_at || b.updated_at).getTime() - new Date(a.completed_at || a.updated_at).getTime());
+  const lastCompleted = completedActivities[0];
+  const lastCompletedLesson = lastCompleted ? getLesson(lastCompleted.module_id, lastCompleted.lesson_id) : null;
+
   const completedModules = modules.filter((m) =>
     progress.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed)
   ).length;
@@ -63,12 +63,33 @@ export default async function DashboardPage() {
   const blueprintCompleted = progress.blueprintSections.filter((b: any) => b.completed).length;
   const hasCertificate = progress.certificates.length > 0;
 
+  // Module roadmap states
+  const moduleStates: ModuleStatus[] = modules.map((m, i) => {
+    const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
+    if (mp?.module_completed) return "completed";
+    if (i === 0) {
+      return mp && mp.lessons_completed > 0 ? "in_progress" : "available";
+    }
+    const prevComplete = progress.moduleProgress.some(
+      (p: any) => p.module_id === modules[i - 1].id && p.module_completed
+    );
+    if (!prevComplete) return "locked";
+    return mp && mp.lessons_completed > 0 ? "in_progress" : "available";
+  });
+
   // Best quiz scores per module
   const quizScores = modules.map((m) => {
     const attempts = progress.quizAttempts.filter((a: any) => a.module_id === m.id);
     const best = attempts.length > 0 ? Math.max(...attempts.map((a: any) => Number(a.score))) : null;
     return { moduleId: m.id, moduleNumber: m.number, title: m.title, score: best, passed: attempts.some((a: any) => a.passed) };
   });
+
+  const stateConfig: Record<ModuleStatus, { label: string; bg: string; text: string; icon: string }> = {
+    locked: { label: "Locked", bg: "bg-rise-border", text: "text-rise-muted", icon: "🔒" },
+    available: { label: "Available", bg: "bg-rise-sky", text: "text-rise-navy", icon: "▶" },
+    in_progress: { label: "In Progress", bg: "bg-rise-blue-light", text: "text-rise-navy", icon: "📖" },
+    completed: { label: "Completed", bg: "bg-rise-success-light", text: "text-rise-success", icon: "✓" },
+  };
 
   return (
     <AppShell profile={profile}>
@@ -83,15 +104,63 @@ export default async function DashboardPage() {
           </p>
         </div>
 
+        {/* Continue Your RISE Journey */}
+        <div className="mb-6">
+          <h2 className="mb-4 text-xl font-bold text-rise-navy">Continue Your RISE Journey</h2>
+          <Card className="border-rise-blue-light bg-gradient-to-br from-rise-sky to-white">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{currentModule.icon}</span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-rise-red">
+                      Current Module · Module {currentModule.number}
+                    </p>
+                    <h3 className="text-lg font-bold text-rise-navy">
+                      {currentModule.title.split("—")[0].trim()}
+                    </h3>
+                  </div>
+                </div>
+                <p className="text-sm text-rise-muted">
+                  <span className="font-medium text-rise-navy">Next lesson:</span> {nextLesson.title}
+                </p>
+                {lastCompletedLesson && (
+                  <p className="text-sm text-rise-muted">
+                    <span className="font-medium text-rise-navy">Last completed:</span> {lastCompletedLesson.title}
+                    {lastCompleted.completed_at && (
+                      <span className="ml-1 text-xs">· {formatDate(lastCompleted.completed_at)}</span>
+                    )}
+                  </p>
+                )}
+                <p className="text-sm text-rise-muted">
+                  <span className="font-medium text-rise-navy">Estimated time:</span> {currentModule.estimatedTime}
+                </p>
+              </div>
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rise-sky">
+                  <span className="text-xl font-bold text-rise-navy">{overallProgress}%</span>
+                </div>
+                <Link
+                  href={`/course/module/${currentModule.id}/lesson/${nextLesson.id}`}
+                  className="shrink-0 rounded-xl bg-rise-navy px-6 py-3 text-sm font-semibold text-white hover:bg-rise-navy-light"
+                >
+                  Continue →
+                </Link>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         {/* Overall progress bar */}
         <Card className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-rise-muted">Course Progress</p>
+              <p className="text-sm font-medium text-rise-muted">Overall Course Progress</p>
               <p className="text-3xl font-bold text-rise-navy">{overallProgress}%</p>
             </div>
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rise-sky">
-              <span className="text-xl font-bold text-rise-navy">{overallProgress}%</span>
+            <div className="text-right">
+              <p className="text-sm text-rise-muted">Modules Completed</p>
+              <p className="text-2xl font-bold text-rise-navy">{completedModules}/{modules.length}</p>
             </div>
           </div>
           <div className="mt-4 h-3 overflow-hidden rounded-full bg-rise-border">
@@ -101,37 +170,6 @@ export default async function DashboardPage() {
             />
           </div>
         </Card>
-
-        {/* Continue learning */}
-        <div className="mb-6">
-          <h2 className="mb-4 text-xl font-bold text-rise-navy">Continue Learning</h2>
-          <Card className="border-rise-blue-light bg-gradient-to-br from-rise-sky to-white">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{currentModule.icon}</span>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-rise-red">
-                      Module {currentModule.number}
-                    </p>
-                    <h3 className="text-lg font-bold text-rise-navy">
-                      {currentModule.title.split("—")[0].trim()}
-                    </h3>
-                  </div>
-                </div>
-                <p className="mt-2 text-sm text-rise-muted">
-                  Next: <span className="font-medium text-rise-navy">{nextLesson.title}</span>
-                </p>
-              </div>
-              <Link
-                href={`/course/module/${currentModule.id}/lesson/${nextLesson.id}`}
-                className="shrink-0 rounded-xl bg-rise-navy px-6 py-3 text-sm font-semibold text-white hover:bg-rise-navy-light"
-              >
-                Continue →
-              </Link>
-            </div>
-          </Card>
-        </div>
 
         {/* Stats grid */}
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -157,6 +195,66 @@ export default async function DashboardPage() {
               )}
             </p>
           </Card>
+        </div>
+
+        {/* Visual module roadmap */}
+        <div className="mb-6">
+          <h2 className="mb-4 text-xl font-bold text-rise-navy">My RISE Roadmap</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {modules.map((m, i) => {
+              const state = moduleStates[i];
+              const cfg = stateConfig[state];
+              const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
+              const lessonsComplete = mp?.lessons_completed ?? 0;
+              const pct = Math.round((lessonsComplete / m.lessons.length) * 100);
+              return (
+                <Card
+                  key={m.id}
+                  className={`${state === "locked" ? "opacity-60" : ""} ${state === "in_progress" ? "ring-2 ring-rise-blue" : ""}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${cfg.bg}`}>
+                      {state === "locked" ? "🔒" : m.icon}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-rise-red">
+                          Module {m.number}
+                        </span>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${cfg.bg} ${cfg.text}`}>
+                          {cfg.label}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-sm font-bold text-rise-navy">
+                        {m.title.split("—")[0].trim()}
+                      </p>
+                      {state !== "locked" && (
+                        <>
+                          <p className="mt-1 text-xs text-rise-muted">
+                            {lessonsComplete}/{m.lessons.length} lessons · {pct}%
+                          </p>
+                          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-rise-border">
+                            <div
+                              className={`h-full rounded-full ${state === "completed" ? "bg-rise-success" : "bg-rise-blue"}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {state !== "locked" && (
+                    <Link
+                      href={`/course/module/${m.id}`}
+                      className="mt-3 block text-center text-xs font-medium text-rise-blue-dark hover:underline"
+                    >
+                      {pct > 0 ? "Resume" : "Start"} →
+                    </Link>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
         </div>
 
         {/* Knowledge check scores */}
@@ -189,56 +287,6 @@ export default async function DashboardPage() {
                 </div>
               </Card>
             ))}
-          </div>
-        </div>
-
-        {/* Module progress overview */}
-        <div>
-          <h2 className="mb-4 text-xl font-bold text-rise-navy">Module Progress</h2>
-          <div className="space-y-3">
-            {modules.map((m) => {
-              const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
-              const lessonsComplete = mp?.lessons_completed ?? 0;
-              const pct = Math.round((lessonsComplete / m.lessons.length) * 100);
-              const isComplete = mp?.module_completed ?? false;
-              return (
-                <Card key={m.id} className="flex items-center gap-4">
-                  <span className="text-2xl">{m.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-rise-red">
-                          Module {m.number}
-                        </span>
-                        <p className="text-sm font-medium text-rise-navy">
-                          {m.title.split("—")[0].trim()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {isComplete && (
-                          <span className="rounded-full bg-rise-success-light px-2.5 py-1 text-xs font-semibold text-rise-success">
-                            ✓ Complete
-                          </span>
-                        )}
-                        <span className="text-sm font-bold text-rise-navy">{pct}%</span>
-                      </div>
-                    </div>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-rise-border">
-                      <div
-                        className={`h-full rounded-full ${isComplete ? "bg-rise-success" : "bg-rise-blue"}`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                  <Link
-                    href={`/course/module/${m.id}`}
-                    className="shrink-0 rounded-lg border border-rise-border px-4 py-2 text-sm font-medium text-rise-navy hover:bg-rise-sky"
-                  >
-                    {pct > 0 ? "Resume" : "Start"}
-                  </Link>
-                </Card>
-              );
-            })}
           </div>
         </div>
       </div>

@@ -1,57 +1,58 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getCurrentUserAndProfile } from "@/lib/profile";
-import { createClient } from "@/lib/supabase/server";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
+import { Card, CardDescription } from "@/components/ui/Card";
 import { modules, TOTAL_LESSONS } from "@/data/course";
 import { displayName, formatDate } from "@/lib/utils";
 import { canAccessAdminRoutes } from "@/lib/roles";
+import {
+  DEMO_ADMIN_PROFILE,
+  DEMO_ORGANIZATIONS,
+  DEMO_COHORTS,
+  DEMO_COHORT_STUDENTS,
+  DEMO_ENROLLMENTS,
+  DEMO_ADMIN_SETTINGS,
+} from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin Dashboard" };
 
 export default async function AdminPage() {
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/admin");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
-  if (!canAccessAdminRoutes(profile.role)) redirect("/forbidden");
+  const supabaseConnected = hasValidSupabaseConfig();
 
-  const supabase = await createClient();
+  let profile: Profile;
 
-  // Fetch all data
-  const { data: allProfiles } = await supabase.from("profiles").select("*");
-  const { data: organizations } = await supabase.from("organizations").select("*").order("name");
-  const { data: cohorts } = await supabase.from("cohorts").select("*, organizations(name), profiles!cohorts_instructor_profile_id_fkey(first_name, last_name)").order("created_at", { ascending: false });
-  const { data: enrollments } = await supabase.from("enrollments").select("*, profiles(*), cohorts(name)").eq("status", "enrolled");
-  const { data: moduleProgress } = await supabase.from("module_progress").select("*");
-  const { data: quizAttempts } = await supabase.from("quiz_attempts").select("*");
-  const { data: certificates } = await supabase.from("certificates").select("*").eq("status", "issued");
-  const { data: blueprintSections } = await supabase.from("blueprint_sections").select("*");
-  const { data: supportRequests } = await supabase.from("support_requests").select("*").order("created_at", { ascending: false }).limit(5);
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/admin");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    if (!canAccessAdminRoutes(userProfile.role)) redirect("/forbidden");
+    profile = userProfile;
+  } else {
+    profile = DEMO_ADMIN_PROFILE;
+  }
 
-  const students = (allProfiles ?? []).filter((p: any) => p.role === "student");
-  const instructors = (allProfiles ?? []).filter((p: any) => p.role === "instructor");
-  const orgManagers = (allProfiles ?? []).filter((p: any) => p.role === "org_manager");
-  const activeStudents = students.filter((s: any) => s.account_status === "active");
+  // Use demo data for the dashboard
+  const students = DEMO_COHORT_STUDENTS;
+  const organizations = DEMO_ORGANIZATIONS;
+  const cohorts = DEMO_COHORTS;
+  const enrollments = DEMO_ENROLLMENTS;
 
-  // Metrics
   const totalLearners = students.length;
-  const activeLearners = activeStudents.length;
-  const completions = certificates?.length ?? 0;
+  const completions = students.filter((s) => s.has_certificate).length;
   const completionRate = totalLearners > 0 ? Math.round((completions / totalLearners) * 100) : 0;
+  const activeLearners = students.filter((s) => s.lessons_completed > 0 && !s.is_stalled && s.enrollment_status !== "completed" && s.enrollment_status !== "withdrawn").length;
+  const stalledLearners = students.filter((s) => s.is_stalled).length;
 
-  // Average assessment score
-  const allScores = (quizAttempts ?? []).map((a: any) => Number(a.score));
-  const avgScore = allScores.length > 0 ? Math.round(allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length) : 0;
+  const allScores = students.filter((s) => s.best_quiz_score !== null).map((s) => s.best_quiz_score!);
+  const avgScore = allScores.length > 0 ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length) : 0;
 
-  // Blueprint completion rate
-  const studentsWithBlueprint = new Set((blueprintSections ?? []).filter((b: any) => b.completed).map((b: any) => b.profile_id));
-  const blueprintCompletionRate = totalLearners > 0 ? Math.round((studentsWithBlueprint.size / totalLearners) * 100) : 0;
-
-  const orgCount = organizations?.length ?? 0;
-  const cohortCount = cohorts?.length ?? 0;
+  const blueprintCompletionRate = totalLearners > 0
+    ? Math.round((students.filter((s) => s.blueprint_sections_completed === modules.length).length / totalLearners) * 100)
+    : 0;
 
   return (
     <AppShell profile={profile}>
@@ -63,7 +64,7 @@ export default async function AdminPage() {
           <Card>
             <p className="text-sm text-rise-muted">Total Learners</p>
             <p className="mt-1 text-3xl font-bold text-rise-navy">{totalLearners}</p>
-            <p className="mt-0.5 text-xs text-rise-muted">{activeLearners} active</p>
+            <p className="mt-0.5 text-xs text-rise-muted">{activeLearners} active · {stalledLearners} stalled</p>
           </Card>
           <Card>
             <p className="text-sm text-rise-muted">Completions</p>
@@ -84,46 +85,42 @@ export default async function AdminPage() {
           </Card>
           <Card>
             <p className="text-sm text-rise-muted">Organizations</p>
-            <p className="mt-1 text-3xl font-bold text-rise-navy">{orgCount}</p>
+            <p className="mt-1 text-3xl font-bold text-rise-navy">{organizations.length}</p>
           </Card>
           <Card>
             <p className="text-sm text-rise-muted">Cohorts</p>
-            <p className="mt-1 text-3xl font-bold text-rise-navy">{cohortCount}</p>
+            <p className="mt-1 text-3xl font-bold text-rise-navy">{cohorts.length}</p>
           </Card>
           <Card>
-            <p className="text-sm text-rise-muted">Instructors</p>
-            <p className="mt-1 text-3xl font-bold text-rise-navy">{instructors.length}</p>
+            <p className="text-sm text-rise-muted">Stalled Threshold</p>
+            <p className="mt-1 text-3xl font-bold text-rise-navy">{DEMO_ADMIN_SETTINGS.stalled_threshold_days} days</p>
           </Card>
         </div>
 
         {/* Organizations */}
         <h2 className="mb-3 text-xl font-bold text-rise-navy">Organizations</h2>
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {(organizations ?? []).map((org: any) => (
+          {organizations.map((org) => (
             <Card key={org.id}>
               <h3 className="font-bold text-rise-navy">{org.name}</h3>
               <p className="mt-0.5 text-xs text-rise-muted capitalize">{org.type}</p>
               {org.city && <p className="mt-1 text-xs text-rise-muted">{org.city}, {org.state}</p>}
             </Card>
           ))}
-          {(!organizations || organizations.length === 0) && (
-            <Card><CardDescription>No organizations yet.</CardDescription></Card>
-          )}
         </div>
 
         {/* Cohorts */}
         <h2 className="mb-3 text-xl font-bold text-rise-navy">Cohorts</h2>
         <div className="mb-6 space-y-3">
-          {(cohorts ?? []).map((c: any) => {
-            const cohortEnrollments = (enrollments ?? []).filter((e: any) => e.cohort_id === c.id);
-            const instructorName = c.profiles ? `${c.profiles.first_name || ""} ${c.profiles.last_name || ""}`.trim() : "Unassigned";
+          {cohorts.map((c) => {
+            const cohortStudentCount = students.filter((s) => s.cohort_name === c.name).length;
             return (
               <Card key={c.id}>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h3 className="font-bold text-rise-navy">{c.name}</h3>
                     <p className="text-sm text-rise-muted">
-                      {c.organizations?.name || "—"} · Instructor: {instructorName} · {cohortEnrollments.length} students
+                      {c.organization_name} · Instructor: {c.instructor_name || "Unassigned"} · {cohortStudentCount} students
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -134,9 +131,6 @@ export default async function AdminPage() {
               </Card>
             );
           })}
-          {(!cohorts || cohorts.length === 0) && (
-            <Card><CardDescription>No cohorts yet.</CardDescription></Card>
-          )}
         </div>
 
         {/* Student overview */}
@@ -146,53 +140,40 @@ export default async function AdminPage() {
             <thead>
               <tr className="bg-rise-navy text-white">
                 <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
+                <th className="px-4 py-3 text-left font-medium">Cohort</th>
                 <th className="px-4 py-3 text-center font-medium">Lessons</th>
                 <th className="px-4 py-3 text-center font-medium">Modules</th>
+                <th className="px-4 py-3 text-center font-medium">Quiz</th>
                 <th className="px-4 py-3 text-center font-medium">Certificate</th>
-                <th className="px-4 py-3 text-left font-medium">Joined</th>
+                <th className="px-4 py-3 text-center font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((s: any) => {
-                const sModules = (moduleProgress ?? []).filter((m: any) => m.profile_id === s.id && m.module_completed);
-                const sLessons = (moduleProgress ?? []).filter((m: any) => m.profile_id === s.id).reduce((sum: number, m: any) => sum + (m.lessons_completed || 0), 0);
-                const sCert = (certificates ?? []).some((c: any) => c.profile_id === s.id);
-                return (
-                  <tr key={s.id} className="border-t border-rise-border">
-                    <td className="px-4 py-3 font-medium text-rise-navy">{displayName(s)}</td>
-                    <td className="px-4 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${s.account_status === "active" ? "bg-rise-success-light text-rise-success" : "bg-rise-warning-light text-rise-warning"}`}>
-                        {s.account_status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center text-rise-navy">{sLessons}/{TOTAL_LESSONS}</td>
-                    <td className="px-4 py-3 text-center text-rise-navy">{sModules.length}/6</td>
-                    <td className="px-4 py-3 text-center">{sCert ? "✓" : "—"}</td>
-                    <td className="px-4 py-3 text-rise-muted">{formatDate(s.created_at)}</td>
-                  </tr>
-                );
-              })}
+              {students.map((s) => (
+                <tr key={s.profile_id} className="border-t border-rise-border">
+                  <td className="px-4 py-3 font-medium text-rise-navy">{s.student_name}</td>
+                  <td className="px-4 py-3 text-rise-muted">{s.cohort_name}</td>
+                  <td className="px-4 py-3 text-center text-rise-navy">{s.lessons_completed}/{TOTAL_LESSONS}</td>
+                  <td className="px-4 py-3 text-center text-rise-navy">{s.modules_completed}/6</td>
+                  <td className="px-4 py-3 text-center text-rise-navy">
+                    {s.best_quiz_score !== null ? `${s.best_quiz_score}%` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-center">{s.has_certificate ? "✓" : "—"}</td>
+                  <td className="px-4 py-3 text-center">
+                    {s.is_stalled ? (
+                      <span className="rounded-full bg-rise-warning-light px-2 py-0.5 text-xs font-semibold text-rise-warning">Stalled</span>
+                    ) : s.has_certificate ? (
+                      <span className="rounded-full bg-rise-success-light px-2 py-0.5 text-xs font-semibold text-rise-success">Complete</span>
+                    ) : s.lessons_completed === 0 ? (
+                      <span className="rounded-full bg-rise-border px-2 py-0.5 text-xs font-medium text-rise-muted">Not Started</span>
+                    ) : (
+                      <span className="rounded-full bg-rise-sky px-2 py-0.5 text-xs font-medium text-rise-navy">Active</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-        </div>
-
-        {/* Recent support requests */}
-        <h2 className="mb-3 mt-6 text-xl font-bold text-rise-navy">Recent Support Requests</h2>
-        <div className="space-y-2">
-          {(supportRequests ?? []).map((sr: any) => (
-            <Card key={sr.id}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-rise-navy">{sr.subject}</p>
-                  <p className="mt-0.5 text-xs text-rise-muted">{formatDate(sr.created_at)} · Status: {sr.status}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
-          {(!supportRequests || supportRequests.length === 0) && (
-            <Card><CardDescription>No support requests.</CardDescription></Card>
-          )}
         </div>
       </div>
     </AppShell>
