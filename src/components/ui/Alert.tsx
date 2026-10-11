@@ -3,9 +3,9 @@ import { HTMLAttributes } from "react";
 type Tone = "info" | "success" | "warning" | "error";
 
 const tones: Record<Tone, string> = {
-  info: "bg-sky-50 text-sky-900 border-sky-200",
-  success: "bg-emerald-50 text-emerald-900 border-emerald-200",
-  warning: "bg-amber-50 text-amber-900 border-amber-200",
+  info: "bg-rise-sky text-rise-navy border-rise-blue-light",
+  success: "bg-rise-success-light text-rise-success border-rise-success/30",
+  warning: "bg-rise-warning-light text-rise-warning border-rise-warning/30",
   error: "bg-red-50 text-red-900 border-red-200",
 };
 

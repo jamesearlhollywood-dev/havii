@@ -7,34 +7,63 @@ export function isPublicSignupRole(role: string): role is UserRole {
 
 export function isStaffOrAdmin(role: UserRole | string | null | undefined): boolean {
   if (!role) return false;
-  return (STAFF_ROLES as string[]).includes(role);
+  return role === "admin" || role === "instructor" || role === "org_manager";
 }
 
 export function isAdministrator(role: UserRole | string | null | undefined): boolean {
-  return role === "administrator";
+  return role === "admin";
+}
+
+export function isInstructor(role: UserRole | string | null | undefined): boolean {
+  return role === "instructor";
+}
+
+export function isOrgManager(role: UserRole | string | null | undefined): boolean {
+  return role === "org_manager";
 }
 
 export function displayRoleName(role: UserRole | string): string {
   const map: Record<string, string> = {
-    youth: "Youth",
-    mentor: "Mentor",
-    caregiver: "Caregiver",
-    staff: "Staff",
-    administrator: "Administrator",
-    community_partner: "Community Partner",
+    student: "Student",
+    instructor: "Instructor",
+    org_manager: "Organization Manager",
+    admin: "Administrator",
   };
   return map[role] ?? role;
 }
 
-export function dashboardPathForRole(_role?: UserRole): string {
-  void _role;
-  return "/dashboard";
+export function dashboardPathForRole(role: UserRole): string {
+  switch (role) {
+    case "instructor":
+      return "/instructor";
+    case "org_manager":
+      return "/org-manager";
+    case "admin":
+      return "/admin";
+    default:
+      return "/dashboard";
+  }
 }
 
 export function canAccessAdminRoutes(role: UserRole | string | null | undefined): boolean {
-  return role === "administrator";
+  return role === "admin";
+}
+
+export function canAccessInstructorRoutes(role: UserRole | string | null | undefined): boolean {
+  return role === "admin" || role === "instructor";
+}
+
+export function canAccessOrgManagerRoutes(role: UserRole | string | null | undefined): boolean {
+  return role === "admin" || role === "org_manager";
 }
 
 export function canAccessStaffRoutes(role: UserRole | string | null | undefined): boolean {
   return isStaffOrAdmin(role);
 }
+
+export const ROLE_LABELS: Record<UserRole, string> = {
+  student: "Student",
+  instructor: "Instructor",
+  org_manager: "Organization Manager",
+  admin: "Admin",
+};

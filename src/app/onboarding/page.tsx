@@ -18,7 +18,7 @@ export default async function OnboardingPage() {
           <CardTitle>Supabase not configured</CardTitle>
           <CardDescription className="mt-2">
             Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to
-            .env.local, then run migrations. See README.
+            your environment, then run migrations. See README.
           </CardDescription>
         </Card>
       </div>
@@ -34,7 +34,7 @@ export default async function OnboardingPage() {
           <CardTitle>Profile missing</CardTitle>
           <CardDescription className="mt-2">
             Your auth user exists but no profile row was found. Ensure the
-            auth.users trigger migration has been applied, then try signing up again.
+            database migrations have been applied, then try signing up again.
           </CardDescription>
         </Card>
       </div>
@@ -45,11 +45,11 @@ export default async function OnboardingPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <div className="mb-6">
-        <p className="text-sm font-medium text-havii-teal">Welcome to HAVII</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-          Let&apos;s set up your space
+        <p className="text-sm font-medium text-rise-red">Welcome to RISE USA</p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-rise-navy">
+          Let&apos;s set up your profile
         </h1>
-        <p className="mt-2 text-havii-muted">
+        <p className="mt-2 text-rise-muted">
           A few questions so we can personalize your experience. You can change
           these later.
         </p>

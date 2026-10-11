@@ -19,7 +19,7 @@ export async function signUpAction(
   const firstName = String(formData.get("first_name") || "").trim();
   const lastName = String(formData.get("last_name") || "").trim();
   const preferredName = String(formData.get("preferred_name") || "").trim();
-  const role = String(formData.get("role") || "youth");
+  const role = String(formData.get("role") || "student");
 
   if (!email || !password) {
     return { error: "Email and password are required." };

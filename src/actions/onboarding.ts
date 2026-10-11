@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/types";
+import { dashboardPathForRole } from "@/lib/roles";
 
 export type OnboardingState = {
   error?: string;
@@ -75,94 +76,18 @@ export async function completeOnboardingAction(
       return { error: profileUpdateError.message };
     }
 
-    if (role === "youth") {
-      const interests = formData.getAll("interests").map(String);
-      const helpAreas = formData.getAll("help_areas").map(String);
-      const mentorshipInterested = formData.get("mentorship_interested") === "true";
-      const locationGeneral = String(formData.get("location_general") || "").trim();
+    // RISE USA onboarding — all roles complete the same basic profile
+    // Students additionally provide school/program info
+    if (role === "student") {
       const schoolOrProgram = String(formData.get("school_or_program") || "").trim();
+      const graduationYear = String(formData.get("graduation_year") || "").trim();
 
-      if (!dateOfBirth) {
-        return { error: "Date of birth is required for youth accounts." };
-      }
-
-      const { error: ypError } = await supabase.from("youth_profiles").upsert(
-        {
-          profile_id: profile.id,
-          interests,
-          help_areas: helpAreas,
-          mentorship_interested: mentorshipInterested,
-          location_general: locationGeneral || [city, state].filter(Boolean).join(", ") || null,
-          school_or_program: schoolOrProgram || null,
-        },
-        { onConflict: "profile_id" }
-      );
-      if (ypError) return { error: ypError.message };
+      // Store extra student info in the profile's metadata (no separate table needed)
+      // The school/program and graduation year can be stored in city/state or a future field
+      // For now, we just complete the basic profile
     }
 
-    if (role === "mentor") {
-      const profession = String(formData.get("profession") || "").trim();
-      const background = String(formData.get("background_summary") || "").trim();
-      const mentoringInterests = formData.getAll("mentoring_interests").map(String);
-      const supportAreas = formData.getAll("support_areas").map(String);
-      const locationGeneral = String(formData.get("location_general") || "").trim();
-
-      if (!profession) {
-        return { error: "Profession / background is required." };
-      }
-
-      const { error: mpError } = await supabase.from("mentor_profiles").upsert(
-        {
-          profile_id: profile.id,
-          profession,
-          background_summary: background || null,
-          mentoring_interests: mentoringInterests,
-          support_areas: supportAreas,
-          location_general: locationGeneral || [city, state].filter(Boolean).join(", ") || null,
-          application_status: "pending_application",
-        },
-        { onConflict: "profile_id" }
-      );
-      if (mpError) return { error: mpError.message };
-    }
-
-    if (role === "caregiver") {
-      const notes = String(formData.get("relationship_notes") || "").trim();
-      const { error: cpError } = await supabase.from("caregiver_profiles").upsert(
-        {
-          profile_id: profile.id,
-          relationship_notes: notes || null,
-        },
-        { onConflict: "profile_id" }
-      );
-      if (cpError) return { error: cpError.message };
-    }
-
-    if (role === "community_partner") {
-      const organizationName = String(formData.get("organization_name") || "").trim();
-      const titleRole = String(formData.get("title_role") || "").trim();
-      const contactEmail = String(formData.get("contact_email") || "").trim();
-      const reason = String(formData.get("reason_for_use") || "").trim();
-
-      if (!organizationName || !reason) {
-        return { error: "Organization name and reason for use are required." };
-      }
-
-      const { error: ppError } = await supabase.from("partner_profiles").upsert(
-        {
-          profile_id: profile.id,
-          organization_name: organizationName,
-          title_role: titleRole || null,
-          contact_email: contactEmail || null,
-          reason_for_use: reason,
-          review_status: "pending_review",
-        },
-        { onConflict: "profile_id" }
-      );
-      if (ppError) return { error: ppError.message };
-    }
-
-    redirect("/dashboard");
+    redirect(dashboardPathForRole(role));
   } catch (e) {
     if (e && typeof e === "object" && "digest" in e) throw e;
     return { error: e instanceof Error ? e.message : "Onboarding failed." };

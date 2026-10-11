@@ -1,15 +1,27 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+function isValidSupabaseConfig(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
+  if (!isValidSupabaseConfig()) {
     return supabaseResponse;
   }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {
@@ -45,13 +57,22 @@ export async function updateSession(request: NextRequest) {
     pathname === "/" ||
     pathname.startsWith("/help") ||
     pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/verify-certificate") ||
     isAuthRoute;
 
   const isProtected =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/coming-next") ||
-    pathname.startsWith("/app");
+    pathname.startsWith("/course") ||
+    pathname.startsWith("/blueprint") ||
+    pathname.startsWith("/progress") ||
+    pathname.startsWith("/resources") ||
+    pathname.startsWith("/certificates") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/support") ||
+    pathname.startsWith("/instructor") ||
+    pathname.startsWith("/org-manager") ||
+    pathname.startsWith("/admin");
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone();
@@ -77,7 +98,8 @@ export async function updateSession(request: NextRequest) {
       if (
         !profile.onboarding_completed &&
         !pathname.startsWith("/onboarding") &&
-        !pathname.startsWith("/help")
+        !pathname.startsWith("/help") &&
+        !pathname.startsWith("/support")
       ) {
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = "/onboarding";
@@ -93,9 +115,10 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(redirectUrl);
       }
 
+      // Role-based route protection
       if (
-        pathname.startsWith("/dashboard/admin") &&
-        profile.role !== "administrator"
+        pathname.startsWith("/admin") &&
+        profile.role !== "admin"
       ) {
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = "/forbidden";
@@ -103,9 +126,19 @@ export async function updateSession(request: NextRequest) {
       }
 
       if (
-        pathname.startsWith("/dashboard/staff") &&
-        profile.role !== "staff" &&
-        profile.role !== "administrator"
+        pathname.startsWith("/instructor") &&
+        profile.role !== "admin" &&
+        profile.role !== "instructor"
+      ) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = "/forbidden";
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      if (
+        pathname.startsWith("/org-manager") &&
+        profile.role !== "admin" &&
+        profile.role !== "org_manager"
       ) {
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = "/forbidden";
@@ -114,7 +147,6 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Silence unused for future public-route branching
   void isPublicRoute;
 
   return supabaseResponse;

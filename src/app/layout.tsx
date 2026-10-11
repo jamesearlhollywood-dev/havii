@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "HAVII — Connect, grow, and find support",
-    template: "%s · HAVII",
+    default: "RISE USA — Build What Lasts",
+    template: "%s · RISE USA",
   },
   description:
-    "HAVII is a youth wellness, mentorship, and personal development platform by Together For You, Inc. Ages 13–24.",
+    "RISE USA: Roadmap to Income, Savings, and Equity — a financial-literacy and financial-readiness program for high school juniors and seniors. Start Small. Scale Smart. Stay Consistent.",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-havii-cream text-havii-ink">
+      <body className="min-h-full flex flex-col bg-rise-sky text-rise-navy">
         {children}
       </body>
     </html>

@@ -1,9 +1,57 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import type { Profile } from "@/lib/types";
-import { displayRoleName } from "@/lib/roles";
-import { displayName } from "@/lib/utils";
+import { displayRoleName, dashboardPathForRole } from "@/lib/roles";
+import { displayName, initials, cn } from "@/lib/utils";
 import { logoutAction } from "@/actions/auth";
-import { Button } from "@/components/ui/Button";
+
+const STUDENT_NAV = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/course", label: "My Course" },
+  { href: "/blueprint", label: "Financial Blueprint" },
+  { href: "/progress", label: "Progress" },
+  { href: "/resources", label: "Resources" },
+  { href: "/certificates", label: "Certificates" },
+  { href: "/profile", label: "Profile" },
+  { href: "/support", label: "Support" },
+];
+
+const INSTRUCTOR_NAV = [
+  { href: "/instructor", label: "Dashboard" },
+  { href: "/course", label: "Course" },
+  { href: "/resources", label: "Resources" },
+  { href: "/profile", label: "Profile" },
+  { href: "/support", label: "Support" },
+];
+
+const ORG_MANAGER_NAV = [
+  { href: "/org-manager", label: "Dashboard" },
+  { href: "/course", label: "Course" },
+  { href: "/resources", label: "Resources" },
+  { href: "/profile", label: "Profile" },
+  { href: "/support", label: "Support" },
+];
+
+const ADMIN_NAV = [
+  { href: "/admin", label: "Dashboard" },
+  { href: "/course", label: "Course" },
+  { href: "/resources", label: "Resources" },
+  { href: "/certificates", label: "Certificates" },
+  { href: "/profile", label: "Profile" },
+  { href: "/support", label: "Support" },
+];
+
+function getNavItems(role: string) {
+  switch (role) {
+    case "instructor": return INSTRUCTOR_NAV;
+    case "org_manager": return ORG_MANAGER_NAV;
+    case "admin": return ADMIN_NAV;
+    default: return STUDENT_NAV;
+  }
+}
 
 export function AppShell({
   profile,
@@ -12,10 +60,13 @@ export function AppShell({
   profile: Profile;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const name = displayName(profile);
+  const navItems = getNavItems(profile.role);
 
   return (
-    <div className="min-h-screen bg-havii-cream text-havii-ink">
+    <div className="min-h-screen bg-rise-sky text-rise-navy">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2"
@@ -23,70 +74,92 @@ export function AppShell({
         Skip to content
       </a>
 
-      <header className="sticky top-0 z-40 border-b border-havii-mist/80 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="group flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-havii-teal text-sm font-bold text-white">
-                H
-              </span>
-              <span className="font-semibold tracking-tight text-havii-ink group-hover:text-havii-teal">
-                HAVII
-              </span>
-            </Link>
-            <nav className="hidden items-center gap-4 text-sm md:flex" aria-label="Primary">
-              <Link className="text-havii-muted hover:text-havii-teal focus-visible:outline focus-visible:outline-2 focus-visible:outline-havii-teal rounded" href="/dashboard">
-                Home
-              </Link>
-              <Link className="text-havii-muted hover:text-havii-teal focus-visible:outline focus-visible:outline-2 focus-visible:outline-havii-teal rounded" href="/help">
-                Get Help
-              </Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/help"
-              className="rounded-full bg-havii-coral/10 px-3 py-1.5 text-xs font-semibold text-havii-coral-dark hover:bg-havii-coral/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-havii-coral sm:text-sm"
-            >
-              Get Help / Support
-            </Link>
+      {/* Top header */}
+      <header className="sticky top-0 z-40 border-b border-rise-border bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+          <div className="flex items-center gap-3">
+            {/* Mobile menu button */}
             <button
               type="button"
-              className="relative hidden rounded-full border border-havii-mist p-2 text-havii-muted hover:bg-havii-sand focus-visible:outline focus-visible:outline-2 focus-visible:outline-havii-teal sm:inline-flex"
-              aria-label="Notifications (coming next)"
-              title="Notifications — Coming Next"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="rounded-lg border border-rise-border p-2 text-rise-navy hover:bg-rise-sky lg:hidden"
+              aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
             >
-              <BellIcon />
-              <span className="sr-only">Notifications placeholder</span>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                {mobileOpen ? (
+                  <path d="M5 5l10 10M15 5L5 15" />
+                ) : (
+                  <path d="M3 6h14M3 10h14M3 14h14" />
+                )}
+              </svg>
             </button>
+
+            <Link href={dashboardPathForRole(profile.role)} className="group flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rise-navy text-sm font-bold text-white">
+                R
+              </span>
+              <div className="flex flex-col leading-none">
+                <span className="font-bold tracking-tight text-rise-navy group-hover:text-rise-blue-dark">
+                  RISE USA
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-wider text-rise-red">
+                  Build What Lasts
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+            {navItems.map((item) => {
+              const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-rise-navy text-white"
+                      : "text-rise-muted hover:bg-rise-sky hover:text-rise-navy"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* User menu */}
+          <div className="flex items-center gap-2">
             <details className="relative">
-              <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-havii-mist bg-white px-2.5 py-1.5 text-sm hover:bg-havii-sand focus-visible:outline focus-visible:outline-2 focus-visible:outline-havii-teal">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-havii-teal/15 text-xs font-semibold text-havii-teal-dark">
-                  {name.slice(0, 1).toUpperCase()}
+              <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-rise-border bg-white px-2.5 py-1.5 text-sm hover:bg-rise-sky">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-rise-navy text-xs font-semibold text-white">
+                  {initials(profile)}
                 </span>
                 <span className="hidden max-w-[8rem] truncate sm:inline">{name}</span>
               </summary>
-              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-havii-mist bg-white p-2 shadow-lg">
-                <p className="px-2 py-1 text-xs text-havii-muted">
+              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-rise-border bg-white p-2 shadow-lg">
+                <p className="px-2 py-1 text-xs text-rise-muted">
                   {displayRoleName(profile.role)}
                 </p>
                 <Link
-                  href="/dashboard"
-                  className="block rounded-lg px-2 py-2 text-sm hover:bg-havii-sand"
+                  href="/profile"
+                  className="block rounded-lg px-2 py-1.5 text-sm hover:bg-rise-sky"
                 >
-                  Dashboard
+                  Profile
                 </Link>
                 <Link
-                  href="/help"
-                  className="block rounded-lg px-2 py-2 text-sm hover:bg-havii-sand"
+                  href="/support"
+                  className="block rounded-lg px-2 py-1.5 text-sm hover:bg-rise-sky"
                 >
-                  Get Help
+                  Support
                 </Link>
                 <form action={logoutAction}>
                   <button
                     type="submit"
-                    className="w-full rounded-lg px-2 py-2 text-left text-sm text-red-700 hover:bg-red-50"
+                    className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-rise-red hover:bg-rise-red/5"
                   >
                     Log out
                   </button>
@@ -95,88 +168,78 @@ export function AppShell({
             </details>
           </div>
         </div>
+
+        {/* Mobile nav */}
+        {mobileOpen && (
+          <nav className="border-t border-rise-border bg-white px-4 py-3 lg:hidden" aria-label="Mobile">
+            <div className="grid gap-1">
+              {navItems.map((item) => {
+                const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "rounded-lg px-3 py-2.5 text-sm font-medium",
+                      active ? "bg-rise-navy text-white" : "text-rise-navy hover:bg-rise-sky"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        )}
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-8">
+      {/* Main content */}
+      <main id="main" className="flex-1">
         {children}
       </main>
 
-      <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-havii-mist bg-white/95 backdrop-blur md:hidden"
-        aria-label="Mobile"
-      >
-        <div className="mx-auto flex max-w-6xl items-stretch justify-around px-2 py-2 text-xs">
-          <Link href="/dashboard" className="flex flex-1 flex-col items-center gap-1 rounded-lg px-2 py-2 text-havii-ink hover:bg-havii-sand">
-            Home
-          </Link>
-          <Link href="/help" className="flex flex-1 flex-col items-center gap-1 rounded-lg px-2 py-2 font-medium text-havii-coral-dark hover:bg-havii-coral/10">
-            Get Help
-          </Link>
-          <form action={logoutAction} className="flex flex-1">
-            <button type="submit" className="flex w-full flex-col items-center gap-1 rounded-lg px-2 py-2 text-havii-muted hover:bg-havii-sand">
-              Log out
-            </button>
-          </form>
-        </div>
-      </nav>
-
-      <footer className="border-t border-havii-mist bg-white pb-20 md:pb-0">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-havii-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            HAVII by{" "}
-            <span className="font-medium text-havii-ink">Together For You, Inc.</span>
+      {/* Footer */}
+      <footer className="border-t border-rise-border bg-white">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-4 py-6 text-sm text-rise-muted sm:flex-row sm:justify-between">
+          <p className="flex items-center gap-2">
+            <span className="font-semibold text-rise-navy">RISE USA</span>
+            <span className="text-rise-red">·</span>
+            <span>Build What Lasts</span>
           </p>
-          <div className="flex gap-4">
-            <Link href="/help" className="hover:text-havii-teal">
-              Help & safety
-            </Link>
-          </div>
+          <p>© {new Date().getFullYear()} RISE USA · Roadmap to Income, Savings, and Equity</p>
         </div>
       </footer>
     </div>
   );
 }
 
-function BellIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function MarketingHeader() {
   return (
-    <header className="border-b border-havii-mist/70 bg-white/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-havii-teal text-sm font-bold text-white">
-            H
+    <header className="sticky top-0 z-40 border-b border-rise-border bg-white/95 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+        <Link href="/" className="group flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rise-navy text-sm font-bold text-white">
+            R
           </span>
-          <div>
-            <p className="font-semibold leading-tight text-havii-ink">HAVII</p>
-            <p className="text-[11px] text-havii-muted">by Together For You</p>
+          <div className="flex flex-col leading-none">
+            <span className="font-bold tracking-tight text-rise-navy group-hover:text-rise-blue-dark">
+              RISE USA
+            </span>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-rise-red">
+              Build What Lasts
+            </span>
           </div>
         </Link>
-        <div className="flex items-center gap-2">
-          <Link href="/help">
-            <Button variant="ghost" size="sm">
-              Get Help
-            </Button>
+        <div className="flex items-center gap-3">
+          <Link href="/auth/login" className="text-sm font-medium text-rise-navy hover:text-rise-blue-dark">
+            Log in
           </Link>
-          <Link href="/auth/login">
-            <Button variant="outline" size="sm">
-              Log in
-            </Button>
-          </Link>
-          <Link href="/auth/sign-up" className="hidden sm:inline-flex">
-            <Button size="sm">Join HAVII</Button>
+          <Link
+            href="/auth/sign-up"
+            className="rounded-lg bg-rise-navy px-4 py-2 text-sm font-semibold text-white hover:bg-rise-navy-light"
+          >
+            Get Started
           </Link>
         </div>
       </div>

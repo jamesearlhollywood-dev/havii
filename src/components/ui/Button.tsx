@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline" | "success";
 type Size = "sm" | "md" | "lg";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -11,15 +11,17 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-havii-teal text-white hover:bg-havii-teal-dark focus-visible:ring-havii-teal shadow-sm",
+    "bg-rise-navy text-white hover:bg-rise-navy-light focus-visible:ring-rise-blue shadow-sm",
   secondary:
-    "bg-havii-coral text-white hover:bg-havii-coral-dark focus-visible:ring-havii-coral shadow-sm",
+    "bg-rise-red text-white hover:bg-rise-red-dark focus-visible:ring-rise-red shadow-sm",
   ghost:
-    "bg-transparent text-havii-ink hover:bg-havii-sand focus-visible:ring-havii-teal",
+    "bg-transparent text-rise-navy hover:bg-rise-sky focus-visible:ring-rise-blue",
   outline:
-    "border border-havii-mist bg-white text-havii-ink hover:bg-havii-sand focus-visible:ring-havii-teal",
+    "border border-rise-border bg-white text-rise-navy hover:bg-rise-sky focus-visible:ring-rise-blue",
   danger:
     "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500",
+  success:
+    "bg-rise-success text-white hover:bg-rise-success/90 focus-visible:ring-rise-success shadow-sm",
 };
 
 const sizes: Record<Size, string> = {
