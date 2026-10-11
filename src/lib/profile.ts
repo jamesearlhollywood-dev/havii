@@ -1,7 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
 export async function getCurrentUserAndProfile() {
+  if (!hasValidSupabaseConfig()) {
+    return { user: null, profile: null, supabase: null } as const;
+  }
   const supabase = await createClient();
   const {
     data: { user },
