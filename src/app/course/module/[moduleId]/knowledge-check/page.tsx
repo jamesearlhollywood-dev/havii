@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { KnowledgeCheck } from "@/components/course/KnowledgeCheck";
+import { AssessmentRunner } from "@/components/assessment/AssessmentRunner";
 import { getModule, PASSING_SCORE } from "@/data/course";
+import { getKnowledgeCheckForModule, getQuestionsForAssessment } from "@/data/assessment-data";
+import { stripQuestion } from "@/lib/assessment-scoring";
+import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -26,13 +31,31 @@ export default async function KnowledgeCheckPage({
   const mod = getModule(moduleId);
   if (!mod) redirect("/course");
 
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/course");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  const supabaseConnected = hasValidSupabaseConfig();
 
-  const progress = await getStudentProgress(profile.id);
-  const attempts = progress.quizAttempts.filter((a: any) => a.module_id === moduleId);
+  let profile: Profile;
+  let attempts: any[] = [];
+
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/course");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    profile = userProfile;
+    const progress = await getStudentProgress(profile.id);
+    attempts = progress.quizAttempts.filter((a: any) => a.module_id === moduleId);
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+    attempts = DEMO_STUDENT_PROGRESS.quizAttempts.filter((a: any) => a.module_id === moduleId);
+  }
+
+  const kcConfig = getKnowledgeCheckForModule(moduleId);
+  if (!kcConfig) redirect(`/course/module/${moduleId}`);
+
+  const allQuestions = getQuestionsForAssessment(kcConfig.id);
+  // Strip answer data before sending to client
+  const safeQuestions = allQuestions.map(stripQuestion);
+
   const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a: any) => Number(a.score))) : null;
   const passed = attempts.some((a: any) => a.passed);
 
@@ -57,16 +80,19 @@ export default async function KnowledgeCheckPage({
             {mod.title.split("—")[0].trim()}
           </h1>
           <p className="mt-1 text-sm text-rise-muted">
-            {mod.knowledgeCheck.length} questions · Pass with {PASSING_SCORE}% or higher
+            {safeQuestions.length} questions · Pass with {PASSING_SCORE}% or higher
           </p>
         </div>
 
-        <KnowledgeCheck
-          moduleId={moduleId}
-          questions={mod.knowledgeCheck}
-          passingScore={PASSING_SCORE}
+        <AssessmentRunner
+          assessmentId={kcConfig.id}
+          questions={safeQuestions}
+          passingScore={kcConfig.passingScore}
+          feedbackMode={kcConfig.feedbackMode}
           previousScore={bestScore}
           previousPassed={passed}
+          maxRetakes={kcConfig.maxRetakes}
+          previousAttempts={attempts.length}
         />
       </div>
     </AppShell>

@@ -378,6 +378,48 @@ export const DEMO_QUIZ_ATTEMPTS: QuizAttempt[] = [
     answers: {},
     created_at: daysAgo(22),
   },
+  {
+    id: "qa-2",
+    profile_id: "demo-student",
+    module_id: "module-1",
+    score: 70,
+    passed: true,
+    answers: {},
+    created_at: daysAgo(25),
+  },
+];
+
+export const DEMO_ASSESSMENT_ATTEMPTS: any[] = [
+  {
+    id: "aa-1",
+    profile_id: "demo-student",
+    assessment_id: "kc-module-1",
+    assessment_type: "knowledge_check",
+    module_id: "module-1",
+    attempt_number: 1,
+    started_at: daysAgo(25),
+    submitted_at: daysAgo(25),
+    score: 7,
+    percentage: 70,
+    passed: true,
+    responses: {},
+    question_results: {},
+  },
+  {
+    id: "aa-2",
+    profile_id: "demo-student",
+    assessment_id: "kc-module-1",
+    assessment_type: "knowledge_check",
+    module_id: "module-1",
+    attempt_number: 2,
+    started_at: daysAgo(22),
+    submitted_at: daysAgo(22),
+    score: 8,
+    percentage: 85,
+    passed: true,
+    responses: {},
+    question_results: {},
+  },
 ];
 
 export const DEMO_DECISION_LABS: DecisionLabSubmission[] = [
@@ -417,7 +459,82 @@ export const DEMO_BLUEPRINT_SECTIONS: BlueprintSection[] = [
   },
 ];
 
-export const DEMO_CERTIFICATES: Certificate[] = [];
+export const DEMO_CERTIFICATES: (Certificate & {
+  organization_name: string | null;
+  cohort_name: string | null;
+  instructor_name: string | null;
+})[] = [
+  {
+    id: "cert-1",
+    profile_id: "s7",
+    certificate_id: "RISE-2025-SAM001",
+    student_name: "Sam Anderson",
+    course_name: "RISE USA: Roadmap to Income, Savings, and Equity",
+    issued_at: daysAgo(5),
+    status: "issued",
+    organization_name: "Lincoln High School",
+    cohort_name: "Fall 2025 — Period 3",
+    instructor_name: "Ms. Garcia",
+  },
+  {
+    id: "cert-2",
+    profile_id: "s6",
+    certificate_id: "RISE-2025-MOR002",
+    student_name: "Morgan Taylor",
+    course_name: "RISE USA: Roadmap to Income, Savings, and Equity",
+    issued_at: daysAgo(1),
+    status: "issued",
+    organization_name: "Lincoln High School",
+    cohort_name: "Fall 2025 — Period 3",
+    instructor_name: "Ms. Garcia",
+  },
+  {
+    id: "cert-3",
+    profile_id: "s-old-1",
+    certificate_id: "RISE-2024-OLD001",
+    student_name: "Previous Student",
+    course_name: "RISE USA: Roadmap to Income, Savings, and Equity",
+    issued_at: "2024-12-15T00:00:00.000Z",
+    status: "revoked",
+    organization_name: "Lincoln High School",
+    cohort_name: "Spring 2024 — Period 5",
+    instructor_name: "Mr. Davis",
+  },
+];
+
+export const DEMO_CERTIFICATE_AUDIT: {
+  id: string;
+  certificate_id: string;
+  action: string;
+  performed_by: string;
+  note: string | null;
+  created_at: string;
+}[] = [
+  {
+    id: "audit-1",
+    certificate_id: "RISE-2025-SAM001",
+    action: "issued",
+    performed_by: "system",
+    note: "Auto-issued upon course completion",
+    created_at: daysAgo(5),
+  },
+  {
+    id: "audit-2",
+    certificate_id: "RISE-2025-MOR002",
+    action: "issued",
+    performed_by: "system",
+    note: "Auto-issued upon course completion",
+    created_at: daysAgo(1),
+  },
+  {
+    id: "audit-3",
+    certificate_id: "RISE-2024-OLD001",
+    action: "revoked",
+    performed_by: "demo-admin",
+    note: "Revoked due to incomplete requirements discovered during audit",
+    created_at: "2024-12-20T00:00:00.000Z",
+  },
+];
 
 export const DEMO_FINAL_ATTEMPTS: any[] = [];
 

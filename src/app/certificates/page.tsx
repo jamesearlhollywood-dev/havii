@@ -1,21 +1,43 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { modules, blueprintSections } from "@/data/course";
 import { formatDate } from "@/lib/utils";
+import {
+  DEMO_STUDENT_PROFILE,
+  DEMO_STUDENT_PROGRESS,
+  DEMO_CERTIFICATES,
+} from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Certificates" };
 
 export default async function CertificatesPage() {
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/certificates");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  const supabaseConnected = hasValidSupabaseConfig();
 
-  const progress = profile.role === "student" ? await getStudentProgress(profile.id) : null;
-  const certificate = progress?.certificates[0];
+  let profile: Profile;
+  let progress: any = null;
+  let certificates: any[] = [];
+
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/certificates");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    profile = userProfile;
+    progress = await getStudentProgress(profile.id);
+    certificates = progress.certificates;
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+    progress = DEMO_STUDENT_PROGRESS;
+    // Demo student doesn't have a certificate yet
+    certificates = [];
+  }
+
+  const certificate = certificates[0];
 
   const completedModules = modules.filter((m) =>
     progress?.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed)
@@ -54,6 +76,14 @@ export default async function CertificatesPage() {
                 <p className="mt-2 text-lg font-semibold text-rise-navy">
                   {certificate.course_name}
                 </p>
+                {/* Organization/cohort/instructor when available */}
+                {(certificate.organization_name || certificate.cohort_name || certificate.instructor_name) && (
+                  <div className="mt-3 space-y-0.5 text-xs text-rise-muted">
+                    {certificate.organization_name && <p>Organization: {certificate.organization_name}</p>}
+                    {certificate.cohort_name && <p>Cohort: {certificate.cohort_name}</p>}
+                    {certificate.instructor_name && <p>Instructor: {certificate.instructor_name}</p>}
+                  </div>
+                )}
                 <div className="mx-auto my-6 h-px w-32 bg-rise-border" />
                 <div className="flex flex-col items-center justify-between gap-4 sm:flex-row sm:px-8">
                   <div className="text-center">
@@ -82,6 +112,15 @@ export default async function CertificatesPage() {
                 className="rounded-xl bg-rise-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-rise-navy-light"
               >
                 Print / Export PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(certificate.certificate_id);
+                }}
+                className="rounded-xl border border-rise-border bg-white px-5 py-2.5 text-sm font-semibold text-rise-navy hover:bg-rise-sky"
+              >
+                Copy Certificate ID
               </button>
               <a
                 href={`/verify-certificate?id=${certificate.certificate_id}`}

@@ -1,8 +1,10 @@
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import { MarketingHeader } from "@/components/layout/AppShell";
 import { Card } from "@/components/ui/Card";
 import { VerifyCertificateForm } from "@/components/certificates/VerifyCertificateForm";
+import { DEMO_CERTIFICATES } from "@/data/demo-data";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Verify Certificate" };
@@ -16,19 +18,29 @@ export default async function VerifyCertificatePage({
   let result: { found: boolean; data?: any; error?: string } | null = null;
 
   if (params.id) {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("certificates")
-      .select("*")
-      .eq("certificate_id", params.id)
-      .maybeSingle();
+    if (hasValidSupabaseConfig()) {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("certificates")
+        .select("*")
+        .eq("certificate_id", params.id)
+        .maybeSingle();
 
-    if (error) {
-      result = { found: false, error: "Unable to verify at this time." };
-    } else if (data) {
-      result = { found: true, data };
+      if (error) {
+        result = { found: false, error: "Unable to verify at this time." };
+      } else if (data) {
+        result = { found: true, data };
+      } else {
+        result = { found: false, error: "No certificate found with that ID." };
+      }
     } else {
-      result = { found: false, error: "No certificate found with that ID." };
+      // Demo mode — search demo certificates
+      const cert = DEMO_CERTIFICATES.find((c) => c.certificate_id === params.id);
+      if (cert) {
+        result = { found: true, data: cert };
+      } else {
+        result = { found: false, error: "No certificate found with that ID." };
+      }
     }
   }
 
@@ -56,9 +68,11 @@ export default async function VerifyCertificatePage({
                   <div>
                     <p className="text-lg font-bold text-rise-success">Certificate Verified</p>
                     <div className="mt-3 space-y-1 text-sm">
+                      <p><span className="text-rise-muted">Status:</span> <span className="font-medium text-rise-success">Valid</span></p>
                       <p><span className="text-rise-muted">Student:</span> <span className="font-medium text-rise-navy">{result.data.student_name}</span></p>
                       <p><span className="text-rise-muted">Course:</span> <span className="font-medium text-rise-navy">{result.data.course_name}</span></p>
-                      <p><span className="text-rise-muted">Issued:</span> <span className="font-medium text-rise-navy">{formatDate(result.data.issued_at)}</span></p>
+                      <p><span className="text-rise-muted">Completion Date:</span> <span className="font-medium text-rise-navy">{formatDate(result.data.issued_at)}</span></p>
+                      <p><span className="text-rise-muted">Issuing Organization:</span> <span className="font-medium text-rise-navy">RISE USA</span></p>
                       <p><span className="text-rise-muted">Certificate ID:</span> <span className="font-mono font-medium text-rise-navy">{result.data.certificate_id}</span></p>
                     </div>
                   </div>
@@ -76,6 +90,13 @@ export default async function VerifyCertificatePage({
               </Card>
             )}
           </div>
+        )}
+
+        {/* Demo hint */}
+        {!hasValidSupabaseConfig() && (
+          <p className="mt-4 text-center text-xs text-rise-muted">
+            Demo mode — try ID: RISE-2025-SAM001
+          </p>
         )}
       </div>
     </div>

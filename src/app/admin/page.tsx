@@ -13,8 +13,10 @@ import {
   DEMO_COHORT_STUDENTS,
   DEMO_ENROLLMENTS,
   DEMO_ADMIN_SETTINGS,
+  DEMO_CERTIFICATES,
 } from "@/data/demo-data";
 import type { Profile } from "@/lib/types";
+import { ExportStudentCompletionButton, ExportCertificatesButton, ExportCohortCompletionButton } from "@/components/admin/CsvExport";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin Dashboard" };
@@ -95,6 +97,13 @@ export default async function AdminPage() {
             <p className="text-sm text-rise-muted">Stalled Threshold</p>
             <p className="mt-1 text-3xl font-bold text-rise-navy">{DEMO_ADMIN_SETTINGS.stalled_threshold_days} days</p>
           </Card>
+        </div>
+
+        {/* Export buttons */}
+        <div className="mb-6 flex flex-wrap gap-3">
+          <ExportStudentCompletionButton students={students} />
+          <ExportCertificatesButton certificates={DEMO_CERTIFICATES} />
+          <ExportCohortCompletionButton students={students} />
         </div>
 
         {/* Organizations */}

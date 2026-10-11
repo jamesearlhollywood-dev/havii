@@ -1,36 +1,39 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { KnowledgeCheck } from "@/components/course/KnowledgeCheck";
-import { modules, PASSING_SCORE } from "@/data/course";
-import type { QuizQuestion } from "@/data/course-types";
+import { AssessmentRunner } from "@/components/assessment/AssessmentRunner";
 import { Alert } from "@/components/ui/Alert";
+import { modules, PASSING_SCORE } from "@/data/course";
+import { FINAL_ASSESSMENT_CONFIG, getQuestionsForAssessment } from "@/data/assessment-data";
+import { stripQuestion } from "@/lib/assessment-scoring";
+import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Final Assessment" };
 
-// Build final assessment from a selection of questions across all modules
-function buildFinalAssessment(): QuizQuestion[] {
-  const questions: QuizQuestion[] = [];
-  for (const mod of modules) {
-    // Take 2 questions from each module (first 2 for consistency)
-    questions.push(...mod.knowledgeCheck.slice(0, 2));
-  }
-  return questions;
-}
-
 export default async function FinalAssessmentPage() {
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/course/final-assessment");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  const supabaseConnected = hasValidSupabaseConfig();
 
-  if (profile.role !== "student") {
-    redirect(profile.role === "instructor" ? "/instructor" : profile.role === "org_manager" ? "/org-manager" : "/admin");
+  let profile: Profile;
+  let progress: any = null;
+
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/course/final-assessment");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    if (userProfile.role !== "student") {
+      redirect(userProfile.role === "instructor" ? "/instructor" : userProfile.role === "org_manager" ? "/org-manager" : "/admin");
+    }
+    profile = userProfile;
+    progress = await getStudentProgress(profile.id);
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+    progress = DEMO_STUDENT_PROGRESS;
   }
-
-  const progress = await getStudentProgress(profile.id);
 
   // Check prerequisites
   const completedModules = modules.filter((m) =>
@@ -40,11 +43,12 @@ export default async function FinalAssessmentPage() {
   const blueprintCompleted = progress.blueprintSections.filter((b: any) => b.completed).length;
   const canTake = completedModules === 6 && decisionLabsCompleted === modules.length && blueprintCompleted === 6;
 
-  const previousAttempts = progress.finalAttempts;
+  const previousAttempts = progress.finalAttempts || [];
   const bestScore = previousAttempts.length > 0 ? Math.max(...previousAttempts.map((a: any) => Number(a.score))) : null;
   const passed = previousAttempts.some((a: any) => a.passed);
 
-  const finalQuestions = buildFinalAssessment();
+  const allQuestions = getQuestionsForAssessment(FINAL_ASSESSMENT_CONFIG.id);
+  const safeQuestions = allQuestions.map(stripQuestion);
 
   return (
     <AppShell profile={profile}>
@@ -61,7 +65,7 @@ export default async function FinalAssessmentPage() {
           </p>
           <h1 className="mt-1 text-2xl font-bold text-rise-navy">Course Final Assessment</h1>
           <p className="mt-1 text-sm text-rise-muted">
-            {finalQuestions.length} questions from all six modules · Pass with {PASSING_SCORE}% or higher to earn your certificate
+            {safeQuestions.length} questions from all six modules · Pass with {PASSING_SCORE}% or higher to earn your certificate
           </p>
         </div>
 
@@ -82,12 +86,15 @@ export default async function FinalAssessmentPage() {
               </Alert>
             )}
             <div className="mt-6 rounded-2xl border border-rise-border bg-white p-6">
-              <KnowledgeCheck
-                moduleId="final-assessment"
-                questions={finalQuestions}
-                passingScore={PASSING_SCORE}
+              <AssessmentRunner
+                assessmentId={FINAL_ASSESSMENT_CONFIG.id}
+                questions={safeQuestions}
+                passingScore={FINAL_ASSESSMENT_CONFIG.passingScore}
+                feedbackMode={FINAL_ASSESSMENT_CONFIG.feedbackMode}
                 previousScore={bestScore}
                 previousPassed={passed}
+                maxRetakes={FINAL_ASSESSMENT_CONFIG.maxRetakes}
+                previousAttempts={previousAttempts.length}
               />
             </div>
           </>

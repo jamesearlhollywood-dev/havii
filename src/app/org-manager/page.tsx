@@ -13,6 +13,7 @@ import {
   DEMO_COHORT_STUDENTS,
 } from "@/data/demo-data";
 import type { Profile } from "@/lib/types";
+import { ExportStudentCompletionButton, ExportCohortCompletionButton } from "@/components/admin/CsvExport";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Organization Dashboard" };
@@ -69,6 +70,41 @@ export default async function OrgManagerPage() {
             <p className="text-sm text-rise-muted">Completion Rate</p>
             <p className="mt-1 text-2xl font-bold text-rise-navy">{completionRate}%</p>
           </Card>
+        </div>
+
+        {/* Assessment metrics */}
+        {orgStudents.length > 0 && (() => {
+          const studentsWithScores = orgStudents.filter((s) => s.best_quiz_score !== null);
+          const avgScore = studentsWithScores.length > 0
+            ? Math.round(studentsWithScores.reduce((sum, s) => sum + (s.best_quiz_score ?? 0), 0) / studentsWithScores.length)
+            : 0;
+          const passedCount = orgStudents.filter((s) => s.quiz_passed).length;
+          return (
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Card>
+                <p className="text-sm text-rise-muted">Avg Assessment Score</p>
+                <p className="mt-1 text-2xl font-bold text-rise-navy">{avgScore}%</p>
+              </Card>
+              <Card>
+                <p className="text-sm text-rise-muted">Passed Knowledge Checks</p>
+                <p className="mt-1 text-2xl font-bold text-rise-success">{passedCount}</p>
+              </Card>
+              <Card>
+                <p className="text-sm text-rise-muted">Blueprint Sections Avg</p>
+                <p className="mt-1 text-2xl font-bold text-rise-navy">
+                  {orgStudents.length > 0
+                    ? (orgStudents.reduce((sum, s) => sum + s.blueprint_sections_completed, 0) / orgStudents.length).toFixed(1)
+                    : 0}/6
+                </p>
+              </Card>
+            </div>
+          );
+        })()}
+
+        {/* Export buttons */}
+        <div className="mb-6 flex flex-wrap gap-3">
+          <ExportStudentCompletionButton students={orgStudents} />
+          <ExportCohortCompletionButton students={orgStudents} />
         </div>
 
         {/* Cohorts */}

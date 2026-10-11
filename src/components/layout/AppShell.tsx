@@ -13,6 +13,7 @@ const STUDENT_NAV = [
   { href: "/course", label: "My Course" },
   { href: "/blueprint", label: "Financial Blueprint" },
   { href: "/progress", label: "Progress" },
+  { href: "/scores", label: "My Scores" },
   { href: "/resources", label: "Resources" },
   { href: "/certificates", label: "Certificates" },
   { href: "/profile", label: "Profile" },
@@ -38,10 +39,11 @@ const ORG_MANAGER_NAV = [
 const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/cms", label: "Content" },
+  { href: "/admin/question-bank", label: "Assessments" },
   { href: "/admin/enrollment", label: "Enrollment" },
+  { href: "/admin/certificates", label: "Certificates" },
   { href: "/course", label: "Course" },
   { href: "/resources", label: "Resources" },
-  { href: "/certificates", label: "Certificates" },
   { href: "/profile", label: "Profile" },
   { href: "/support", label: "Support" },
 ];
