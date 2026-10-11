@@ -3,7 +3,7 @@
 // ============================================================================
 
 export interface ContentBlock {
-  type: "heading" | "paragraph" | "list" | "table" | "callout" | "example" | "calculator" | "video" | "image" | "divider";
+  type: "heading" | "paragraph" | "list" | "table" | "callout" | "example" | "calculator" | "video" | "image" | "divider" | "definition";
   text?: string;
   level?: number; // for headings
   items?: string[]; // for lists

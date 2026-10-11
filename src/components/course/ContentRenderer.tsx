@@ -84,6 +84,50 @@ export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
           case "divider":
             return <hr key={i} className="border-rise-border" />;
 
+          case "image":
+            return (
+              <figure key={i} className="space-y-1">
+                {block.imageUrl && (
+                  <img
+                    src={block.imageUrl}
+                    alt={block.imageAlt || ""}
+                    className="w-full rounded-xl border border-rise-border"
+                  />
+                )}
+                {block.caption && (
+                  <figcaption className="text-center text-xs text-rise-muted">{block.caption}</figcaption>
+                )}
+              </figure>
+            );
+
+          case "video":
+            return (
+              <figure key={i} className="space-y-1">
+                {block.videoUrl && (
+                  <div className="aspect-video w-full overflow-hidden rounded-xl border border-rise-border">
+                    <iframe
+                      src={block.videoUrl}
+                      className="h-full w-full"
+                      title={block.caption || "Embedded video"}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+                {block.caption && (
+                  <figcaption className="text-center text-xs text-rise-muted">{block.caption}</figcaption>
+                )}
+              </figure>
+            );
+
+          case "definition":
+            return (
+              <div key={i} className="rounded-xl border-l-4 border-rise-blue-light bg-blue-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-rise-blue-dark">📖 Definition</p>
+                <p className="mt-1 text-sm text-rise-navy/90">{block.text}</p>
+              </div>
+            );
+
           default:
             return null;
         }

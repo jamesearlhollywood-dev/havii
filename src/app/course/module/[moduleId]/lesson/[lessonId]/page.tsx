@@ -6,6 +6,7 @@ import { ContentRenderer } from "@/components/course/ContentRenderer";
 import { LessonReflection } from "@/components/course/LessonReflection";
 import { LessonActions } from "@/components/course/LessonActions";
 import { getModule, getLesson, getNextLesson, modules } from "@/data/course";
+import { RiseContentTypeBadge } from "@/components/cms/RiseContentTypeBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +61,7 @@ export default async function LessonPage({
 
         {/* Lesson header */}
         <div className="mb-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-rise-red">
               Module {mod.number} · Lesson
             </span>
@@ -69,6 +70,7 @@ export default async function LessonPage({
                 Enrichment (Optional)
               </span>
             )}
+            <RiseContentTypeBadge type="learn_it" size="sm" />
           </div>
           <h1 className="mt-1 text-2xl font-bold text-rise-navy">{lesson.title}</h1>
           <p className="mt-1 text-sm text-rise-muted">{lesson.subtitle} · {lesson.estimatedMinutes} min</p>
