@@ -14,6 +14,8 @@ import {
   DEMO_ADMIN_SETTINGS,
 } from "@/data/demo-data";
 import type { Profile, StudentProgressSummary } from "@/lib/types";
+import { fetchNotificationData } from "@/lib/notification-helpers";
+import { getActiveAnnouncements } from "@/actions/announcements";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Instructor Dashboard" };
@@ -53,8 +55,11 @@ export default async function InstructorPage() {
   const stalledStudents = students.filter((s) => s.is_stalled).length;
   const completedStudents = students.filter((s) => s.has_certificate || s.enrollment_status === "completed").length;
 
+  const { notifications, unreadCount } = await fetchNotificationData();
+  const activeAnnouncements = await getActiveAnnouncements();
+
   return (
-    <AppShell profile={profile}>
+    <AppShell profile={profile} notifications={notifications} unreadCount={unreadCount}>
       <div className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="mb-6 text-3xl font-bold text-rise-navy">Instructor Dashboard</h1>
 

@@ -17,6 +17,8 @@ import {
 } from "@/data/demo-data";
 import type { Profile } from "@/lib/types";
 import { ExportStudentCompletionButton, ExportCertificatesButton, ExportCohortCompletionButton, ExportCompletionDatesButton } from "@/components/admin/CsvExport";
+import { fetchNotificationData } from "@/lib/notification-helpers";
+import { getActiveAnnouncements } from "@/actions/announcements";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin Dashboard" };
@@ -56,8 +58,11 @@ export default async function AdminPage() {
     ? Math.round((students.filter((s) => s.blueprint_sections_completed === modules.length).length / totalLearners) * 100)
     : 0;
 
+  const { notifications, unreadCount } = await fetchNotificationData();
+  const activeAnnouncements = await getActiveAnnouncements();
+
   return (
-    <AppShell profile={profile}>
+    <AppShell profile={profile} notifications={notifications} unreadCount={unreadCount}>
       <div className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="mb-6 text-3xl font-bold text-rise-navy">Admin Dashboard</h1>
 
@@ -98,6 +103,43 @@ export default async function AdminPage() {
             <p className="mt-1 text-3xl font-bold text-rise-navy">{DEMO_ADMIN_SETTINGS.stalled_threshold_days} days</p>
           </Card>
         </div>
+
+        {/* Active Announcements */}
+        {activeAnnouncements.length > 0 && (
+          <div className="mb-6 space-y-2">
+            <h2 className="text-xl font-bold text-rise-navy">Active Announcements</h2>
+            {activeAnnouncements.slice(0, 3).map((ann) => (
+              <Card
+                key={ann.id}
+                className={
+                  ann.priority === "urgent"
+                    ? "border-rise-red/40 bg-rise-red/5"
+                    : ann.priority === "important"
+                    ? "border-rise-gold/40 bg-rise-warning-light"
+                    : ""
+                }
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">
+                    {ann.priority === "urgent" ? "🚨" : ann.priority === "important" ? "⭐" : "📢"}
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-rise-navy">{ann.title}</h3>
+                      {ann.priority !== "standard" && (
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${ann.priority === "urgent" ? "bg-rise-red text-white" : "bg-rise-gold text-rise-navy"}`}>
+                          {ann.priority}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-rise-muted line-clamp-2">{ann.body}</p>
+                    <p className="mt-1 text-xs text-rise-muted">By {ann.created_by_name} · {formatDate(ann.publish_date)}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Export buttons */}
         <div className="mb-6 flex flex-wrap gap-3">

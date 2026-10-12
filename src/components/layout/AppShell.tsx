@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import type { Profile } from "@/lib/types";
+import type { Profile, AppNotification } from "@/lib/types";
 import { displayRoleName, dashboardPathForRole } from "@/lib/roles";
 import { displayName, initials, cn } from "@/lib/utils";
 import { logoutAction } from "@/actions/auth";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const STUDENT_NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -16,6 +17,7 @@ const STUDENT_NAV = [
   { href: "/scores", label: "My Scores" },
   { href: "/resources", label: "Resources" },
   { href: "/certificates", label: "Certificates" },
+  { href: "/messages", label: "Messages" },
   { href: "/profile", label: "Profile" },
   { href: "/support", label: "Support" },
 ];
@@ -23,6 +25,7 @@ const STUDENT_NAV = [
 const INSTRUCTOR_NAV = [
   { href: "/instructor", label: "Dashboard" },
   { href: "/course", label: "Course" },
+  { href: "/messages", label: "Messages" },
   { href: "/resources", label: "Resources" },
   { href: "/profile", label: "Profile" },
   { href: "/support", label: "Support" },
@@ -31,6 +34,7 @@ const INSTRUCTOR_NAV = [
 const ORG_MANAGER_NAV = [
   { href: "/org-manager", label: "Dashboard" },
   { href: "/course", label: "Course" },
+  { href: "/messages", label: "Messages" },
   { href: "/resources", label: "Resources" },
   { href: "/profile", label: "Profile" },
   { href: "/support", label: "Support" },
@@ -42,7 +46,10 @@ const ADMIN_NAV = [
   { href: "/admin/question-bank", label: "Assessments" },
   { href: "/admin/enrollment", label: "Enrollment" },
   { href: "/admin/certificates", label: "Certificates" },
+  { href: "/admin/announcements", label: "Announcements" },
+  { href: "/admin/communications", label: "Comms Report" },
   { href: "/course", label: "Course" },
+  { href: "/messages", label: "Messages" },
   { href: "/resources", label: "Resources" },
   { href: "/profile", label: "Profile" },
   { href: "/support", label: "Support" },
@@ -60,9 +67,13 @@ function getNavItems(role: string) {
 export function AppShell({
   profile,
   children,
+  notifications = [],
+  unreadCount = 0,
 }: {
   profile: Profile;
   children: React.ReactNode;
+  notifications?: AppNotification[];
+  unreadCount?: number;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -135,8 +146,9 @@ export function AppShell({
             })}
           </nav>
 
-          {/* User menu */}
+          {/* Notification bell + User menu */}
           <div className="flex items-center gap-2">
+            <NotificationCenter notifications={notifications} unreadCount={unreadCount} />
             <details className="relative">
               <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-rise-border bg-white px-2.5 py-1.5 text-sm hover:bg-rise-sky">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-rise-navy text-xs font-semibold text-white">

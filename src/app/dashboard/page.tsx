@@ -9,6 +9,8 @@ import { displayName, formatDate } from "@/lib/utils";
 import { dashboardPathForRole } from "@/lib/roles";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
 import type { Profile, ModuleStatus } from "@/lib/types";
+import { fetchNotificationData } from "@/lib/notification-helpers";
+import { getActiveAnnouncements } from "@/actions/announcements";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -63,6 +65,10 @@ export default async function DashboardPage() {
   const blueprintCompleted = progress.blueprintSections.filter((b: any) => b.completed).length;
   const hasCertificate = progress.certificates.length > 0;
 
+  // Fetch notifications
+  const { notifications, unreadCount } = await fetchNotificationData();
+  const activeAnnouncements = await getActiveAnnouncements();
+
   // Module roadmap states
   const moduleStates: ModuleStatus[] = modules.map((m, i) => {
     const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
@@ -92,7 +98,7 @@ export default async function DashboardPage() {
   };
 
   return (
-    <AppShell profile={profile}>
+    <AppShell profile={profile} notifications={notifications} unreadCount={unreadCount}>
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Welcome header */}
         <div className="mb-8">
@@ -103,6 +109,61 @@ export default async function DashboardPage() {
             You&apos;ve completed {completedLessons} of {TOTAL_LESSONS} lessons across {completedModules} of {modules.length} modules.
           </p>
         </div>
+
+        {/* Active Announcements */}
+        {activeAnnouncements.length > 0 && (
+          <div className="mb-6 space-y-3">
+            <h2 className="text-xl font-bold text-rise-navy">Announcements</h2>
+            {activeAnnouncements.slice(0, 3).map((ann) => (
+              <Card
+                key={ann.id}
+                className={
+                  ann.priority === "urgent"
+                    ? "border-rise-red/40 bg-rise-red/5"
+                    : ann.priority === "important"
+                    ? "border-rise-gold/40 bg-rise-warning-light"
+                    : ""
+                }
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">
+                    {ann.priority === "urgent" ? "🚨" : ann.priority === "important" ? "⭐" : "📢"}
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-rise-navy">{ann.title}</h3>
+                      {ann.priority !== "standard" && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            ann.priority === "urgent"
+                              ? "bg-rise-red text-white"
+                              : "bg-rise-gold text-rise-navy"
+                          }`}
+                        >
+                          {ann.priority}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-rise-muted line-clamp-2">{ann.body}</p>
+                    <div className="mt-2 flex items-center gap-3 text-xs text-rise-muted">
+                      <span>By {ann.created_by_name}</span>
+                      <span>·</span>
+                      <span>{formatDate(ann.publish_date)}</span>
+                      {ann.link_url && (
+                        <>
+                          <span>·</span>
+                          <Link href={ann.link_url} className="font-medium text-rise-blue-dark hover:underline">
+                            View →
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Continue Your RISE Journey */}
         <div className="mb-6">

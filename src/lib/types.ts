@@ -355,13 +355,147 @@ export interface Resource {
   created_at: string;
 }
 
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+export type NotificationType =
+  | "enrollment_confirmed"
+  | "course_available"
+  | "module_unlocked"
+  | "lab_due"
+  | "knowledge_check_available"
+  | "knowledge_check_passed"
+  | "knowledge_check_retry"
+  | "instructor_feedback"
+  | "blueprint_section_completed"
+  | "final_assessment_unlocked"
+  | "course_completed"
+  | "certificate_issued"
+  | "progress_reminder"
+  | "inactivity_reminder"
+  | "announcement"
+  | "admin_message"
+  | "instructor_message";
+
+export type NotificationCategory =
+  | "course_progress"
+  | "instructor_messages"
+  | "announcements"
+  | "assignment_reminders"
+  | "certificate_completion"
+  | "account_security";
+
+export type RelatedEntityType =
+  | "course"
+  | "module"
+  | "lesson"
+  | "cohort"
+  | "organization"
+  | "blueprint"
+  | "certificate"
+  | "assessment"
+  | "announcement"
+  | "message";
+
+export interface AppNotification {
+  id: string;
+  profile_id: string;
+  type: NotificationType;
+  category: NotificationCategory;
+  title: string;
+  description: string;
+  related_type: RelatedEntityType | null;
+  related_id: string | null;
+  link_url: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationPreferences {
+  profile_id: string;
+  course_progress: boolean;
+  instructor_messages: boolean;
+  announcements: boolean;
+  assignment_reminders: boolean;
+  certificate_completion: boolean;
+  // account_security is always enabled — not toggleable
+  updated_at: string;
+}
+
+export const REQUIRED_CATEGORIES: NotificationCategory[] = ["account_security"];
+export const TOGGLEABLE_CATEGORIES: NotificationCategory[] = [
+  "course_progress",
+  "instructor_messages",
+  "announcements",
+  "assignment_reminders",
+  "certificate_completion",
+];
+
+// ---------------------------------------------------------------------------
+// Announcements (enhanced)
+// ---------------------------------------------------------------------------
+export type AnnouncementPriority = "standard" | "important" | "urgent";
+export type AnnouncementAudienceType =
+  | "all_users"
+  | "organization"
+  | "cohort"
+  | "course";
+
 export interface Announcement {
   id: string;
   title: string;
   body: string;
-  audience: "all" | "students" | "instructors" | "org_managers";
+  audience_type: AnnouncementAudienceType;
+  audience_id: string | null;
+  audience_name: string | null;
+  priority: AnnouncementPriority;
+  publish_date: string;
+  expiration_date: string | null;
+  link_url: string | null;
+  attachment_url: string | null;
+  created_by: string;
+  created_by_name: string;
   is_published: boolean;
   created_at: string;
+  updated_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Messages
+// ---------------------------------------------------------------------------
+export type MessageStatus = "sent" | "delivered" | "read";
+
+export interface Message {
+  id: string;
+  sender_id: string;
+  sender_name: string;
+  sender_role: UserRole;
+  recipient_id: string | null;
+  recipient_name: string | null;
+  organization_id: string | null;
+  cohort_id: string | null;
+  subject: string;
+  body: string;
+  sent_at: string;
+  read_at: string | null;
+  status: MessageStatus;
+  is_cohort_broadcast: boolean;
+  reported: boolean;
+}
+
+export type ReportStatus = "open" | "reviewing" | "resolved" | "dismissed";
+
+export interface MessageReport {
+  id: string;
+  message_id: string;
+  reported_by: string;
+  reported_by_name: string;
+  reason: string;
+  status: ReportStatus;
+  admin_note: string | null;
+  resolved_by: string | null;
+  created_at: string;
+  resolved_at: string | null;
 }
 
 export interface SupportRequest {
