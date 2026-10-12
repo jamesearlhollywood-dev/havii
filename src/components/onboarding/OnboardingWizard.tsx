@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/Select";
 import { Alert } from "@/components/ui/Alert";
 import { modules } from "@/data/course";
 import { completeOnboardingAction, type OnboardingState } from "@/actions/onboarding";
+import { CONFIDENCE_SURVEY_QUESTIONS } from "@/data/confidence-survey";
 import { cn } from "@/lib/utils";
 
 const TOTAL_STEPS = 6;
@@ -21,19 +22,6 @@ const POST_GRAD_OPTIONS = [
   { value: "entrepreneurship", label: "Entrepreneurship" },
   { value: "undecided", label: "Undecided" },
   { value: "other", label: "Other" },
-];
-
-const CONFIDENCE_QUESTIONS = [
-  "I know how to read a paycheck.",
-  "I understand the difference between gross and net pay.",
-  "I understand how checking and savings accounts work.",
-  "I know how to create a monthly budget.",
-  "I understand how credit scores work.",
-  "I understand the cost of borrowing money.",
-  "I know how student loans work.",
-  "I understand basic investing.",
-  "I understand the true cost of owning a car.",
-  "I know what to look for before signing a lease or financial agreement.",
 ];
 
 const LEARNING_GOAL_OPTIONS: { value: string; label: string }[] = [
@@ -71,7 +59,7 @@ export function OnboardingWizard({
   const [postGrad, setPostGrad] = useState("");
 
   // Step 4 — Confidence survey
-  const [confidence, setConfidence] = useState<number[]>(Array(CONFIDENCE_QUESTIONS.length).fill(0));
+  const [confidence, setConfidence] = useState<number[]>(Array(CONFIDENCE_SURVEY_QUESTIONS.length).fill(0));
 
   // Step 5 — Learning goals
   const [goals, setGoals] = useState<string[]>([]);
@@ -274,7 +262,7 @@ export function OnboardingWizard({
             </p>
           </div>
           <div className="space-y-4">
-            {CONFIDENCE_QUESTIONS.map((q, idx) => (
+            {CONFIDENCE_SURVEY_QUESTIONS.map((q, idx) => (
               <div key={idx} className="rounded-xl border border-rise-border bg-white p-4">
                 <p className="text-sm font-medium text-rise-navy">{q}</p>
                 <div className="mt-3 flex items-center gap-2">
@@ -405,7 +393,7 @@ export function OnboardingWizard({
               type="hidden"
               name="starting_point_survey"
               value={JSON.stringify(
-                CONFIDENCE_QUESTIONS.map((q, i) => ({ question: q, confidence: confidence[i] }))
+                CONFIDENCE_SURVEY_QUESTIONS.map((q, i) => ({ question: q, confidence: confidence[i] }))
               )}
             />
             <input type="hidden" name="demo_mode" value={supabaseConnected ? "false" : "true"} />

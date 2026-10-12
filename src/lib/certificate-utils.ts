@@ -11,6 +11,8 @@ export interface CompletionChecks {
   allBlueprintSectionsCompleted: boolean;
   allKnowledgeChecksPassed: boolean;
   finalAssessmentPassed: boolean;
+  endOfCourseSurveyCompleted: boolean;
+  blueprintReviewed: boolean;
 }
 
 export interface CompletionCheckResult {
@@ -33,6 +35,8 @@ export interface StudentProgressData {
   decisionLabs: Array<{ module_id: string }>;
   blueprintSections: Array<{ completed: boolean }>;
   finalAttempts: Array<{ passed: boolean; score?: number; percentage?: number }>;
+  endOfCourseSurveyCompleted?: boolean;
+  blueprintReviewed?: boolean;
 }
 
 /**
@@ -92,6 +96,18 @@ export function checkCertificateEligibility(
     reasons.push("Final assessment not passed at 70%+");
   }
 
+  // 7. End-of-Course Confidence Survey completed
+  const endOfCourseSurveyCompleted = progress.endOfCourseSurveyCompleted ?? true;
+  if (!endOfCourseSurveyCompleted) {
+    reasons.push("End-of-Course Confidence Survey not completed");
+  }
+
+  // 8. Final 12-Month Financial Blueprint reviewed
+  const blueprintReviewed = progress.blueprintReviewed ?? true;
+  if (!blueprintReviewed) {
+    reasons.push("Final 12-Month Financial Blueprint not reviewed");
+  }
+
   const checks: CompletionChecks = {
     allModulesCompleted,
     allLessonsCompleted,
@@ -99,6 +115,8 @@ export function checkCertificateEligibility(
     allBlueprintSectionsCompleted,
     allKnowledgeChecksPassed,
     finalAssessmentPassed,
+    endOfCourseSurveyCompleted,
+    blueprintReviewed,
   };
 
   return {
@@ -122,5 +140,7 @@ export function getCompletionRequirements(checks: CompletionChecks): {
     { label: "All 6 Blueprint sections completed", done: checks.allBlueprintSectionsCompleted },
     { label: `All Knowledge Checks passed (${PASSING_SCORE}%+)`, done: checks.allKnowledgeChecksPassed },
     { label: `Final Assessment passed (${PASSING_SCORE}%+)`, done: checks.finalAssessmentPassed },
+    { label: "End-of-Course Confidence Survey completed", done: checks.endOfCourseSurveyCompleted },
+    { label: "Final 12-Month Financial Blueprint reviewed", done: checks.blueprintReviewed },
   ];
 }

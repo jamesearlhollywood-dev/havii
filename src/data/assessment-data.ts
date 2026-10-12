@@ -5,6 +5,7 @@
 import type { AssessmentQuestion, AssessmentConfig } from "./assessment-types";
 import { modules } from "./course";
 import type { QuizQuestion } from "./course-types";
+import { FINAL_ASSESSMENT_QUESTIONS } from "./final-assessment-questions";
 
 // ---------------------------------------------------------------------------
 // Convert existing module QuizQuestions to AssessmentQuestions
@@ -516,7 +517,7 @@ const newQuestions: AssessmentQuestion[] = [
 // ---------------------------------------------------------------------------
 // Full Question Bank
 // ---------------------------------------------------------------------------
-export const QUESTION_BANK: AssessmentQuestion[] = [...moduleQuestions, ...newQuestions];
+export const QUESTION_BANK: AssessmentQuestion[] = [...moduleQuestions, ...newQuestions, ...FINAL_ASSESSMENT_QUESTIONS];
 
 // ---------------------------------------------------------------------------
 // Knowledge Check Assessment Configs (one per module)
@@ -537,28 +538,16 @@ export const KNOWLEDGE_CHECK_CONFIGS: AssessmentConfig[] = modules.map((mod, idx
 }));
 
 // ---------------------------------------------------------------------------
-// Final Assessment — ~30 questions across all modules
+// Final Assessment — 30 questions across all modules (5 per module)
+// At least 60% require application, calculation, comparison, or scenario reasoning.
 // ---------------------------------------------------------------------------
-const finalAssessmentQuestionIds: string[] = [
-  // Module 1: Income & Banking (5 questions)
-  "m1-q1", "m1-q2", "m1-q3", "m1-q6", "m1-calc1",
-  // Module 2: Budgeting & Saving (5 questions)
-  "m2-calc1", "m2-calc2", "m2-calc3", "m2-fill1", "m2-q3",
-  // Module 3: Credit & Borrowing (5 questions)
-  "m3-calc1", "m3-calc2", "m3-scen1", "m3-fill1", "m3-q5",
-  // Module 4: Education Financing (5 questions)
-  "m4-scen1", "m4-calc1", "m4-fill1", "m4-sa1", "m4-q2",
-  // Module 5: Investing (5 questions)
-  "m5-calc1", "m5-fill1", "m5-scen1", "m5-q1", "m5-q4",
-  // Module 6: Cars, Housing, Insurance (5 questions)
-  "m6-calc1", "m6-calc2", "m6-scen1", "m6-fill1", "m6-sa1",
-];
+const finalAssessmentQuestionIds: string[] = FINAL_ASSESSMENT_QUESTIONS.map((q) => q.id);
 
 export const FINAL_ASSESSMENT_CONFIG: AssessmentConfig = {
   id: "final-assessment",
-  title: "RISE USA Final Assessment",
+  title: "Final RISE USA Assessment",
   type: "final_assessment",
-  description: "Comprehensive assessment covering all six RISE USA modules",
+  description: "Show what you know by applying financial concepts to real-life decisions.",
   questionIds: finalAssessmentQuestionIds,
   passingScore: 70,
   maxRetakes: null,

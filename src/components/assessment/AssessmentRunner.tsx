@@ -15,6 +15,11 @@ interface AssessmentRunnerProps {
   previousPassed: boolean;
   maxRetakes: number | null;
   previousAttempts: number;
+  hideAnswerKey?: boolean;
+  showModuleBreakdown?: boolean;
+  moduleLinks?: Record<string, string>;
+  assessmentTitle?: string;
+  assessmentSubtitle?: string;
 }
 
 export function AssessmentRunner({
@@ -26,6 +31,11 @@ export function AssessmentRunner({
   previousPassed,
   maxRetakes,
   previousAttempts,
+  hideAnswerKey = false,
+  showModuleBreakdown = false,
+  moduleLinks = {},
+  assessmentTitle,
+  assessmentSubtitle,
 }: AssessmentRunnerProps) {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -90,8 +100,30 @@ export function AssessmentRunner({
 
   // --- Results View ---
   if (submitted && result) {
+    // Compute module breakdown for final assessment
+    const moduleBreakdown = showModuleBreakdown
+      ? (() => {
+          const byModule: Record<string, { earned: number; total: number; count: number; correct: number }> = {};
+          for (const qr of result.questionResults) {
+            const mid = qr.moduleId || "unknown";
+            if (!byModule[mid]) byModule[mid] = { earned: 0, total: 0, count: 0, correct: 0 };
+            byModule[mid].total += qr.points;
+            byModule[mid].earned += qr.earnedPoints;
+            byModule[mid].count += 1;
+            if (qr.correct) byModule[mid].correct += 1;
+          }
+          return Object.entries(byModule).map(([mid, data]) => ({
+            moduleId: mid,
+            percentage: data.total > 0 ? Math.round((data.earned / data.total) * 100) : 0,
+            correct: data.correct,
+            total: data.count,
+          }));
+        })()
+      : [];
+
     return (
       <div className="space-y-6">
+        {/* Score header */}
         <div
           className={`rounded-2xl border p-6 text-center ${
             result.passed
@@ -100,6 +132,11 @@ export function AssessmentRunner({
           }`}
         >
           <div className="text-4xl">{result.passed ? "🎉" : "📚"}</div>
+          {result.passed ? (
+            <p className="mt-2 text-xl font-bold text-rise-success">Final Assessment Passed</p>
+          ) : (
+            <p className="mt-2 text-xl font-bold text-rise-warning">Not Yet — Keep Going</p>
+          )}
           <p className="mt-2 text-3xl font-bold text-rise-navy">{result.percentage}%</p>
           <p className="mt-1 text-sm text-rise-muted">
             {result.passed
@@ -111,11 +148,48 @@ export function AssessmentRunner({
           </p>
         </div>
 
-        {/* Review areas for failed attempts */}
+        {/* Module breakdown for final assessment */}
+        {showModuleBreakdown && moduleBreakdown.length > 0 && (
+          <div className="rounded-2xl border border-rise-border bg-white p-5">
+            <h3 className="text-sm font-bold text-rise-navy">Performance by Module</h3>
+            <div className="mt-3 space-y-2">
+              {moduleBreakdown.map((mb) => {
+                const mod = moduleLinks[mb.moduleId];
+                const passed = mb.percentage >= passingScore;
+                return (
+                  <div key={mb.moduleId} className="flex items-center gap-3">
+                    <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${passed ? "bg-rise-success text-white" : "bg-rise-warning-light text-rise-warning"}`}>
+                      {passed ? "✓" : "!"}
+                    </span>
+                    <span className="flex-1 text-sm text-rise-navy">
+                      {mb.moduleId === "module-1" ? "Module 1: Income & Banking" :
+                       mb.moduleId === "module-2" ? "Module 2: Budgeting & Saving" :
+                       mb.moduleId === "module-3" ? "Module 3: Credit & Borrowing" :
+                       mb.moduleId === "module-4" ? "Module 4: Education Financing" :
+                       mb.moduleId === "module-5" ? "Module 5: Investing" :
+                       mb.moduleId === "module-6" ? "Module 6: Cars, Housing & Protection" :
+                       mb.moduleId}
+                    </span>
+                    <span className={`text-sm font-bold ${passed ? "text-rise-success" : "text-rise-warning"}`}>
+                      {mb.correct}/{mb.total} · {mb.percentage}%
+                    </span>
+                    {mod && !passed && (
+                      <a href={mod} className="text-xs font-medium text-rise-blue hover:underline">
+                        Review →
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Topics to review for failed attempts */}
         {!result.passed && result.reviewAreas.length > 0 && (
           <div className="rounded-2xl border border-rise-warning/30 bg-white p-5">
             <p className="text-sm font-bold text-rise-navy">
-              You're not quite there yet. Review the areas below and try again.
+              You're not finished yet. Review the areas below, then try again.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {result.reviewAreas.map((topic) => (
@@ -127,56 +201,83 @@ export function AssessmentRunner({
                 </span>
               ))}
             </div>
+            {/* Links back to relevant modules */}
+            {showModuleBreakdown && moduleBreakdown.filter((m) => m.percentage < passingScore).length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {moduleBreakdown
+                  .filter((m) => m.percentage < passingScore && moduleLinks[m.moduleId])
+                  .map((m) => (
+                    <a
+                      key={m.moduleId}
+                      href={moduleLinks[m.moduleId]}
+                      className="rounded-xl border border-rise-border bg-rise-sky px-4 py-2 text-xs font-semibold text-rise-navy hover:bg-rise-sky/70"
+                    >
+                      Review {m.moduleId.replace("module-", "Module ")} →
+                    </a>
+                  ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Question-by-question review */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-bold text-rise-navy">Review Your Answers</h3>
-          {questions.map((q, i) => {
-            const qr = result.questionResults.find((r) => r.questionId === q.id);
-            if (!qr) return null;
-            return (
-              <div
-                key={q.id}
-                className={`rounded-xl border p-4 ${
-                  qr.correct
-                    ? "border-rise-success/30 bg-rise-success-light/50"
-                    : "border-red-200 bg-red-50/50"
-                }`}
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-lg">{qr.correct ? "✓" : "✗"}</span>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-rise-navy">
-                      {i + 1}. {q.question}
-                    </p>
-                    <p className="mt-1 text-xs text-rise-muted">
-                      Your answer:{" "}
-                      {Array.isArray(qr.userAnswer)
-                        ? qr.userAnswer.join(", ")
-                        : qr.userAnswer || "—"}
-                    </p>
-                    {!qr.correct && (
-                      <p className="mt-0.5 text-xs font-medium text-rise-success">
-                        Correct:{" "}
-                        {Array.isArray(qr.correctAnswer)
-                          ? qr.correctAnswer.join(", ")
-                          : qr.correctAnswer || "—"}
+        {/* Question-by-question review (hidden when hideAnswerKey is true and not passed) */}
+        {(!hideAnswerKey || result.passed) && (
+          <div className="space-y-3">
+            <h3 className="text-lg font-bold text-rise-navy">Review Your Answers</h3>
+            {questions.map((q, i) => {
+              const qr = result.questionResults.find((r) => r.questionId === q.id);
+              if (!qr) return null;
+              return (
+                <div
+                  key={q.id}
+                  className={`rounded-xl border p-4 ${
+                    qr.correct
+                      ? "border-rise-success/30 bg-rise-success-light/50"
+                      : "border-red-200 bg-red-50/50"
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">{qr.correct ? "✓" : "✗"}</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-rise-navy">
+                        {i + 1}. {q.question}
                       </p>
-                    )}
-                    {qr.explanation && (
-                      <p className="mt-1 text-xs text-rise-muted">{qr.explanation}</p>
-                    )}
+                      <p className="mt-1 text-xs text-rise-muted">
+                        Your answer:{" "}
+                        {Array.isArray(qr.userAnswer)
+                          ? qr.userAnswer.join(", ")
+                          : qr.userAnswer || "—"}
+                      </p>
+                      {!qr.correct && (
+                        <p className="mt-0.5 text-xs font-medium text-rise-success">
+                          Correct:{" "}
+                          {Array.isArray(qr.correctAnswer)
+                            ? qr.correctAnswer.join(", ")
+                            : qr.correctAnswer || "—"}
+                        </p>
+                      )}
+                      {qr.explanation && (
+                        <p className="mt-1 text-xs text-rise-muted">{qr.explanation}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* When answer key is hidden, show a note */}
+        {hideAnswerKey && !result.passed && (
+          <div className="rounded-xl border border-rise-border bg-rise-sky p-4 text-center">
+            <p className="text-sm text-rise-muted">
+              The full answer key is not shown before a retake. Review the module links above, study the topics, then try again.
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-3">
-          {canRetake && (
+          {canRetake && !result.passed && (
             <button
               type="button"
               onClick={handleRetake}

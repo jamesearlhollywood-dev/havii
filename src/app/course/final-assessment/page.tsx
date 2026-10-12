@@ -12,7 +12,7 @@ import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
 import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Final Assessment" };
+export const metadata = { title: "Final RISE USA Assessment" };
 
 export default async function FinalAssessmentPage() {
   const supabaseConnected = hasValidSupabaseConfig();
@@ -45,27 +45,37 @@ export default async function FinalAssessmentPage() {
 
   const previousAttempts = progress.finalAttempts || [];
   const bestScore = previousAttempts.length > 0 ? Math.max(...previousAttempts.map((a: any) => Number(a.score))) : null;
+  const bestPercentage = previousAttempts.length > 0 ? Math.max(...previousAttempts.map((a: any) => Number(a.percentage ?? a.score))) : null;
   const passed = previousAttempts.some((a: any) => a.passed);
 
   const allQuestions = getQuestionsForAssessment(FINAL_ASSESSMENT_CONFIG.id);
   const safeQuestions = allQuestions.map(stripQuestion);
 
+  // Module links for review
+  const moduleLinks: Record<string, string> = {};
+  modules.forEach((m) => {
+    moduleLinks[m.id] = `/course/module/${m.id}`;
+  });
+
   return (
     <AppShell profile={profile}>
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-4 flex items-center gap-2 text-sm text-rise-muted">
-          <Link href="/certificates" className="hover:text-rise-navy">Certificates</Link>
+          <Link href="/course" className="hover:text-rise-navy">Course</Link>
           <span>/</span>
           <span className="text-rise-navy">Final Assessment</span>
         </div>
 
         <div className="mb-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-rise-red">
-            RISE USA Final Assessment
+            Final RISE USA Assessment
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-rise-navy">Course Final Assessment</h1>
+          <h1 className="mt-1 text-2xl font-bold text-rise-navy">Final RISE USA Assessment</h1>
           <p className="mt-1 text-sm text-rise-muted">
-            {safeQuestions.length} questions from all six modules · Pass with {PASSING_SCORE}% or higher to earn your certificate
+            Show what you know by applying financial concepts to real-life decisions.
+          </p>
+          <p className="mt-2 text-xs text-rise-muted">
+            {safeQuestions.length} questions from all six modules · Pass with {PASSING_SCORE}% or higher · Highest passing score is used for course completion
           </p>
         </div>
 
@@ -82,7 +92,7 @@ export default async function FinalAssessmentPage() {
           <>
             {previousAttempts.length > 0 && (
               <Alert tone={passed ? "success" : "warning"}>
-                Previous best score: {bestScore}% {passed ? "(Passed — certificate issued!)" : "(Retake needed)"}
+                Previous best score: {bestPercentage ?? bestScore}% {passed ? "(Passed)" : "(Retake needed)"} · {previousAttempts.length} {previousAttempts.length === 1 ? "attempt" : "attempts"}
               </Alert>
             )}
             <div className="mt-6 rounded-2xl border border-rise-border bg-white p-6">
@@ -91,23 +101,34 @@ export default async function FinalAssessmentPage() {
                 questions={safeQuestions}
                 passingScore={FINAL_ASSESSMENT_CONFIG.passingScore}
                 feedbackMode={FINAL_ASSESSMENT_CONFIG.feedbackMode}
-                previousScore={bestScore}
+                previousScore={bestPercentage ?? bestScore}
                 previousPassed={passed}
                 maxRetakes={FINAL_ASSESSMENT_CONFIG.maxRetakes}
                 previousAttempts={previousAttempts.length}
+                hideAnswerKey={true}
+                showModuleBreakdown={true}
+                moduleLinks={moduleLinks}
+                assessmentTitle={FINAL_ASSESSMENT_CONFIG.title}
+                assessmentSubtitle={FINAL_ASSESSMENT_CONFIG.description}
               />
             </div>
           </>
         )}
 
         {canTake && passed && (
-          <div className="mt-6">
-            <Link
-              href="/certificates"
-              className="inline-block rounded-xl bg-rise-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-rise-navy-light"
-            >
-              View Your Certificate →
-            </Link>
+          <div className="mt-6 rounded-2xl border-2 border-rise-success/30 bg-rise-success-light p-6 text-center">
+            <h2 className="text-xl font-bold text-rise-navy">Final Assessment Passed</h2>
+            <p className="mt-1 text-sm text-rise-muted">
+              Your next step is the End-of-Course Confidence Survey and your 12-Month Financial Blueprint.
+            </p>
+            <div className="mt-4">
+              <Link
+                href="/course/capstone"
+                className="inline-block rounded-xl bg-rise-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-rise-navy-light"
+              >
+                Continue to Capstone →
+              </Link>
+            </div>
           </div>
         )}
       </div>

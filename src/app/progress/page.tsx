@@ -8,6 +8,7 @@ import { modules, blueprintSections, TOTAL_LESSONS } from "@/data/course";
 import { formatDate } from "@/lib/utils";
 import { dashboardPathForRole } from "@/lib/roles";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
+import { isSurveyCompleted, isBlueprintReviewed } from "@/actions/capstone";
 import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,8 @@ export default async function ProgressPage() {
 
   let profile: Profile;
   let progress: any;
+  let surveyDone = false;
+  let blueprintReviewed = false;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -27,6 +30,8 @@ export default async function ProgressPage() {
     if (userProfile.role !== "student") redirect(dashboardPathForRole(userProfile.role));
     profile = userProfile;
     progress = await getStudentProgress(profile.id);
+    surveyDone = await isSurveyCompleted(profile.id);
+    blueprintReviewed = await isBlueprintReviewed(profile.id);
   } else {
     profile = DEMO_STUDENT_PROFILE;
     progress = DEMO_STUDENT_PROGRESS;
@@ -63,12 +68,61 @@ export default async function ProgressPage() {
   const allModulesDone = completedModules === modules.length;
   const allDecisionLabs = decisionLabsCompleted === modules.length;
   const allBlueprint = blueprintCompleted === blueprintSections.length;
-  const certificateEligible = allModulesDone && allDecisionLabs && allBlueprint && finalPassed;
+  const certificateEligible = allModulesDone && allDecisionLabs && allBlueprint && finalPassed && surveyDone && blueprintReviewed;
+
+  // Capstone journey steps
+  const journeySteps = [
+    { label: "Module 1", done: modules[0] ? progress.moduleProgress.some((p: any) => p.module_id === "module-1" && p.module_completed) : false, link: "/course/module/module-1" },
+    { label: "Module 2", done: progress.moduleProgress.some((p: any) => p.module_id === "module-2" && p.module_completed), link: "/course/module/module-2" },
+    { label: "Module 3", done: progress.moduleProgress.some((p: any) => p.module_id === "module-3" && p.module_completed), link: "/course/module/module-3" },
+    { label: "Module 4", done: progress.moduleProgress.some((p: any) => p.module_id === "module-4" && p.module_completed), link: "/course/module/module-4" },
+    { label: "Module 5", done: progress.moduleProgress.some((p: any) => p.module_id === "module-5" && p.module_completed), link: "/course/module/module-5" },
+    { label: "Module 6", done: progress.moduleProgress.some((p: any) => p.module_id === "module-6" && p.module_completed), link: "/course/module/module-6" },
+    { label: "Final Assessment", done: finalPassed, link: "/course/final-assessment" },
+    { label: "End-of-Course Survey", done: surveyDone, link: "/course/capstone" },
+    { label: "Financial Blueprint", done: blueprintReviewed, link: "/course/capstone" },
+    { label: "Certificate", done: hasCertificate, link: "/certificates" },
+  ];
 
   return (
     <AppShell profile={profile}>
       <div className="mx-auto max-w-5xl px-4 py-8">
         <h1 className="mb-6 text-3xl font-bold text-rise-navy">My Progress</h1>
+
+        {/* Your RISE Journey — Capstone Dashboard */}
+        <Card className="mb-6 border-rise-blue-light bg-gradient-to-br from-rise-sky to-white">
+          <h2 className="text-xl font-bold text-rise-navy">Your RISE Journey</h2>
+          <p className="mt-1 text-sm text-rise-muted">
+            Track your path from Module 1 to your certificate. Here's what's complete and what remains.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            {journeySteps.map((step, idx) => (
+              <Link
+                key={step.label}
+                href={step.link}
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm transition ${
+                  step.done
+                    ? "border-rise-success/30 bg-rise-success-light text-rise-navy"
+                    : "border-rise-border bg-white text-rise-muted hover:bg-rise-sky/50"
+                }`}
+              >
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
+                  step.done ? "bg-rise-success text-white" : "bg-rise-border text-rise-muted"
+                }`}>
+                  {step.done ? "✓" : idx + 1}
+                </span>
+                <span className="font-medium">{step.label}</span>
+              </Link>
+            ))}
+          </div>
+          {allModulesDone && finalPassed && !surveyDone && (
+            <div className="mt-4">
+              <Link href="/course/capstone" className="rounded-xl bg-rise-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-rise-navy-light">
+                Continue to Capstone →
+              </Link>
+            </div>
+          )}
+        </Card>
 
         {/* Overall stats */}
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

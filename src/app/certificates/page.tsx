@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
 import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { formatDate } from "@/lib/utils";
 import { checkCertificateEligibility, getCompletionRequirements } from "@/lib/certificate-utils";
+import { isSurveyCompleted, isBlueprintReviewed } from "@/actions/capstone";
 import {
   DEMO_STUDENT_PROFILE,
   DEMO_STUDENT_PROGRESS,
@@ -21,6 +23,8 @@ export default async function CertificatesPage() {
   let profile: Profile;
   let progress: any = null;
   let certificates: any[] = [];
+  let surveyDone = false;
+  let blueprintReviewed = false;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -30,10 +34,11 @@ export default async function CertificatesPage() {
     profile = userProfile;
     progress = await getStudentProgress(profile.id);
     certificates = progress.certificates;
+    surveyDone = await isSurveyCompleted(profile.id);
+    blueprintReviewed = await isBlueprintReviewed(profile.id);
   } else {
     profile = DEMO_STUDENT_PROFILE;
     progress = DEMO_STUDENT_PROGRESS;
-    // Demo student doesn't have a certificate yet
     certificates = [];
   }
 
@@ -45,6 +50,8 @@ export default async function CertificatesPage() {
     decisionLabs: progress?.decisionLabs ?? [],
     blueprintSections: progress?.blueprintSections ?? [],
     finalAttempts: progress?.finalAttempts ?? [],
+    endOfCourseSurveyCompleted: surveyDone,
+    blueprintReviewed,
   });
   const requirements = getCompletionRequirements(eligibility.checks);
 
@@ -116,8 +123,27 @@ export default async function CertificatesPage() {
                 onClick={() => window.print()}
                 className="rounded-xl bg-rise-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-rise-navy-light"
               >
-                Print / Export PDF
+                Download Certificate
               </button>
+              <Link
+                href="/blueprint"
+                className="rounded-xl border border-rise-border bg-white px-5 py-2.5 text-sm font-semibold text-rise-navy hover:bg-rise-sky"
+              >
+                View Financial Blueprint
+              </Link>
+              <button
+                type="button"
+                onClick={() => window.open("/blueprint", "_blank")}
+                className="rounded-xl border border-rise-border bg-white px-5 py-2.5 text-sm font-semibold text-rise-navy hover:bg-rise-sky"
+              >
+                Download Financial Blueprint
+              </button>
+              <Link
+                href="/progress"
+                className="rounded-xl border border-rise-border bg-white px-5 py-2.5 text-sm font-semibold text-rise-navy hover:bg-rise-sky"
+              >
+                View Course Completion Record
+              </Link>
               <button
                 type="button"
                 onClick={() => {

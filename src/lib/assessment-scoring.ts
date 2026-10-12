@@ -14,6 +14,8 @@ export interface SafeQuestion {
   points: number;
   difficulty: AssessmentQuestion["difficulty"];
   unit?: string;
+  moduleId?: string;
+  topic?: AssessmentQuestion["topic"];
 }
 
 export interface QuestionResult {
@@ -23,6 +25,9 @@ export interface QuestionResult {
   correctAnswer: string | string[];
   explanation?: string;
   topic: AssessmentQuestion["topic"];
+  moduleId?: string;
+  points: number;
+  earnedPoints: number;
 }
 
 export interface AssessmentResult {
@@ -46,6 +51,8 @@ export function stripQuestion(q: AssessmentQuestion): SafeQuestion {
     points: q.points,
     difficulty: q.difficulty,
     unit: q.unit,
+    moduleId: q.moduleId,
+    topic: q.topic,
   };
 }
 
@@ -141,6 +148,9 @@ export function gradeAssessment(
       correctAnswer: q.correctAnswer,
       explanation: q.explanation,
       topic: q.topic,
+      moduleId: q.moduleId,
+      points: q.points,
+      earnedPoints: earned,
     });
   }
 

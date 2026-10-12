@@ -146,6 +146,16 @@ export async function checkAndIssueCertificate(profileId: string) {
   const finalPassed = finalAttempts && finalAttempts.length > 0;
   if (!finalPassed) return;
 
+  // Check end-of-course survey and blueprint review (capstone requirements)
+  const { data: capstoneRows } = await supabase
+    .from("capstone_data")
+    .select("data_key, data_value")
+    .eq("profile_id", profileId);
+  const surveyDone = capstoneRows?.some((r) => r.data_key === "end_of_course_survey");
+  const reviewRow = capstoneRows?.find((r) => r.data_key === "blueprint_reviewed");
+  const blueprintReviewed = !!((reviewRow?.data_value as Record<string, unknown>)?.confirmed);
+  if (!surveyDone || !blueprintReviewed) return;
+
   // Check if certificate already exists
   const { data: existing } = await supabase
     .from("certificates")

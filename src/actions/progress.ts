@@ -343,7 +343,7 @@ export async function submitFinalAssessment(
 // ---------------------------------------------------------------------------
 // Certificate
 // ---------------------------------------------------------------------------
-async function checkAndIssueCertificate(profileId: string) {
+export async function checkAndIssueCertificate(profileId: string) {
   const supabase = await createClient();
 
   // Gather all progress data for eligibility check
@@ -375,12 +375,23 @@ async function checkAndIssueCertificate(profileId: string) {
 
   // Run full eligibility check
   const { checkCertificateEligibility } = await import("@/lib/certificate-utils");
+
+  // Check for end-of-course survey and blueprint review in capstone_data
+  const { data: capstoneRows } = await supabase
+    .from("capstone_data")
+    .select("data_key, data_value")
+    .eq("profile_id", profileId);
+  const surveyRow = capstoneRows?.find((r) => r.data_key === "end_of_course_survey");
+  const reviewRow = capstoneRows?.find((r) => r.data_key === "blueprint_reviewed");
+
   const eligibility = checkCertificateEligibility({
     moduleProgress: moduleProgress ?? [],
     lessonProgress: lessonProgress ?? [],
     decisionLabs: decisionLabs ?? [],
     blueprintSections: blueprintSectionsData ?? [],
     finalAttempts: finalAttempts ?? [],
+    endOfCourseSurveyCompleted: !!surveyRow,
+    blueprintReviewed: !!((reviewRow?.data_value as Record<string, unknown>)?.confirmed),
   });
 
   if (!eligibility.eligible) return;
