@@ -507,3 +507,115 @@ export interface SupportRequest {
   created_at: string;
   updated_at: string;
 }
+
+// ---------------------------------------------------------------------------
+// Analytics & Outcomes
+// ---------------------------------------------------------------------------
+
+export interface EndOfCourseSurvey {
+  profile_id: string;
+  responses: { question: string; confidence: number }[];
+  completed_at: string;
+}
+
+export interface AnalyticsFilter {
+  organization_id?: string;
+  cohort_id?: string;
+  instructor_id?: string;
+  course_id?: string;
+  module_id?: string;
+  enrollment_status?: EnrollmentStatus | "all";
+  date_from?: string;
+  date_to?: string;
+  grade_level?: string;
+  graduation_year?: string;
+}
+
+export interface AnalyticsMetrics {
+  total_enrolled: number;
+  active_students: number;
+  not_started: number;
+  in_progress: number;
+  completed: number;
+  completion_rate: number;
+  avg_overall_progress: number;
+  avg_knowledge_check_score: number;
+  final_assessment_pass_rate: number;
+  avg_final_assessment_score: number;
+  decision_labs_completed: number;
+  blueprint_completion_rate: number;
+  certificates_issued: number;
+  avg_time_to_completion_days: number;
+  stalled_students: number;
+}
+
+export interface ModulePerformance {
+  module_id: string;
+  module_number: number;
+  module_title: string;
+  avg_knowledge_check_score: number;
+  pass_rate: number;
+  avg_attempts: number;
+  most_missed_topics: string[];
+  strongest_topics: string[];
+  needs_reinforcement: string[];
+}
+
+export interface ConfidenceAnalysis {
+  level: "individual" | "cohort" | "organization" | "system";
+  level_name: string;
+  avg_pre_score: number;
+  avg_post_score: number;
+  percentage_change: number;
+  by_topic: {
+    question: string;
+    avg_pre: number;
+    avg_post: number;
+    change: number;
+  }[];
+  student_count: number;
+  has_post_data: boolean;
+}
+
+export interface TimeSeriesPoint {
+  label: string;
+  value: number;
+}
+
+export interface ProgramImpactData {
+  enrollments_by_month: TimeSeriesPoint[];
+  completion_rate_over_time: TimeSeriesPoint[];
+  assessment_performance_over_time: TimeSeriesPoint[];
+  certificates_by_month: TimeSeriesPoint[];
+  participating_organizations: number;
+  active_cohorts: number;
+  confidence_improvement_over_time: TimeSeriesPoint[];
+}
+
+export interface StudentOutcomesProfile {
+  profile_id: string;
+  student_name: string;
+  organization_name: string;
+  cohort_name: string;
+  enrollment_status: EnrollmentStatus;
+  overall_progress: number;
+  modules_completed: number;
+  module_details: {
+    module_id: string;
+    module_number: number;
+    module_title: string;
+    knowledge_check_score: number | null;
+    knowledge_check_passed: boolean;
+    decision_lab_completed: boolean;
+    blueprint_section_completed: boolean;
+    module_completed: boolean;
+  }[];
+  final_assessment_score: number | null;
+  final_assessment_passed: boolean;
+  decision_labs_completed: number;
+  blueprint_sections_completed: number;
+  certificate_status: CertificateStatus;
+  starting_confidence: number | null;
+  ending_confidence: number | null;
+  confidence_change: number | null;
+}

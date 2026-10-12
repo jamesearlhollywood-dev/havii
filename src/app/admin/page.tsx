@@ -104,6 +104,22 @@ export default async function AdminPage() {
           </Card>
         </div>
 
+        {/* Analytics Quick Links */}
+        <div className="mb-6 flex flex-wrap gap-3">
+          <a href="/admin/analytics" className="rounded-lg bg-rise-navy px-4 py-2 text-sm font-semibold text-white hover:bg-rise-navy-light">
+            📊 Analytics Dashboard
+          </a>
+          <a href="/admin/outcomes" className="rounded-lg border border-rise-border bg-white px-4 py-2 text-sm font-semibold text-rise-navy hover:bg-rise-sky">
+            📈 Learning Outcomes
+          </a>
+          <a href="/admin/impact" className="rounded-lg border border-rise-border bg-white px-4 py-2 text-sm font-semibold text-rise-navy hover:bg-rise-sky">
+            🌟 Program Impact
+          </a>
+          <a href="/admin/reports" className="rounded-lg border border-rise-border bg-white px-4 py-2 text-sm font-semibold text-rise-navy hover:bg-rise-sky">
+            📋 Reports & Exports
+          </a>
+        </div>
+
         {/* Active Announcements */}
         {activeAnnouncements.length > 0 && (
           <div className="mb-6 space-y-2">
@@ -199,6 +215,7 @@ export default async function AdminPage() {
                 <th className="px-4 py-3 text-center font-medium">Certificate</th>
                 <th className="px-4 py-3 text-center font-medium">Status</th>
                 <th className="px-4 py-3 text-center font-medium">Record</th>
+                <th className="px-4 py-3 text-center font-medium">Outcomes</th>
               </tr>
             </thead>
             <tbody>
@@ -229,6 +246,14 @@ export default async function AdminPage() {
                       className="rounded-lg border border-rise-border bg-white px-2 py-1 text-xs font-semibold text-rise-navy hover:bg-rise-sky"
                     >
                       View
+                    </a>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <a
+                      href={`/outcomes/${s.profile_id}`}
+                      className="rounded-lg border border-rise-border bg-white px-2 py-1 text-xs font-semibold text-rise-navy hover:bg-rise-sky"
+                    >
+                      Profile
                     </a>
                   </td>
                 </tr>

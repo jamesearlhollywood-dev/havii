@@ -24,6 +24,7 @@ const STUDENT_NAV = [
 
 const INSTRUCTOR_NAV = [
   { href: "/instructor", label: "Dashboard" },
+  { href: "/instructor/analytics", label: "Analytics" },
   { href: "/course", label: "Course" },
   { href: "/messages", label: "Messages" },
   { href: "/resources", label: "Resources" },
@@ -33,6 +34,7 @@ const INSTRUCTOR_NAV = [
 
 const ORG_MANAGER_NAV = [
   { href: "/org-manager", label: "Dashboard" },
+  { href: "/org-manager/outcomes", label: "Outcomes" },
   { href: "/course", label: "Course" },
   { href: "/messages", label: "Messages" },
   { href: "/resources", label: "Resources" },
@@ -42,6 +44,10 @@ const ORG_MANAGER_NAV = [
 
 const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/analytics", label: "Analytics" },
+  { href: "/admin/outcomes", label: "Outcomes" },
+  { href: "/admin/impact", label: "Impact" },
+  { href: "/admin/reports", label: "Reports" },
   { href: "/admin/cms", label: "Content" },
   { href: "/admin/question-bank", label: "Assessments" },
   { href: "/admin/enrollment", label: "Enrollment" },
