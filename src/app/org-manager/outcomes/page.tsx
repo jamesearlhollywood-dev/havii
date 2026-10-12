@@ -13,7 +13,7 @@ import {
 import { DEMO_MODULE_PERFORMANCE_DATA, DEMO_COHORT_STARTING_SURVEYS, DEMO_END_OF_COURSE_SURVEYS } from "@/data/analytics-demo-data";
 import type { Profile, AnalyticsFilter } from "@/lib/types";
 import { MetricCard } from "@/components/analytics/MetricCard";
-import { AnalyticsFilters } from "@/components/analytics/AnalyticsFilters";
+import { AnalyticsFiltersSuspense as AnalyticsFilters } from "@/components/analytics/AnalyticsFiltersSuspense";
 import { BarChart } from "@/components/analytics/Charts";
 import { ModulePerformanceTable } from "@/components/analytics/ModulePerformanceTable";
 import { ConfidenceAnalysisView } from "@/components/analytics/ConfidenceAnalysis";

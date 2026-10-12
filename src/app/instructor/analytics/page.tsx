@@ -12,7 +12,7 @@ import {
 import { DEMO_MODULE_PERFORMANCE_DATA } from "@/data/analytics-demo-data";
 import type { Profile, AnalyticsFilter } from "@/lib/types";
 import { MetricCard } from "@/components/analytics/MetricCard";
-import { AnalyticsFilters } from "@/components/analytics/AnalyticsFilters";
+import { AnalyticsFiltersSuspense as AnalyticsFilters } from "@/components/analytics/AnalyticsFiltersSuspense";
 import { BarChart } from "@/components/analytics/Charts";
 import { computeModulePerformance } from "@/lib/analytics-utils";
 import { getAnalyticsData } from "@/actions/analytics";

@@ -10,7 +10,7 @@ import {
 } from "@/data/demo-data";
 import type { Profile, AnalyticsFilter } from "@/lib/types";
 import { MetricCard } from "@/components/analytics/MetricCard";
-import { AnalyticsFilters } from "@/components/analytics/AnalyticsFilters";
+import { AnalyticsFiltersSuspense as AnalyticsFilters } from "@/components/analytics/AnalyticsFiltersSuspense";
 import { BarChart } from "@/components/analytics/Charts";
 import { getAnalyticsData } from "@/actions/analytics";
 import { fetchNotificationData } from "@/lib/notification-helpers";

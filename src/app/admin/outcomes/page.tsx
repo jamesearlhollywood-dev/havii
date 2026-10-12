@@ -12,7 +12,7 @@ import {
 import type { Profile, AnalyticsFilter } from "@/lib/types";
 import { ModulePerformanceTable } from "@/components/analytics/ModulePerformanceTable";
 import { ConfidenceAnalysisView } from "@/components/analytics/ConfidenceAnalysis";
-import { AnalyticsFilters } from "@/components/analytics/AnalyticsFilters";
+import { AnalyticsFiltersSuspense as AnalyticsFilters } from "@/components/analytics/AnalyticsFiltersSuspense";
 import { Alert } from "@/components/ui/Alert";
 import { getAnalyticsData, getConfidenceAnalysis } from "@/actions/analytics";
 import { fetchNotificationData } from "@/lib/notification-helpers";
