@@ -346,27 +346,44 @@ export async function submitFinalAssessment(
 async function checkAndIssueCertificate(profileId: string) {
   const supabase = await createClient();
 
-  // Check all modules completed
+  // Gather all progress data for eligibility check
   const { data: moduleProgress } = await supabase
     .from("module_progress")
     .select("*")
     .eq("profile_id", profileId);
 
-  const allModulesComplete = modules.every((m) =>
-    moduleProgress?.some((mp) => mp.module_id === m.id && mp.module_completed)
-  );
-  if (!allModulesComplete) return;
+  const { data: lessonProgress } = await supabase
+    .from("lesson_progress")
+    .select("*")
+    .eq("profile_id", profileId);
 
-  // Check final assessment passed
+  const { data: decisionLabs } = await supabase
+    .from("decision_lab_submissions")
+    .select("*")
+    .eq("profile_id", profileId);
+
+  const { data: blueprintSectionsData } = await supabase
+    .from("blueprint_sections")
+    .select("*")
+    .eq("profile_id", profileId);
+
   const { data: finalAttempts } = await supabase
     .from("final_assessment_attempts")
     .select("*")
     .eq("profile_id", profileId)
-    .order("created_at", { ascending: false })
-    .limit(1);
+    .order("created_at", { ascending: false });
 
-  const finalPassed = finalAttempts?.some((a) => a.passed);
-  if (!finalPassed) return;
+  // Run full eligibility check
+  const { checkCertificateEligibility } = await import("@/lib/certificate-utils");
+  const eligibility = checkCertificateEligibility({
+    moduleProgress: moduleProgress ?? [],
+    lessonProgress: lessonProgress ?? [],
+    decisionLabs: decisionLabs ?? [],
+    blueprintSections: blueprintSectionsData ?? [],
+    finalAttempts: finalAttempts ?? [],
+  });
+
+  if (!eligibility.eligible) return;
 
   // Check if certificate already exists
   const { data: existing } = await supabase
@@ -389,13 +406,62 @@ async function checkAndIssueCertificate(profileId: string) {
 
   const studentName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.preferred_name || "Student";
 
+  // Look up enrollment for org/cohort/instructor info
+  const { data: enrollment } = await supabase
+    .from("enrollments")
+    .select("*, cohorts(*), organizations(*)")
+    .eq("student_profile_id", profileId)
+    .maybeSingle();
+
+  let orgName: string | null = null;
+  let cohortName: string | null = null;
+  let instructorName: string | null = null;
+
+  if (enrollment) {
+    orgName = enrollment.organizations?.name ?? null;
+    cohortName = enrollment.cohorts?.name ?? null;
+    if (enrollment.assigned_instructor_id) {
+      const { data: instructor } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, preferred_name")
+        .eq("id", enrollment.assigned_instructor_id)
+        .maybeSingle();
+      if (instructor) {
+        instructorName = [instructor.first_name, instructor.last_name].filter(Boolean).join(" ") || instructor.preferred_name || null;
+      }
+    }
+  }
+
+  const certId = generateCertificateId();
+
   // Issue certificate
   await supabase.from("certificates").insert({
     profile_id: profileId,
-    certificate_id: generateCertificateId(),
+    certificate_id: certId,
     student_name: studentName,
     course_name: "RISE USA: Roadmap to Income, Savings, and Equity",
     status: "issued",
+    organization_name: orgName,
+    cohort_name: cohortName,
+    instructor_name: instructorName,
+  });
+
+  // Update enrollment status to completed
+  await supabase
+    .from("enrollments")
+    .update({
+      status: "completed",
+      actual_completion_date: new Date().toISOString(),
+      certificate_status: "issued",
+    })
+    .eq("student_profile_id", profileId);
+
+  // Insert audit log entry
+  await supabase.from("certificate_audit").insert({
+    certificate_id: certId,
+    action: "issued",
+    performed_by: "system",
+    note: "Auto-issued upon course completion",
   });
 }
 

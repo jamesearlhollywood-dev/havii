@@ -647,6 +647,89 @@ export const DEMO_COHORT_STUDENTS: StudentProgressSummary[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Demo Student Record Details (per-module breakdown for Student Course Record)
+// ---------------------------------------------------------------------------
+export interface StudentRecordDetail {
+  profile_id: string;
+  modules: {
+    module_id: string;
+    module_number: number;
+    lessons_completed: number;
+    lessons_total: number;
+    knowledge_check_score: number | null;
+    knowledge_check_passed: boolean;
+    knowledge_check_attempts: number;
+    decision_lab_completed: boolean;
+    blueprint_section_completed: boolean;
+    module_completed: boolean;
+  }[];
+  final_assessment_score: number | null;
+  final_assessment_passed: boolean;
+  final_assessment_date: string | null;
+}
+
+function makeRecordDetail(
+  profileId: string,
+  modulesCompleted: number,
+  quizScore: number | null,
+  quizPassed: boolean,
+  decisionLabs: number,
+  blueprintSections: number,
+  finalScore: number | null,
+  finalPassed: boolean,
+): StudentRecordDetail {
+  const moduleDetails = modules.map((m) => {
+    const isComplete = modulesCompleted >= m.number;
+    const hasKC = quizPassed && modulesCompleted >= m.number;
+    const hasDL = decisionLabs >= m.number;
+    const hasBP = blueprintSections >= m.number;
+    return {
+      module_id: m.id,
+      module_number: m.number,
+      lessons_completed: isComplete ? m.lessons.length : Math.floor(m.lessons.length * 0.5),
+      lessons_total: m.lessons.length,
+      knowledge_check_score: hasKC ? quizScore : null,
+      knowledge_check_passed: hasKC,
+      knowledge_check_attempts: hasKC ? 1 : 0,
+      decision_lab_completed: hasDL,
+      blueprint_section_completed: hasBP,
+      module_completed: isComplete,
+    };
+  });
+
+  return {
+    profile_id: profileId,
+    modules: moduleDetails,
+    final_assessment_score: finalScore,
+    final_assessment_passed: finalPassed,
+    final_assessment_date: finalPassed ? daysAgo(5) : null,
+  };
+}
+
+export const DEMO_STUDENT_RECORD_DETAILS: StudentRecordDetail[] = [
+  // s1 — not started
+  makeRecordDetail("s1", 0, null, false, 0, 0, null, false),
+  // s2 — in progress, 1 module
+  makeRecordDetail("s2", 1, 75, true, 1, 1, null, false),
+  // s3 — stalled, 0 modules
+  makeRecordDetail("s3", 0, 45, false, 0, 0, null, false),
+  // s4 — 2 modules, failed KC
+  makeRecordDetail("s4", 2, 55, false, 2, 2, null, false),
+  // s5 — 4 modules, missing blueprint
+  makeRecordDetail("s5", 4, 80, true, 4, 3, null, false),
+  // s6 — eligible, all done but no cert yet
+  makeRecordDetail("s6", 6, 92, true, 6, 6, 88, true),
+  // s7 — completed with certificate
+  makeRecordDetail("s7", 6, 95, true, 6, 6, 92, true),
+  // s8 — just started
+  makeRecordDetail("s8", 0, null, false, 0, 0, null, false),
+  // s9 — withdrawn
+  makeRecordDetail("s9", 1, 60, false, 1, 0, null, false),
+  // s10 — invited
+  makeRecordDetail("s10", 0, null, false, 0, 0, null, false),
+];
+
+// ---------------------------------------------------------------------------
 // Demo Admin Settings
 // ---------------------------------------------------------------------------
 export const DEMO_ADMIN_SETTINGS: AdminSettings = {

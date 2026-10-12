@@ -13,7 +13,7 @@ import {
   DEMO_COHORT_STUDENTS,
 } from "@/data/demo-data";
 import type { Profile } from "@/lib/types";
-import { ExportStudentCompletionButton, ExportCohortCompletionButton } from "@/components/admin/CsvExport";
+import { ExportStudentCompletionButton, ExportCohortCompletionButton, ExportCompletionDatesButton } from "@/components/admin/CsvExport";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Organization Dashboard" };
@@ -104,6 +104,7 @@ export default async function OrgManagerPage() {
         {/* Export buttons */}
         <div className="mb-6 flex flex-wrap gap-3">
           <ExportStudentCompletionButton students={orgStudents} />
+          <ExportCompletionDatesButton students={orgStudents} />
           <ExportCohortCompletionButton students={orgStudents} />
         </div>
 
@@ -149,6 +150,7 @@ export default async function OrgManagerPage() {
                     <th className="px-4 py-3 text-center font-medium">Modules</th>
                     <th className="px-4 py-3 text-center font-medium">Certificate</th>
                     <th className="px-4 py-3 text-center font-medium">Status</th>
+                    <th className="px-4 py-3 text-center font-medium">Record</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -169,6 +171,14 @@ export default async function OrgManagerPage() {
                         ) : (
                           <span className="rounded-full bg-rise-sky px-2 py-0.5 text-xs font-medium text-rise-navy">Active</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <a
+                          href={`/admin/records/${s.profile_id}`}
+                          className="rounded-lg border border-rise-border bg-white px-2 py-1 text-xs font-semibold text-rise-navy hover:bg-rise-sky"
+                        >
+                          View
+                        </a>
                       </td>
                     </tr>
                   ))}

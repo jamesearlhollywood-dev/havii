@@ -3,8 +3,8 @@ import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
 import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
-import { modules, blueprintSections } from "@/data/course";
 import { formatDate } from "@/lib/utils";
+import { checkCertificateEligibility, getCompletionRequirements } from "@/lib/certificate-utils";
 import {
   DEMO_STUDENT_PROFILE,
   DEMO_STUDENT_PROGRESS,
@@ -39,14 +39,19 @@ export default async function CertificatesPage() {
 
   const certificate = certificates[0];
 
-  const completedModules = modules.filter((m) =>
-    progress?.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed)
-  ).length ?? 0;
-  const decisionLabsCompleted = progress?.decisionLabs.length ?? 0;
-  const blueprintCompleted = progress?.blueprintSections.filter((b: any) => b.completed).length ?? 0;
-  const finalPassed = progress?.finalAttempts.some((a: any) => a.passed) ?? false;
+  const eligibility = checkCertificateEligibility({
+    moduleProgress: progress?.moduleProgress ?? [],
+    lessonProgress: progress?.lessonProgress ?? [],
+    decisionLabs: progress?.decisionLabs ?? [],
+    blueprintSections: progress?.blueprintSections ?? [],
+    finalAttempts: progress?.finalAttempts ?? [],
+  });
+  const requirements = getCompletionRequirements(eligibility.checks);
 
-  const canTakeFinal = completedModules === 6 && decisionLabsCompleted === modules.length && blueprintCompleted === blueprintSections.length;
+  const canTakeFinal = eligibility.checks.allModulesCompleted &&
+    eligibility.checks.allDecisionLabsCompleted &&
+    eligibility.checks.allBlueprintSectionsCompleted &&
+    !eligibility.checks.finalAssessmentPassed;
 
   return (
     <AppShell profile={profile}>
@@ -139,24 +144,18 @@ export default async function CertificatesPage() {
             </CardDescription>
 
             <div className="mt-6 space-y-3">
-              {[
-                { label: "All 6 modules completed", done: completedModules === 6, detail: `${completedModules}/6` },
-                { label: "All Decision Labs submitted", done: decisionLabsCompleted === modules.length, detail: `${decisionLabsCompleted}/${modules.length}` },
-                { label: "All Blueprint sections completed", done: blueprintCompleted === blueprintSections.length, detail: `${blueprintCompleted}/${blueprintSections.length}` },
-                { label: "Final assessment passed (70%+)", done: finalPassed, detail: finalPassed ? "Passed" : "Not taken" },
-              ].map((req) => (
+              {requirements.map((req) => (
                 <div key={req.label} className="flex items-center gap-3 rounded-xl border border-rise-border p-3">
                   <span className={`flex h-6 w-6 items-center justify-center rounded-full text-sm ${req.done ? "bg-rise-success text-white" : "bg-rise-border text-rise-muted"}`}>
                     {req.done ? "✓" : "○"}
                   </span>
                   <span className="flex-1 text-sm text-rise-navy">{req.label}</span>
-                  <span className="text-xs font-medium text-rise-muted">{req.detail}</span>
                 </div>
               ))}
             </div>
 
             <div className="mt-6 flex gap-3">
-              {canTakeFinal && !finalPassed && (
+              {canTakeFinal && (
                 <a href="/course/final-assessment" className="rounded-xl bg-rise-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-rise-navy-light">
                   Take Final Assessment
                 </a>

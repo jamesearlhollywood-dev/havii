@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { formatDate } from "@/lib/utils";
 import { exportCertificates } from "@/components/admin/CsvExport";
+import {
+  revokeCertificate,
+  reissueCertificate,
+  manuallyIssueCertificate,
+} from "@/actions/certificates";
 
 interface CertRecord {
   id: string;
@@ -15,6 +20,7 @@ interface CertRecord {
   organization_name?: string | null;
   cohort_name?: string | null;
   instructor_name?: string | null;
+  profile_id?: string;
 }
 
 interface AuditEntry {
@@ -26,22 +32,63 @@ interface AuditEntry {
   created_at: string;
 }
 
+interface EligibleStudent {
+  profile_id: string;
+  student_name: string;
+  organization_name: string;
+  cohort_name: string;
+  eligible_for_completion: boolean;
+}
+
 export function CertificateManager({
-  certificates,
-  auditLog,
+  certificates: initialCerts,
+  auditLog: initialAudit,
   supabaseConnected,
+  eligibleStudents = [],
 }: {
   certificates: CertRecord[];
   auditLog: AuditEntry[];
   supabaseConnected: boolean;
+  eligibleStudents?: EligibleStudent[];
 }) {
+  const [certificates, setCertificates] = useState(initialCerts);
+  const [auditLog, setAuditLog] = useState(initialAudit);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterOrg, setFilterOrg] = useState("");
+  const [filterCohort, setFilterCohort] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  // Action dialog state
+  const [actionDialog, setActionDialog] = useState<{
+    type: "revoke" | "reissue" | "issue";
+    cert?: CertRecord;
+  } | null>(null);
+  const [actionNote, setActionNote] = useState("");
+  const [issueStudentId, setIssueStudentId] = useState("");
+  const [actionResult, setActionResult] = useState<string | null>(null);
+
+  // Derive filter options from certificates
+  const orgs = useMemo(
+    () => [...new Set(certificates.map((c) => c.organization_name).filter(Boolean))] as string[],
+    [certificates]
+  );
+  const cohorts = useMemo(
+    () => [...new Set(certificates.map((c) => c.cohort_name).filter(Boolean))] as string[],
+    [certificates]
+  );
 
   const filtered = useMemo(
     () =>
       certificates.filter((c) => {
         if (filterStatus && c.status !== filterStatus) return false;
+        if (filterOrg && c.organization_name !== filterOrg) return false;
+        if (filterCohort && c.cohort_name !== filterCohort) return false;
+        if (filterDate) {
+          const certDate = new Date(c.issued_at).toISOString().slice(0, 7);
+          if (certDate !== filterDate) return false;
+        }
         if (search) {
           const s = search.toLowerCase();
           return (
@@ -53,19 +100,149 @@ export function CertificateManager({
         }
         return true;
       }),
-    [certificates, search, filterStatus],
+    [certificates, search, filterStatus, filterOrg, filterCohort, filterDate]
   );
 
   const issuedCount = certificates.filter((c) => c.status === "issued").length;
   const revokedCount = certificates.filter((c) => c.status === "revoked").length;
 
+  function closeDialog() {
+    setActionDialog(null);
+    setActionNote("");
+    setIssueStudentId("");
+    setActionResult(null);
+  }
+
+  function handleAction() {
+    if (!actionDialog) return;
+
+    startTransition(async () => {
+      if (!supabaseConnected) {
+        // Demo mode — update local state
+        if (actionDialog.type === "revoke" && actionDialog.cert) {
+          const certId = actionDialog.cert.certificate_id;
+          setCertificates((prev) =>
+            prev.map((c) =>
+              c.certificate_id === certId ? { ...c, status: "revoked" as const } : c
+            )
+          );
+          setAuditLog((prev) => [
+            {
+              id: `audit-${Date.now()}`,
+              certificate_id: certId,
+              action: "revoked",
+              performed_by: "demo-admin",
+              note: actionNote || null,
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ]);
+        } else if (actionDialog.type === "reissue" && actionDialog.cert) {
+          const certId = actionDialog.cert.certificate_id;
+          setCertificates((prev) =>
+            prev.map((c) =>
+              c.certificate_id === certId
+                ? { ...c, status: "issued" as const, issued_at: new Date().toISOString() }
+                : c
+            )
+          );
+          setAuditLog((prev) => [
+            {
+              id: `audit-${Date.now()}`,
+              certificate_id: certId,
+              action: "reissued",
+              performed_by: "demo-admin",
+              note: actionNote || null,
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ]);
+        }
+        closeDialog();
+        return;
+      }
+
+      // Supabase mode — call server actions
+      try {
+        let result: { error?: string; success?: string };
+        if (actionDialog.type === "revoke" && actionDialog.cert) {
+          result = await revokeCertificate(actionDialog.cert.certificate_id, actionNote);
+        } else if (actionDialog.type === "reissue" && actionDialog.cert) {
+          result = await reissueCertificate(actionDialog.cert.certificate_id, actionNote);
+        } else if (actionDialog.type === "issue" && issueStudentId) {
+          result = await manuallyIssueCertificate(issueStudentId, actionNote);
+        } else {
+          closeDialog();
+          return;
+        }
+
+        if (result.error) {
+          setActionResult(result.error);
+        } else {
+          // Update local state to reflect server change
+          if (actionDialog.type === "revoke" && actionDialog.cert) {
+            const certId = actionDialog.cert.certificate_id;
+            setCertificates((prev) =>
+              prev.map((c) =>
+                c.certificate_id === certId ? { ...c, status: "revoked" as const } : c
+              )
+            );
+            setAuditLog((prev) => [
+              {
+                id: `audit-${Date.now()}`,
+                certificate_id: certId,
+                action: "revoked",
+                performed_by: "demo-admin",
+                note: actionNote || null,
+                created_at: new Date().toISOString(),
+              },
+              ...prev,
+            ]);
+          } else if (actionDialog.type === "reissue" && actionDialog.cert) {
+            const certId = actionDialog.cert.certificate_id;
+            setCertificates((prev) =>
+              prev.map((c) =>
+                c.certificate_id === certId
+                  ? { ...c, status: "issued" as const, issued_at: new Date().toISOString() }
+                  : c
+              )
+            );
+            setAuditLog((prev) => [
+              {
+                id: `audit-${Date.now()}`,
+                certificate_id: certId,
+                action: "reissued",
+                performed_by: "demo-admin",
+                note: actionNote || null,
+                created_at: new Date().toISOString(),
+              },
+              ...prev,
+            ]);
+          }
+          closeDialog();
+        }
+      } catch {
+        setActionResult("An unexpected error occurred.");
+      }
+    });
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold text-rise-navy">Certificate Management</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-rise-navy">Certificate Management</h1>
+        <button
+          type="button"
+          onClick={() => setActionDialog({ type: "issue" })}
+          className="rounded-xl bg-rise-red px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+        >
+          Manual Issue
+        </button>
+      </div>
 
       {!supabaseConnected && (
         <div className="mb-4 rounded-xl border border-rise-warning/30 bg-rise-warning-light p-3 text-sm text-rise-warning">
-          Demo mode — Supabase not connected. Certificate actions require a live database.
+          Demo mode — Supabase not connected. Certificate actions are simulated locally and won&apos;t persist.
         </div>
       )}
 
@@ -87,7 +264,7 @@ export function CertificateManager({
 
       {/* Filters */}
       <Card className="mb-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <input
             type="text"
             placeholder="Search by student, cert ID, org, or cohort..."
@@ -104,6 +281,32 @@ export function CertificateManager({
             <option value="issued">Issued</option>
             <option value="revoked">Revoked</option>
           </select>
+          <select
+            value={filterOrg}
+            onChange={(e) => setFilterOrg(e.target.value)}
+            className="rounded-lg border border-rise-border bg-white px-3 py-2 text-sm text-rise-navy"
+          >
+            <option value="">All Organizations</option>
+            {orgs.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
+          <select
+            value={filterCohort}
+            onChange={(e) => setFilterCohort(e.target.value)}
+            className="rounded-lg border border-rise-border bg-white px-3 py-2 text-sm text-rise-navy"
+          >
+            <option value="">All Cohorts</option>
+            {cohorts.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <input
+            type="month"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="rounded-lg border border-rise-border bg-white px-3 py-2 text-sm text-rise-navy"
+          />
           <button
             type="button"
             onClick={() => exportCertificates(filtered)}
@@ -152,6 +355,7 @@ export function CertificateManager({
                     {c.status === "issued" ? (
                       <button
                         type="button"
+                        onClick={() => setActionDialog({ type: "revoke", cert: c })}
                         className="rounded-lg border border-red-200 bg-white px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
                       >
                         Revoke
@@ -159,6 +363,7 @@ export function CertificateManager({
                     ) : (
                       <button
                         type="button"
+                        onClick={() => setActionDialog({ type: "reissue", cert: c })}
                         className="rounded-lg border border-rise-border bg-white px-2 py-1 text-xs font-semibold text-rise-navy hover:bg-rise-sky"
                       >
                         Reissue
@@ -196,6 +401,7 @@ export function CertificateManager({
                 <span className={`ml-2 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase ${
                   entry.action === "issued" ? "bg-rise-success-light text-rise-success" :
                   entry.action === "revoked" ? "bg-red-100 text-red-700" :
+                  entry.action === "reissued" ? "bg-rise-blue/20 text-rise-blue" :
                   "bg-rise-sky text-rise-navy"
                 }`}>
                   {entry.action.replace(/_/g, " ")}
@@ -208,8 +414,97 @@ export function CertificateManager({
         ))}
         {auditLog.length === 0 && (
           <Card><CardDescription>No audit entries.</CardDescription></Card>
-        )}
+        )
+        }
       </div>
+
+      {/* Action Dialog */}
+      {actionDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={closeDialog}>
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {actionDialog.type === "revoke" && (
+              <>
+                <h3 className="text-lg font-bold text-rise-navy">Revoke Certificate</h3>
+                <p className="mt-1 text-sm text-rise-muted">
+                  Revoke <span className="font-mono">{actionDialog.cert?.certificate_id}</span> for{" "}
+                  <span className="font-medium">{actionDialog.cert?.student_name}</span>?
+                  This will invalidate the certificate immediately.
+                </p>
+              </>
+            )}
+            {actionDialog.type === "reissue" && (
+              <>
+                <h3 className="text-lg font-bold text-rise-navy">Reissue Certificate</h3>
+                <p className="mt-1 text-sm text-rise-muted">
+                  Reissue <span className="font-mono">{actionDialog.cert?.certificate_id}</span> for{" "}
+                  <span className="font-medium">{actionDialog.cert?.student_name}</span>?
+                  This will reactivate the certificate with a new issue date.
+                </p>
+              </>
+            )}
+            {actionDialog.type === "issue" && (
+              <>
+                <h3 className="text-lg font-bold text-rise-navy">Manually Issue Certificate</h3>
+                <p className="mt-1 text-sm text-rise-muted">
+                  Select a student to issue a certificate. This is an admin override — use when automated
+                  eligibility checks cannot run.
+                </p>
+                <select
+                  value={issueStudentId}
+                  onChange={(e) => setIssueStudentId(e.target.value)}
+                  className="mt-3 w-full rounded-lg border border-rise-border bg-white px-3 py-2 text-sm text-rise-navy"
+                >
+                  <option value="">Select a student...</option>
+                  {eligibleStudents.map((s) => (
+                    <option key={s.profile_id} value={s.profile_id}>
+                      {s.student_name} — {s.organization_name}
+                      {s.eligible_for_completion ? " (eligible)" : " (override)"}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-rise-navy">
+                Administrative Note
+              </label>
+              <textarea
+                value={actionNote}
+                onChange={(e) => setActionNote(e.target.value)}
+                placeholder="Explain the reason for this manual adjustment..."
+                rows={3}
+                className="mt-1 w-full rounded-lg border border-rise-border bg-white px-3 py-2 text-sm text-rise-navy"
+              />
+            </div>
+
+            {actionResult && (
+              <p className="mt-2 text-sm text-red-600">{actionResult}</p>
+            )}
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeDialog}
+                className="rounded-lg border border-rise-border bg-white px-4 py-2 text-sm font-semibold text-rise-navy hover:bg-rise-sky"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAction}
+                disabled={isPending || (actionDialog.type === "issue" && !issueStudentId)}
+                className="rounded-lg bg-rise-navy px-4 py-2 text-sm font-semibold text-white hover:bg-rise-navy-light disabled:opacity-50"
+              >
+                {isPending ? "Processing..." : actionDialog.type === "revoke" ? "Revoke" : actionDialog.type === "reissue" ? "Reissue" : "Issue"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

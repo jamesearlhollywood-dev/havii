@@ -16,7 +16,7 @@ import {
   DEMO_CERTIFICATES,
 } from "@/data/demo-data";
 import type { Profile } from "@/lib/types";
-import { ExportStudentCompletionButton, ExportCertificatesButton, ExportCohortCompletionButton } from "@/components/admin/CsvExport";
+import { ExportStudentCompletionButton, ExportCertificatesButton, ExportCohortCompletionButton, ExportCompletionDatesButton } from "@/components/admin/CsvExport";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin Dashboard" };
@@ -103,6 +103,7 @@ export default async function AdminPage() {
         <div className="mb-6 flex flex-wrap gap-3">
           <ExportStudentCompletionButton students={students} />
           <ExportCertificatesButton certificates={DEMO_CERTIFICATES} />
+          <ExportCompletionDatesButton students={students} />
           <ExportCohortCompletionButton students={students} />
         </div>
 
@@ -155,6 +156,7 @@ export default async function AdminPage() {
                 <th className="px-4 py-3 text-center font-medium">Quiz</th>
                 <th className="px-4 py-3 text-center font-medium">Certificate</th>
                 <th className="px-4 py-3 text-center font-medium">Status</th>
+                <th className="px-4 py-3 text-center font-medium">Record</th>
               </tr>
             </thead>
             <tbody>
@@ -178,6 +180,14 @@ export default async function AdminPage() {
                     ) : (
                       <span className="rounded-full bg-rise-sky px-2 py-0.5 text-xs font-medium text-rise-navy">Active</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <a
+                      href={`/admin/records/${s.profile_id}`}
+                      className="rounded-lg border border-rise-border bg-white px-2 py-1 text-xs font-semibold text-rise-navy hover:bg-rise-sky"
+                    >
+                      View
+                    </a>
                   </td>
                 </tr>
               ))}

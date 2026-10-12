@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { getCurrentUserAndProfile } from "@/lib/profile";
 import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
-import { modules, blueprintSections, TOTAL_LESSONS, PASSING_SCORE } from "@/data/course";
-import { formatDate, fullName } from "@/lib/utils";
+import { Card, CardTitle } from "@/components/ui/Card";
+import { modules, TOTAL_LESSONS } from "@/data/course";
+import { formatDate } from "@/lib/utils";
 import { canAccessStaffRoutes } from "@/lib/roles";
 import { PrintButton } from "@/components/ui/PrintButton";
 import {
@@ -15,7 +15,7 @@ import {
   DEMO_ORGANIZATIONS,
   DEMO_ENROLLMENTS,
   DEMO_CERTIFICATES,
-  DEMO_STUDENT_PROGRESS,
+  DEMO_STUDENT_RECORD_DETAILS,
 } from "@/data/demo-data";
 import type { Profile } from "@/lib/types";
 
@@ -63,18 +63,7 @@ export default async function StudentRecordPage({
   const cohort = DEMO_COHORTS.find((c) => c.name === student.cohort_name);
   const org = DEMO_ORGANIZATIONS.find((o) => o.name === student.organization_name);
   const certificate = DEMO_CERTIFICATES.find((c) => c.profile_id === studentId);
-
-  // Build module completion details
-  const moduleDetails = modules.map((m) => {
-    // For demo, infer completion from student summary
-    const isComplete = student.modules_completed >= m.number;
-    return {
-      number: m.number,
-      title: m.title.split("—")[0].trim(),
-      icon: m.icon,
-      completed: isComplete,
-    };
-  });
+  const recordDetail = DEMO_STUDENT_RECORD_DETAILS.find((r) => r.profile_id === studentId);
 
   return (
     <AppShell profile={profile}>
@@ -107,7 +96,7 @@ export default async function StudentRecordPage({
             <InfoRow label="Cohort" value={student.cohort_name} />
             <InfoRow label="Instructor" value={cohort?.instructor_name || "Unassigned"} />
             <InfoRow label="Enrollment Date" value={enrollment ? formatDate(enrollment.enrolled_at) : "—"} />
-            <InfoRow label="Completion Date" value={student.has_certificate ? formatDate(daysAgoRef(5)) : "—"} />
+            <InfoRow label="Completion Date" value={student.has_certificate ? formatDate(certificate?.issued_at || new Date().toISOString()) : "—"} />
           </div>
         </Card>
 
@@ -136,24 +125,59 @@ export default async function StudentRecordPage({
           </div>
         </Card>
 
-        {/* Module completion */}
+        {/* Module completion with detailed breakdown */}
         <Card className="mb-4">
-          <CardTitle>Module Completion</CardTitle>
-          <div className="mt-3 space-y-2">
-            {moduleDetails.map((m) => (
-              <div key={m.number} className="flex items-center gap-3 rounded-xl border border-rise-border p-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rise-sky text-lg">{m.icon}</span>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-rise-red">Module {m.number}</p>
-                  <p className="text-sm text-rise-navy">{m.title}</p>
+          <CardTitle>Module Completion & Assessment Details</CardTitle>
+          <div className="mt-3 space-y-3">
+            {modules.map((m) => {
+              const detail = recordDetail?.modules.find((d) => d.module_id === m.id);
+              const isComplete = detail?.module_completed ?? false;
+              return (
+                <div key={m.number} className="rounded-xl border border-rise-border p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rise-sky text-lg">{m.icon}</span>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-rise-red">Module {m.number}</p>
+                      <p className="text-sm text-rise-navy">{m.title.split("—")[0].trim()}</p>
+                    </div>
+                    {isComplete ? (
+                      <span className="rounded-full bg-rise-success-light px-3 py-1 text-xs font-semibold text-rise-success">✓ Complete</span>
+                    ) : (
+                      <span className="rounded-full bg-rise-border px-3 py-1 text-xs font-medium text-rise-muted">Incomplete</span>
+                    )}
+                  </div>
+                  {/* Per-module breakdown */}
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                    <DetailChip
+                      label="Lessons"
+                      value={detail ? `${detail.lessons_completed}/${detail.lessons_total}` : "—"}
+                      done={detail?.lessons_completed === detail?.lessons_total}
+                    />
+                    <DetailChip
+                      label="Knowledge Check"
+                      value={detail?.knowledge_check_score !== null && detail?.knowledge_check_score !== undefined ? `${detail.knowledge_check_score}%` : "Not taken"}
+                      done={detail?.knowledge_check_passed ?? false}
+                    />
+                    <DetailChip
+                      label="Decision Lab"
+                      value={detail?.decision_lab_completed ? "Submitted" : "Pending"}
+                      done={detail?.decision_lab_completed ?? false}
+                    />
+                    <DetailChip
+                      label="Blueprint Section"
+                      value={detail?.blueprint_section_completed ? "Complete" : "Pending"}
+                      done={detail?.blueprint_section_completed ?? false}
+                    />
+                  </div>
+                  {detail && detail.knowledge_check_attempts > 0 && (
+                    <p className="mt-2 text-xs text-rise-muted">
+                      Knowledge Check attempts: {detail.knowledge_check_attempts}
+                      {detail.knowledge_check_score !== null && ` · Best score: ${detail.knowledge_check_score}%`}
+                    </p>
+                  )}
                 </div>
-                {m.completed ? (
-                  <span className="rounded-full bg-rise-success-light px-3 py-1 text-xs font-semibold text-rise-success">✓ Complete</span>
-                ) : (
-                  <span className="rounded-full bg-rise-border px-3 py-1 text-xs font-medium text-rise-muted">Incomplete</span>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
 
@@ -161,10 +185,18 @@ export default async function StudentRecordPage({
         <Card className="mb-4">
           <CardTitle>Final Assessment & Certificate</CardTitle>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <InfoRow label="Final Assessment" value={student.has_certificate ? "Passed" : "Not passed"} />
+            <InfoRow
+              label="Final Assessment Score"
+              value={recordDetail?.final_assessment_score !== null && recordDetail?.final_assessment_score !== undefined ? `${recordDetail.final_assessment_score}%` : "Not taken"}
+            />
+            <InfoRow
+              label="Final Assessment Status"
+              value={recordDetail?.final_assessment_passed ? "Passed" : "Not passed"}
+            />
             <InfoRow label="Certificate ID" value={certificate?.certificate_id || "—"} />
             <InfoRow label="Certificate Status" value={certificate?.status || "Not issued"} />
             <InfoRow label="Completion Status" value={student.enrollment_status === "completed" ? "Completed" : "In Progress"} />
+            <InfoRow label="Eligible for Completion" value={student.eligible_for_completion ? "Yes" : "No"} />
           </div>
         </Card>
 
@@ -190,12 +222,16 @@ export default async function StudentRecordPage({
             </div>
 
             <div className="mt-6 space-y-1">
-              {moduleDetails.map((m) => (
-                <div key={m.number} className="flex justify-between border-b border-rise-border py-1 text-sm">
-                  <span className="text-rise-navy">Module {m.number}: {m.title}</span>
-                  <span className="font-medium text-rise-success">{m.completed ? "✓ Completed" : "—"}</span>
-                </div>
-              ))}
+              {modules.map((m) => {
+                const detail = recordDetail?.modules.find((d) => d.module_id === m.id);
+                const isComplete = detail?.module_completed ?? false;
+                return (
+                  <div key={m.number} className="flex justify-between border-b border-rise-border py-1 text-sm">
+                    <span className="text-rise-navy">Module {m.number}: {m.title.split("—")[0].trim()}</span>
+                    <span className="font-medium text-rise-success">{isComplete ? "✓ Completed" : "—"}</span>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="mt-6 flex justify-between text-sm">
@@ -204,8 +240,18 @@ export default async function StudentRecordPage({
                 <p className="font-medium text-rise-navy">{student.enrollment_status === "completed" ? "Completed" : "In Progress"}</p>
               </div>
               <div>
+                <p className="text-xs text-rise-muted">Completion Date</p>
+                <p className="font-medium text-rise-navy">
+                  {student.has_certificate ? formatDate(certificate?.issued_at || new Date().toISOString()) : "—"}
+                </p>
+              </div>
+              <div>
                 <p className="text-xs text-rise-muted">Final Assessment</p>
-                <p className="font-medium text-rise-navy">{student.has_certificate ? "Passed" : "Not passed"}</p>
+                <p className="font-medium text-rise-navy">
+                  {recordDetail?.final_assessment_passed
+                    ? `Passed (${recordDetail.final_assessment_score}%)`
+                    : "Not passed"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-rise-muted">Certificate Number</p>
@@ -232,7 +278,16 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-// Helper to format a relative date for display
-function daysAgoRef(days: number): string {
-  return new Date(Date.now() - days * 86400000).toISOString();
+function DetailChip({ label, value, done }: { label: string; value: string; done: boolean }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg bg-rise-sky px-3 py-2">
+      <span className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${done ? "bg-rise-success text-white" : "bg-rise-border text-rise-muted"}`}>
+        {done ? "✓" : "○"}
+      </span>
+      <div>
+        <p className="text-[10px] uppercase tracking-wider text-rise-muted">{label}</p>
+        <p className="text-xs font-medium text-rise-navy">{value}</p>
+      </div>
+    </div>
+  );
 }

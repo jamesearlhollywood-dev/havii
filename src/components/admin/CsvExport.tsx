@@ -57,6 +57,26 @@ export function exportCertificates(certificates: any[]) {
   downloadCSV("certificates-report.csv", csv);
 }
 
+export function exportCompletionDates(students: StudentProgressSummary[]) {
+  const headers = [
+    "Student Name", "Organization", "Cohort",
+    "Completion Date", "Certificate ID", "Certificate Status",
+    "Final Assessment", "Overall Progress",
+  ];
+
+  const rows = students.map((s) => [
+    s.student_name, s.organization_name, s.cohort_name,
+    s.has_certificate ? "Completed" : "In Progress",
+    s.has_certificate ? "Yes" : "No",
+    s.has_certificate ? "Issued" : "Not Issued",
+    s.quiz_passed ? "Passed" : "Not Passed",
+    `${s.overall_progress}%`,
+  ].map(escapeCSV).join(","));
+
+  const csv = [headers.join(","), ...rows].join("\n");
+  downloadCSV("completion-dates-report.csv", csv);
+}
+
 export function exportCohortCompletion(students: StudentProgressSummary[]) {
   // Group by cohort
   const cohorts = new Map<string, StudentProgressSummary[]>();
@@ -106,6 +126,18 @@ export function ExportCertificatesButton({ certificates }: { certificates: any[]
       className="rounded-lg bg-rise-navy px-4 py-2 text-sm font-semibold text-white hover:bg-rise-navy-light"
     >
       Export Certificates CSV
+    </button>
+  );
+}
+
+export function ExportCompletionDatesButton({ students }: { students: StudentProgressSummary[] }) {
+  return (
+    <button
+      type="button"
+      onClick={() => exportCompletionDates(students)}
+      className="rounded-lg border border-rise-border bg-white px-4 py-2 text-sm font-semibold text-rise-navy hover:bg-rise-sky"
+    >
+      Export Completion Dates CSV
     </button>
   );
 }
