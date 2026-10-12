@@ -196,8 +196,8 @@ function getDemoConfidenceAnalysis(
       const orgStudentIds = DEMO_COHORT_STUDENTS
         .filter((s) => s.organization_name === org.name)
         .map((s) => s.profile_id);
-      preSurveys = preSurveys.filter((s) => orgStudentIds.includes(s.profile_id));
-      postSurveys = postSurveys.filter((s) => orgStudentIds.includes(s.profile_id));
+      preSurveys = preSurveys.filter((s) => s.profile_id && orgStudentIds.includes(s.profile_id));
+      postSurveys = postSurveys.filter((s) => s.profile_id && orgStudentIds.includes(s.profile_id));
     }
   }
 
@@ -208,8 +208,8 @@ function getDemoConfidenceAnalysis(
       const cohortStudentIds = DEMO_COHORT_STUDENTS
         .filter((s) => s.cohort_name === cohort.name)
         .map((s) => s.profile_id);
-      preSurveys = preSurveys.filter((s) => cohortStudentIds.includes(s.profile_id));
-      postSurveys = postSurveys.filter((s) => cohortStudentIds.includes(s.profile_id));
+      preSurveys = preSurveys.filter((s) => s.profile_id && cohortStudentIds.includes(s.profile_id));
+      postSurveys = postSurveys.filter((s) => s.profile_id && cohortStudentIds.includes(s.profile_id));
     }
   }
 

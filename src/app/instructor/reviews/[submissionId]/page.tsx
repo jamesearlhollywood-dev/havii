@@ -23,9 +23,9 @@ export default async function ReviewSubmissionPage({
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let submission: Submission | null;
-  let versions: SubmissionVersion[];
-  let rubric: Rubric | null;
+  let submission: Submission | null = null;
+  let versions: SubmissionVersion[] = [];
+  let rubric: Rubric | null = null;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -37,13 +37,12 @@ export default async function ReviewSubmissionPage({
 
     submission = await getSubmission(submissionId);
     versions = await getSubmissionVersions(submissionId);
-    rubric = submission?.rubric_result
-      ? await getRubric(submission.rubric_result.rubric_id)
-      : null;
-    // Also check activity review config for rubric
+    if (submission?.rubric_result) {
+      rubric = await getRubric(submission.rubric_result.rubric_id);
+    }
     if (!rubric && submission) {
       const configs = await getActivityConfigsForRubric();
-      const config = configs.find((c) => c.activity_id === submission.activity_id);
+      const config = configs.find((c) => c.activity_id === submission!.activity_id);
       if (config?.rubric_id) {
         rubric = await getRubric(config.rubric_id);
       }
@@ -52,14 +51,12 @@ export default async function ReviewSubmissionPage({
     profile = DEMO_INSTRUCTOR_PROFILE;
     submission = await getSubmission(submissionId);
     versions = await getSubmissionVersions(submissionId);
-    // Find rubric from demo data
     if (submission?.rubric_result) {
-      rubric = DEMO_RUBRICS.find((r) => r.id === submission.rubric_result!.rubric_id) ?? null;
+      rubric = DEMO_RUBRICS.find((r) => r.id === submission!.rubric_result!.rubric_id) ?? null;
     }
     if (!rubric && submission) {
-      // Check if the activity has a rubric in the demo configs
       const { DEMO_ACTIVITY_REVIEW_CONFIGS } = await import("@/data/review-demo-data");
-      const config = DEMO_ACTIVITY_REVIEW_CONFIGS.find((c) => c.activity_id === submission.activity_id);
+      const config = DEMO_ACTIVITY_REVIEW_CONFIGS.find((c) => c.activity_id === submission!.activity_id);
       if (config?.rubric_id) {
         rubric = DEMO_RUBRICS.find((r) => r.id === config.rubric_id) ?? null;
       }

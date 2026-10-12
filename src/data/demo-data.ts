@@ -593,14 +593,14 @@ function makeStudentSummary(
   quizScore: number | null,
   quizPassed: boolean,
   decisionLabs: number,
-  blueprintSections: number,
+  blueprintSectionsCompleted: number,
   hasCert: boolean,
   lastActivityDays: number | null,
   failedAttempts: number,
 ): StudentProgressSummary {
   const isStalled = lastActivityDays !== null && lastActivityDays > 14 && lessonsCompleted > 0 && modulesCompleted < modules.length;
-  const missingBp = modules.length - blueprintSections;
-  const eligible = modulesCompleted === modules.length && quizPassed && decisionLabs === modules.length && blueprintSections === blueprintSections.length && !hasCert;
+  const missingBp = modules.length - blueprintSectionsCompleted;
+  const eligible = modulesCompleted === modules.length && quizPassed && decisionLabs === modules.length && blueprintSectionsCompleted === blueprintSections.length && !hasCert;
   return {
     profile_id: id,
     student_name: `${firstName} ${lastName}`,
@@ -613,7 +613,7 @@ function makeStudentSummary(
     best_quiz_score: quizScore,
     quiz_passed: quizPassed,
     decision_labs_completed: decisionLabs,
-    blueprint_sections_completed: blueprintSections,
+    blueprint_sections_completed: blueprintSectionsCompleted,
     has_certificate: hasCert,
     last_activity_date: lastActivityDays !== null ? daysAgo(lastActivityDays) : null,
     is_stalled: isStalled,

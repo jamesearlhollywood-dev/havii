@@ -75,6 +75,7 @@ export type LearningGoal =
   | "starting_business";
 
 export interface StartingPointSurvey {
+  profile_id?: string;
   responses: { question: string; confidence: number }[];
   completed_at: string;
 }

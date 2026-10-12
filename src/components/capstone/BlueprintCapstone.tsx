@@ -9,12 +9,14 @@ import { Select } from "@/components/ui/Select";
 import {
   saveCapstoneData,
   confirmBlueprintReview,
+} from "@/actions/capstone";
+import {
   ACTION_PLAN_CATEGORIES,
   ACTION_PLAN_STATUSES,
   SUGGESTED_MONEY_RULES,
   type ActionPlanItem,
   type CapstoneData,
-} from "@/actions/capstone";
+} from "@/data/capstone-types";
 import { cn } from "@/lib/utils";
 
 interface BlueprintSectionData {

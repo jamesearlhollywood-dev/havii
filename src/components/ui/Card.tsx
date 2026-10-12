@@ -38,3 +38,11 @@ export function CardDescription({
     </p>
   );
 }
+
+export function ComingNextBadge() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-rise-blue/10 px-2.5 py-0.5 text-xs font-medium text-rise-blue">
+      Coming Next
+    </span>
+  );
+}
