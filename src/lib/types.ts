@@ -375,7 +375,13 @@ export type NotificationType =
   | "inactivity_reminder"
   | "announcement"
   | "admin_message"
-  | "instructor_message";
+  | "instructor_message"
+  | "assignment_submitted"
+  | "submission_awaiting_review"
+  | "feedback_posted"
+  | "revision_requested"
+  | "resubmission_received"
+  | "activity_marked_complete";
 
 export type NotificationCategory =
   | "course_progress"
@@ -395,7 +401,8 @@ export type RelatedEntityType =
   | "certificate"
   | "assessment"
   | "announcement"
-  | "message";
+  | "message"
+  | "submission";
 
 export interface AppNotification {
   id: string;
@@ -618,4 +625,211 @@ export interface StudentOutcomesProfile {
   starting_confidence: number | null;
   ending_confidence: number | null;
   confidence_change: number | null;
+}
+
+// ---------------------------------------------------------------------------
+// Instructor Review, Feedback & Assignment Grading
+// ---------------------------------------------------------------------------
+
+/** Activities that require human review (excludes auto-graded quizzes/KCs). */
+export type SubmissionType =
+  | "decision_lab"
+  | "workbook"
+  | "reflection"
+  | "action_commitment"
+  | "short_answer"
+  | "blueprint_section"
+  | "final_capstone";
+
+export type ReviewStatus =
+  | "not_submitted"
+  | "submitted"
+  | "in_review"
+  | "feedback_provided"
+  | "revision_requested"
+  | "resubmitted"
+  | "completed";
+
+/** Admin-configurable review mode per activity. */
+export type ActivityReviewMode =
+  | "completion_only"
+  | "instructor_reviewed"
+  | "scored"
+  | "rubric_scored";
+
+/** Privacy controls per activity. */
+export type ActivityPrivacyLevel =
+  | "student_instructor_only"
+  | "student_instructor_admin"
+  | "org_visible_completion";
+
+export type PerformanceLevel = "beginning" | "developing" | "proficient" | "strong";
+
+export interface RubricCriterion {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface RubricPerformanceLevel {
+  level: PerformanceLevel;
+  label: string;
+  point_value: number;
+  description: string;
+}
+
+export interface Rubric {
+  id: string;
+  title: string;
+  activity_type: SubmissionType;
+  criteria: RubricCriterion[];
+  performance_levels: RubricPerformanceLevel[];
+  is_default: boolean;
+  created_by: string;
+  created_by_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RubricCriterionResult {
+  criterion_id: string;
+  criterion_title: string;
+  performance_level: PerformanceLevel;
+  point_value: number;
+  instructor_comment: string;
+}
+
+export interface RubricResult {
+  rubric_id: string;
+  rubric_title: string;
+  criterion_results: RubricCriterionResult[];
+  total_points: number;
+  max_points: number;
+}
+
+export interface Submission {
+  id: string;
+  student_profile_id: string;
+  student_name: string;
+  enrollment_id: string | null;
+  organization_id: string | null;
+  organization_name: string | null;
+  cohort_id: string | null;
+  cohort_name: string | null;
+  course_id: string;
+  module_id: string;
+  module_number: number;
+  module_title: string;
+  lesson_id: string | null;
+  lesson_title: string | null;
+  activity_id: string;
+  activity_title: string;
+  activity_instructions: string;
+  submission_type: SubmissionType;
+  student_response: string;
+  attached_file_url: string | null;
+  attached_file_name: string | null;
+  submitted_at: string;
+  review_status: ReviewStatus;
+  assigned_instructor_id: string | null;
+  assigned_instructor_name: string | null;
+  instructor_feedback: string | null;
+  score: number | null;
+  max_score: number | null;
+  rubric_result: RubricResult | null;
+  private_instructor_notes: string | null;
+  reviewed_at: string | null;
+  resubmission_status: "none" | "revision_requested" | "resubmitted" | null;
+  version_number: number;
+  privacy_level: ActivityPrivacyLevel;
+  review_mode: ActivityReviewMode;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubmissionVersion {
+  version_number: number;
+  student_response: string;
+  submitted_at: string;
+  instructor_feedback: string | null;
+  review_status: ReviewStatus;
+  score: number | null;
+  reviewed_at: string | null;
+}
+
+export interface ReviewSettings {
+  review_target_days: number;
+  highlight_overdue: boolean;
+}
+
+export interface InstructorWorkloadMetrics {
+  instructor_id: string;
+  instructor_name: string;
+  submissions_awaiting_review: number;
+  reviews_completed: number;
+  avg_review_turnaround_hours: number;
+  revisions_requested: number;
+  overdue_reviews: number;
+}
+
+export interface ReviewQueueFilters {
+  cohort_id?: string;
+  module_id?: string;
+  activity_type?: SubmissionType | "all";
+  review_status?: ReviewStatus | "all";
+  date_from?: string;
+  date_to?: string;
+  student_search?: string;
+}
+
+export type ReviewQueueSort =
+  | "oldest_first"
+  | "newest_first"
+  | "student_name"
+  | "module";
+
+export interface ReviewQueueItem {
+  id: string;
+  student_name: string;
+  organization_name: string;
+  cohort_name: string;
+  module_number: number;
+  module_title: string;
+  activity_title: string;
+  submission_type: SubmissionType;
+  submitted_at: string;
+  review_status: ReviewStatus;
+  days_waiting: number;
+  is_overdue: boolean;
+  assigned_instructor_name: string | null;
+}
+
+export interface StudentFeedbackItem {
+  submission_id: string;
+  activity_title: string;
+  module_number: number;
+  module_title: string;
+  submission_type: SubmissionType;
+  review_status: ReviewStatus;
+  instructor_feedback: string | null;
+  score: number | null;
+  max_score: number | null;
+  rubric_result: RubricResult | null;
+  resubmission_status: "none" | "revision_requested" | "resubmitted" | null;
+  reviewed_at: string | null;
+  submitted_at: string;
+  link_url: string | null;
+}
+
+export interface OrgManagerReviewItem {
+  student_name: string;
+  cohort_name: string;
+  module_number: number;
+  module_title: string;
+  activity_title: string;
+  submission_type: SubmissionType;
+  review_status: ReviewStatus;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  is_org_visible: boolean;
 }

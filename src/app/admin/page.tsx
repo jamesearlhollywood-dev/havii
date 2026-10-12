@@ -118,6 +118,12 @@ export default async function AdminPage() {
           <a href="/admin/reports" className="rounded-lg border border-rise-border bg-white px-4 py-2 text-sm font-semibold text-rise-navy hover:bg-rise-sky">
             📋 Reports & Exports
           </a>
+          <a href="/admin/reviews" className="rounded-lg border border-rise-border bg-white px-4 py-2 text-sm font-semibold text-rise-navy hover:bg-rise-sky">
+            ✅ Review Oversight
+          </a>
+          <a href="/admin/rubrics" className="rounded-lg border border-rise-border bg-white px-4 py-2 text-sm font-semibold text-rise-navy hover:bg-rise-sky">
+            📝 Rubrics
+          </a>
         </div>
 
         {/* Active Announcements */}

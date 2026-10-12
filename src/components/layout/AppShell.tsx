@@ -15,6 +15,7 @@ const STUDENT_NAV = [
   { href: "/blueprint", label: "Financial Blueprint" },
   { href: "/progress", label: "Progress" },
   { href: "/scores", label: "My Scores" },
+  { href: "/feedback", label: "Feedback" },
   { href: "/resources", label: "Resources" },
   { href: "/certificates", label: "Certificates" },
   { href: "/messages", label: "Messages" },
@@ -24,6 +25,7 @@ const STUDENT_NAV = [
 
 const INSTRUCTOR_NAV = [
   { href: "/instructor", label: "Dashboard" },
+  { href: "/instructor/reviews", label: "Reviews" },
   { href: "/instructor/analytics", label: "Analytics" },
   { href: "/course", label: "Course" },
   { href: "/messages", label: "Messages" },
@@ -50,6 +52,8 @@ const ADMIN_NAV = [
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/cms", label: "Content" },
   { href: "/admin/question-bank", label: "Assessments" },
+  { href: "/admin/rubrics", label: "Rubrics" },
+  { href: "/admin/reviews", label: "Reviews" },
   { href: "/admin/enrollment", label: "Enrollment" },
   { href: "/admin/certificates", label: "Certificates" },
   { href: "/admin/announcements", label: "Announcements" },

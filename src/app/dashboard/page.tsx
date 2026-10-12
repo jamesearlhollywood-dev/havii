@@ -11,6 +11,10 @@ import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
 import type { Profile, ModuleStatus } from "@/lib/types";
 import { fetchNotificationData } from "@/lib/notification-helpers";
 import { getActiveAnnouncements } from "@/actions/announcements";
+import { StudentFeedbackArea } from "@/components/review/StudentFeedbackArea";
+import { getStudentFeedback } from "@/actions/reviews";
+import { getDemoStudentFeedback } from "@/data/review-demo-data";
+import type { StudentFeedbackItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -68,6 +72,11 @@ export default async function DashboardPage() {
   // Fetch notifications
   const { notifications, unreadCount } = await fetchNotificationData();
   const activeAnnouncements = await getActiveAnnouncements();
+
+  // Fetch instructor feedback
+  const feedbackItems: StudentFeedbackItem[] = supabaseConnected
+    ? await getStudentFeedback()
+    : getDemoStudentFeedback("demo-student");
 
   // Module roadmap states
   const moduleStates: ModuleStatus[] = modules.map((m, i) => {
@@ -350,6 +359,9 @@ export default async function DashboardPage() {
             ))}
           </div>
         </div>
+
+        {/* Instructor Feedback */}
+        <StudentFeedbackArea items={feedbackItems} />
       </div>
     </AppShell>
   );

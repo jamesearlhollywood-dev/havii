@@ -83,6 +83,16 @@ export default async function InstructorPage() {
           </Card>
         </div>
 
+        {/* Quick link to Review Queue */}
+        <div className="mb-6">
+          <a
+            href="/instructor/reviews"
+            className="inline-flex items-center gap-2 rounded-xl bg-rise-navy px-5 py-3 text-sm font-semibold text-white hover:bg-rise-navy-light"
+          >
+            ✅ Go to Review Queue
+          </a>
+        </div>
+
         {/* Progress monitoring */}
         <h2 className="mb-4 text-xl font-bold text-rise-navy">Student Progress Monitoring</h2>
         {students.length > 0 ? (

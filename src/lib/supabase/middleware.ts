@@ -70,6 +70,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/certificates") ||
     pathname.startsWith("/profile") ||
     pathname.startsWith("/support") ||
+    pathname.startsWith("/feedback") ||
     pathname.startsWith("/instructor") ||
     pathname.startsWith("/org-manager") ||
     pathname.startsWith("/admin");

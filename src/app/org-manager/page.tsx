@@ -14,6 +14,10 @@ import {
 } from "@/data/demo-data";
 import type { Profile } from "@/lib/types";
 import { ExportStudentCompletionButton, ExportCohortCompletionButton, ExportCompletionDatesButton } from "@/components/admin/CsvExport";
+import { OrgManagerReviewStatus } from "@/components/review/OrgManagerReviewStatus";
+import { getOrgManagerReviewStatus } from "@/actions/reviews";
+import { getDemoOrgManagerReviewItems } from "@/data/review-demo-data";
+import type { OrgManagerReviewItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Organization Dashboard" };
@@ -45,6 +49,11 @@ export default async function OrgManagerPage() {
 
   const completedCount = orgStudents.filter((s) => s.has_certificate).length;
   const completionRate = orgStudents.length > 0 ? Math.round((completedCount / orgStudents.length) * 100) : 0;
+
+  // Fetch review status items
+  const reviewItems: OrgManagerReviewItem[] = supabaseConnected
+    ? await getOrgManagerReviewStatus()
+    : getDemoOrgManagerReviewItems(orgId || "org-lincoln");
 
   return (
     <AppShell profile={profile}>
@@ -187,6 +196,9 @@ export default async function OrgManagerPage() {
             </div>
           </div>
         )}
+
+        {/* Instructor Review Status */}
+        <OrgManagerReviewStatus items={reviewItems} />
       </div>
     </AppShell>
   );
