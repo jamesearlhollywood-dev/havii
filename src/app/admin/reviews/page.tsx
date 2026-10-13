@@ -21,11 +21,6 @@ export default async function AdminReviewsPage() {
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let pending: ReviewQueueItem[];
-  let unassigned: Submission[];
-  let allSubmissions: Submission[];
-  let workload: InstructorWorkloadMetrics[];
-  let settings: ReviewSettings;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -39,11 +34,11 @@ export default async function AdminReviewsPage() {
   }
 
   const oversight = await getAdminReviewOversight();
-  pending = oversight.pending;
-  unassigned = oversight.unassigned;
-  allSubmissions = oversight.allSubmissions;
-  workload = await getInstructorWorkload();
-  settings = await getReviewSettings();
+  const pending = oversight.pending;
+  const unassigned = oversight.unassigned;
+  const allSubmissions = oversight.allSubmissions;
+  const workload = await getInstructorWorkload();
+  const settings = await getReviewSettings();
 
   const instructors = [{ id: DEMO_INSTRUCTOR_PROFILE.id, name: "Ms. Garcia" }];
 

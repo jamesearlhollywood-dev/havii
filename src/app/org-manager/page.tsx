@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUserAndProfile } from "@/lib/profile";
 import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
@@ -182,12 +183,12 @@ export default async function OrgManagerPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <a
-                          href={`/admin/records/${s.profile_id}`}
+                        <Link
+                          href={`/org-manager/records/${s.profile_id}`}
                           className="rounded-lg border border-rise-border bg-white px-2 py-1 text-xs font-semibold text-rise-navy hover:bg-rise-sky"
                         >
                           View
-                        </a>
+                        </Link>
                       </td>
                     </tr>
                   ))}

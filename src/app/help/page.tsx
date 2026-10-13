@@ -47,7 +47,7 @@ export default function HelpPage() {
           <Card>
             <h2 className="text-lg font-bold text-rise-navy">Financial Protection</h2>
             <p className="mt-2 text-sm text-rise-muted">
-              If you believe you've been targeted by a financial scam or identity theft:
+              If you believe you&apos;ve been targeted by a financial scam or identity theft:
             </p>
             <div className="mt-3 space-y-2">
               <div className="rounded-xl border border-rise-border bg-rise-sky/30 p-3">

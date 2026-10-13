@@ -487,7 +487,7 @@ export function CmsManager({
             </div>
 
             {currentModule.lessons.length === 0 ? (
-              <p className="py-6 text-center text-sm text-rise-muted">No lessons yet. Click "Add Lesson" to create one.</p>
+              <p className="py-6 text-center text-sm text-rise-muted">No lessons yet. Click &quot;Add Lesson&quot; to create one.</p>
             ) : (
               <div className="space-y-2">
                 {currentModule.lessons.map((lesson, i) => (

@@ -234,7 +234,7 @@ export function BlueprintCapstone({
       <div className="rounded-2xl border-2 border-rise-blue-light bg-rise-sky/30 p-6">
         <h2 className="text-xl font-bold text-rise-navy">My Next 12 Months</h2>
         <p className="mt-1 text-sm text-rise-muted">
-          Identify up to 6 actions you'll take in the next 12 months. {actionPlan.length} of 6 actions.
+          Identify up to 6 actions you&apos;ll take in the next 12 months. {actionPlan.length} of 6 actions.
         </p>
 
         <div className="mt-4 space-y-4">

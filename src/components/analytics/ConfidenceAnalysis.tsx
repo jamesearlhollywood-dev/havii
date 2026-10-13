@@ -13,7 +13,7 @@ export function ConfidenceAnalysisView({
     <div className="space-y-6">
       <Alert tone="info">
         <strong>Self-Reported Financial Confidence.</strong> These results
-        reflect students' self-assessment of their financial knowledge and
+        reflect students&apos; self-assessment of their financial knowledge and
         comfort. They are <strong>not</strong> a measure of actual financial
         behavior or financial success.
       </Alert>

@@ -107,7 +107,7 @@ export async function submitKnowledgeCheck(
 
   // Calculate score
   let correct = 0;
-  let total = mod.knowledgeCheck.length;
+  const total = mod.knowledgeCheck.length;
 
   for (const q of mod.knowledgeCheck) {
     const userAnswer = answers[q.id];

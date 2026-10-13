@@ -93,7 +93,7 @@ export default async function ProgressPage() {
         <Card className="mb-6 border-rise-blue-light bg-gradient-to-br from-rise-sky to-white">
           <h2 className="text-xl font-bold text-rise-navy">Your RISE Journey</h2>
           <p className="mt-1 text-sm text-rise-muted">
-            Track your path from Module 1 to your certificate. Here's what's complete and what remains.
+            Track your path from Module 1 to your certificate. Here&apos;s what&apos;s complete and what remains.
           </p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
             {journeySteps.map((step, idx) => (

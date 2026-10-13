@@ -189,7 +189,7 @@ export function AssessmentRunner({
         {!result.passed && result.reviewAreas.length > 0 && (
           <div className="rounded-2xl border border-rise-warning/30 bg-white p-5">
             <p className="text-sm font-bold text-rise-navy">
-              You're not finished yet. Review the areas below, then try again.
+              You&apos;re not finished yet. Review the areas below, then try again.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {result.reviewAreas.map((topic) => (

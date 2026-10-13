@@ -132,7 +132,7 @@ export default async function AdminCommunicationsPage() {
                       </div>
                       {reportedMessage && (
                         <p className="mt-1 text-sm text-rise-muted">
-                          From <strong>{reportedMessage.sender_name}</strong>: "{reportedMessage.body.slice(0, 100)}{reportedMessage.body.length > 100 ? "..." : ""}"
+                          From <strong>{reportedMessage.sender_name}</strong>: &ldquo;{reportedMessage.body.slice(0, 100)}{reportedMessage.body.length > 100 ? "..." : ""}&rdquo;
                         </p>
                       )}
                       <p className="mt-1 text-sm text-rise-navy">

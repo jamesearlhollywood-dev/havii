@@ -33,7 +33,24 @@ import type {
   AnalyticsFilter,
   StartingPointSurvey,
   EndOfCourseSurvey,
+  ModuleProgressRow,
+  BlueprintSection,
 } from "@/lib/types";
+
+// Minimal types for Supabase query results (no generated DB types available)
+type EnrollmentWithRelations = {
+  student_profile_id: string;
+  status: string;
+  overall_progress: number;
+  student: { first_name: string | null; last_name: string | null } | null;
+  cohort: { name: string } | null;
+  organization: { name: string } | null;
+};
+
+type ProfileWithSurvey = {
+  id: string;
+  starting_point_survey: StartingPointSurvey | null;
+};
 
 // ---------------------------------------------------------------------------
 // Get analytics data for a given scope (with demo fallback)
@@ -77,7 +94,7 @@ export async function getAnalyticsData(
   const { data: enrollments } = await query;
 
   // Transform enrollments to StudentProgressSummary
-  const students: StudentProgressSummary[] = (enrollments ?? []).map((e: any) => ({
+  const students: StudentProgressSummary[] = (enrollments as EnrollmentWithRelations[] ?? []).map((e) => ({
     profile_id: e.student_profile_id,
     student_name: e.student ? `${e.student.first_name ?? ""} ${e.student.last_name ?? ""}`.trim() : "Unknown",
     cohort_name: e.cohort?.name ?? "—",
@@ -165,11 +182,11 @@ export async function getConfidenceAnalysis(
   }
   const { data: profiles } = await profileQuery;
 
-  const preSurveys: StartingPointSurvey[] = (profiles ?? [])
-    .filter((p: any) => p.starting_point_survey)
-    .map((p: any) => p.starting_point_survey as StartingPointSurvey);
+  const preSurveys: StartingPointSurvey[] = (profiles as ProfileWithSurvey[] ?? [])
+    .filter((p) => p.starting_point_survey)
+    .map((p) => p.starting_point_survey as StartingPointSurvey);
 
-  const profileIds = (profiles ?? []).map((p: any) => p.id);
+  const profileIds = (profiles as ProfileWithSurvey[] ?? []).map((p) => p.id);
   const { data: postSurveyData } = await supabase
     .from("end_of_course_surveys")
     .select("*")
@@ -295,15 +312,15 @@ export async function getStudentOutcomesProfile(
   // Build module details
   const { modules: courseModules } = await import("@/data/course");
   const moduleDetails = courseModules.map((mod) => {
-    const mp = moduleProgress?.find((m: any) => m.module_id === mod.id);
+    const mp = (moduleProgress as ModuleProgressRow[] | null)?.find((m) => m.module_id === mod.id);
     return {
       module_id: mod.id,
       module_number: mod.number,
       module_title: mod.title,
       knowledge_check_score: mp?.knowledge_check_score ?? null,
       knowledge_check_passed: mp?.knowledge_check_passed ?? false,
-      decision_lab_completed: decisionLabs?.some((dl: any) => dl.module_id === mod.id) ?? false,
-      blueprint_section_completed: blueprintSections?.some((bp: any) => bp.module_id === mod.id && bp.completed) ?? false,
+      decision_lab_completed: (decisionLabs as { module_id: string }[] | null)?.some((dl) => dl.module_id === mod.id) ?? false,
+      blueprint_section_completed: (blueprintSections as BlueprintSection[] | null)?.some((bp) => bp.module_id === mod.id && bp.completed) ?? false,
       module_completed: mp?.module_completed ?? false,
     };
   });
@@ -311,16 +328,16 @@ export async function getStudentOutcomesProfile(
   const startingConfidence = profile.starting_point_survey
     ? Math.round(
         (profile.starting_point_survey.responses.reduce(
-          (sum: number, r: any) => sum + r.confidence, 0
+          (sum: number, r: { confidence: number }) => sum + r.confidence, 0
         ) / profile.starting_point_survey.responses.length) * 10
       ) / 10
     : null;
 
   const endingConfidence = endSurvey?.[0]
     ? Math.round(
-        ((endSurvey[0] as any).responses.reduce(
-          (sum: number, r: any) => sum + r.confidence, 0
-        ) / (endSurvey[0] as any).responses.length) * 10
+        ((endSurvey[0] as EndOfCourseSurvey).responses.reduce(
+          (sum: number, r: { confidence: number }) => sum + r.confidence, 0
+        ) / (endSurvey[0] as EndOfCourseSurvey).responses.length) * 10
       ) / 10
     : null;
 
@@ -331,12 +348,12 @@ export async function getStudentOutcomesProfile(
     cohort_name: enrollment?.cohort?.name ?? "—",
     enrollment_status: enrollment?.status ?? "not_started",
     overall_progress: enrollment?.overall_progress ?? 0,
-    modules_completed: moduleProgress?.filter((m: any) => m.module_completed).length ?? 0,
+    modules_completed: (moduleProgress as ModuleProgressRow[] | null)?.filter((m) => m.module_completed).length ?? 0,
     module_details: moduleDetails,
     final_assessment_score: finalAttempts?.[0]?.percentage ?? null,
     final_assessment_passed: finalAttempts?.[0]?.passed ?? false,
     decision_labs_completed: decisionLabs?.length ?? 0,
-    blueprint_sections_completed: blueprintSections?.filter((bp: any) => bp.completed).length ?? 0,
+    blueprint_sections_completed: (blueprintSections as BlueprintSection[] | null)?.filter((bp) => bp.completed).length ?? 0,
     certificate_status: certificates?.length ? "issued" : "not_eligible",
     starting_confidence: startingConfidence,
     ending_confidence: endingConfidence,

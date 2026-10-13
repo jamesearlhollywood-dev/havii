@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUserAndProfile } from "@/lib/profile";
 import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
@@ -85,12 +86,12 @@ export default async function InstructorPage() {
 
         {/* Quick link to Review Queue */}
         <div className="mb-6">
-          <a
+          <Link
             href="/instructor/reviews"
             className="inline-flex items-center gap-2 rounded-xl bg-rise-navy px-5 py-3 text-sm font-semibold text-white hover:bg-rise-navy-light"
           >
             ✅ Go to Review Queue
-          </a>
+          </Link>
         </div>
 
         {/* Progress monitoring */}

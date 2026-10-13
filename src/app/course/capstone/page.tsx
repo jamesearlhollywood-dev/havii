@@ -131,7 +131,7 @@ export default async function CapstonePage() {
           </p>
           <h1 className="mt-1 text-2xl font-bold">Your RISE Journey Continues</h1>
           <p className="mt-2 text-sm text-white/80">
-            You've completed all six modules and passed the Final Assessment. Now build your
+            You&apos;ve completed all six modules and passed the Final Assessment. Now build your
             12-Month Financial Blueprint and complete your RISE journey.
           </p>
         </div>
