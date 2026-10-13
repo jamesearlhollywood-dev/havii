@@ -14,7 +14,28 @@ function isValidSupabaseConfig(): boolean {
 }
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  // In the preview proxy environment, x-forwarded-host (sandbox internal host)
+  // differs from the browser's origin (preview proxy URL). Next.js Server Actions
+  // reject this mismatch as a CSRF protection. Rewrite x-forwarded-host to match
+  // the origin so Server Actions work behind the proxy.
+  const isPreview = process.env.BASE44_PREVIEW_MODE === "1";
+  function nextResponse() {
+    if (!isPreview) return NextResponse.next({ request });
+    const headers = new Headers(request.headers);
+    const origin = request.headers.get("origin");
+    const forwardedHost = headers.get("x-forwarded-host");
+    if (origin && forwardedHost) {
+      try {
+        const originHost = new URL(origin).host;
+        if (originHost !== forwardedHost) {
+          headers.set("x-forwarded-host", originHost);
+        }
+      } catch {}
+    }
+    return NextResponse.next({ request: { headers } });
+  }
+
+  let supabaseResponse = nextResponse();
 
   if (!isValidSupabaseConfig()) {
     return supabaseResponse;
@@ -32,7 +53,7 @@ export async function updateSession(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value)
         );
-        supabaseResponse = NextResponse.next({ request });
+        supabaseResponse = nextResponse();
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         );
