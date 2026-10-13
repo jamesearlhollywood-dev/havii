@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { DecisionLab } from "@/components/course/DecisionLab";
 import { getModule } from "@/data/course";
+import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -26,13 +29,22 @@ export default async function DecisionLabPage({
   const mod = getModule(moduleId);
   if (!mod) redirect("/course");
 
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/course");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  const supabaseConnected = hasValidSupabaseConfig();
+  let profile: Profile;
+  let submitted: boolean;
 
-  const progress = await getStudentProgress(profile.id);
-  const submitted = progress.decisionLabs.some((d: any) => d.module_id === moduleId);
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/course");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    profile = userProfile;
+    const progress = await getStudentProgress(profile.id);
+    submitted = progress.decisionLabs.some((d: any) => d.module_id === moduleId);
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+    submitted = DEMO_STUDENT_PROGRESS.decisionLabs.some((d: any) => d.module_id === moduleId);
+  }
 
   return (
     <AppShell profile={profile}>

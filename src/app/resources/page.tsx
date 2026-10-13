@@ -1,25 +1,39 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserAndProfile } from "@/lib/profile";
-import { createClient } from "@/lib/supabase/server";
+import { hasValidSupabaseConfig, createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card } from "@/components/ui/Card";
 import { modules } from "@/data/course";
+import { DEMO_STUDENT_PROFILE } from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Resources" };
 
 export default async function ResourcesPage() {
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/resources");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  const supabaseConnected = hasValidSupabaseConfig();
+  let profile: Profile;
 
-  const supabase = await createClient();
-  const { data: resources } = await supabase
-    .from("resources")
-    .select("*")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/resources");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    profile = userProfile;
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+  }
+
+  let resources: any[] | null = null;
+  if (supabaseConnected) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("resources")
+      .select("*")
+      .eq("is_published", true)
+      .order("created_at", { ascending: false });
+    resources = data;
+  }
 
   // Default resources if none in DB
   const defaultResources = [

@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { getModule, modules } from "@/data/course";
+import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,12 +21,21 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
   const mod = getModule(moduleId);
   if (!mod) redirect("/course");
 
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/course");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  const supabaseConnected = hasValidSupabaseConfig();
+  let profile: Profile;
+  let progress: any;
 
-  const progress = profile.role === "student" ? await getStudentProgress(profile.id) : null;
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/course");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    profile = userProfile;
+    progress = profile.role === "student" ? await getStudentProgress(profile.id) : null;
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+    progress = DEMO_STUDENT_PROGRESS as any;
+  }
   const mp = progress?.moduleProgress.find((p: any) => p.module_id === moduleId);
   const lessonsComplete = mp?.lessons_completed ?? 0;
   const pct = Math.round((lessonsComplete / mod.lessons.length) * 100);

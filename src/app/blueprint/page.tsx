@@ -1,20 +1,32 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserAndProfile, getStudentProgress } from "@/lib/profile";
+import { hasValidSupabaseConfig } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { BlueprintSectionEditor } from "@/components/course/BlueprintSectionEditor";
 import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { modules, blueprintSections } from "@/data/course";
+import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
+import type { Profile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Financial Blueprint" };
 
 export default async function BlueprintPage() {
-  const { user, profile } = await getCurrentUserAndProfile();
-  if (!user) redirect("/auth/login?next=/blueprint");
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  const supabaseConnected = hasValidSupabaseConfig();
+  let profile: Profile;
+  let progress: ReturnType<typeof getStudentProgress> extends Promise<infer T> ? T : never;
 
-  const progress = await getStudentProgress(profile.id);
+  if (supabaseConnected) {
+    const { user, profile: userProfile } = await getCurrentUserAndProfile();
+    if (!user) redirect("/auth/login?next=/blueprint");
+    if (!userProfile) redirect("/onboarding");
+    if (!userProfile.onboarding_completed) redirect("/onboarding");
+    profile = userProfile;
+    progress = await getStudentProgress(profile.id);
+  } else {
+    profile = DEMO_STUDENT_PROFILE;
+    progress = DEMO_STUDENT_PROGRESS as any;
+  }
 
   // Determine which sections are unlocked
   const sectionStatus = blueprintSections.map((bs) => {

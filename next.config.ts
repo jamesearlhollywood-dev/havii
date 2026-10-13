@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   // allows the build to complete without aborting on this non-fatal prerender error.
   experimental: {
     prerenderEarlyExit: false,
+    allowDevelopmentBuild: true,
   },
 };
 
