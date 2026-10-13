@@ -8,7 +8,7 @@ import { getModule, PASSING_SCORE } from "@/data/course";
 import { getKnowledgeCheckForModule, getQuestionsForAssessment } from "@/data/assessment-data";
 import { stripQuestion } from "@/lib/assessment-scoring";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
-import type { Profile } from "@/lib/types";
+import type { Profile, QuizAttempt } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,7 @@ export default async function KnowledgeCheckPage({
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let attempts: any[] = [];
+  let attempts: QuizAttempt[] = [];
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -43,10 +43,10 @@ export default async function KnowledgeCheckPage({
     if (!userProfile.onboarding_completed) redirect("/onboarding");
     profile = userProfile;
     const progress = await getStudentProgress(profile.id);
-    attempts = progress.quizAttempts.filter((a: any) => a.module_id === moduleId);
+    attempts = progress.quizAttempts.filter((a) => a.module_id === moduleId);
   } else {
     profile = DEMO_STUDENT_PROFILE;
-    attempts = DEMO_STUDENT_PROGRESS.quizAttempts.filter((a: any) => a.module_id === moduleId);
+    attempts = DEMO_STUDENT_PROGRESS.quizAttempts.filter((a) => a.module_id === moduleId);
   }
 
   const kcConfig = getKnowledgeCheckForModule(moduleId);
@@ -56,8 +56,8 @@ export default async function KnowledgeCheckPage({
   // Strip answer data before sending to client
   const safeQuestions = allQuestions.map(stripQuestion);
 
-  const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a: any) => Number(a.score))) : null;
-  const passed = attempts.some((a: any) => a.passed);
+  const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => Number(a.score))) : null;
+  const passed = attempts.some((a) => a.passed);
 
   return (
     <AppShell profile={profile}>

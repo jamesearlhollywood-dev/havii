@@ -6,7 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { getModule, modules } from "@/data/course";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
-import type { Profile } from "@/lib/types";
+import type { Profile, StudentProgress } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
 
   const supabaseConnected = hasValidSupabaseConfig();
   let profile: Profile;
-  let progress: any;
+  let progress: StudentProgress | null;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -34,16 +34,16 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
     progress = profile.role === "student" ? await getStudentProgress(profile.id) : null;
   } else {
     profile = DEMO_STUDENT_PROFILE;
-    progress = DEMO_STUDENT_PROGRESS as any;
+    progress = DEMO_STUDENT_PROGRESS;
   }
-  const mp = progress?.moduleProgress.find((p: any) => p.module_id === moduleId);
+  const mp = progress?.moduleProgress.find((p) => p.module_id === moduleId);
   const lessonsComplete = mp?.lessons_completed ?? 0;
   const pct = Math.round((lessonsComplete / mod.lessons.length) * 100);
 
   // Find next lesson
-  const moduleLessonProgress = progress?.lessonProgress.filter((l: any) => l.module_id === moduleId) ?? [];
+  const moduleLessonProgress = progress?.lessonProgress.filter((l) => l.module_id === moduleId) ?? [];
   const nextLesson = mod.lessons.find((l) => {
-    const lp = moduleLessonProgress.find((p: any) => p.lesson_id === l.id);
+    const lp = moduleLessonProgress.find((p) => p.lesson_id === l.id);
     return !lp || lp.status !== "completed";
   }) ?? mod.lessons[0];
 
@@ -139,7 +139,7 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
           <h2 className="mb-3 text-lg font-bold text-rise-navy">Lessons</h2>
           <div className="space-y-2">
             {mod.lessons.map((lesson, i) => {
-              const lp = moduleLessonProgress.find((p: any) => p.lesson_id === lesson.id);
+              const lp = moduleLessonProgress.find((p) => p.lesson_id === lesson.id);
               const isComplete = lp?.status === "completed";
               const isInProgress = lp?.status === "in_progress";
               return (

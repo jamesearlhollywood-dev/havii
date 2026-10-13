@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasValidSupabaseConfig } from "@/lib/supabase/server";
-import type { Profile } from "@/lib/types";
+import type { Profile, StudentProgress } from "@/lib/types";
 
 export async function getCurrentUserAndProfile() {
   if (!hasValidSupabaseConfig()) {
@@ -21,7 +21,7 @@ export async function getCurrentUserAndProfile() {
   return { user, profile: profile as Profile | null, supabase };
 }
 
-export async function getStudentProgress(profileId: string) {
+export async function getStudentProgress(profileId: string): Promise<StudentProgress> {
   const supabase = await createClient();
   const { data: lessonProgress } = await supabase
     .from("lesson_progress")
@@ -62,13 +62,13 @@ export async function getStudentProgress(profileId: string) {
     .order("created_at", { ascending: false });
 
   return {
-    lessonProgress: lessonProgress ?? [],
-    moduleProgress: moduleProgress ?? [],
-    quizAttempts: quizAttempts ?? [],
-    decisionLabs: decisionLabs ?? [],
-    blueprintSections: blueprintSections ?? [],
-    certificates: certificates ?? [],
-    finalAttempts: finalAttempts ?? [],
+    lessonProgress: (lessonProgress ?? []) as StudentProgress["lessonProgress"],
+    moduleProgress: (moduleProgress ?? []) as StudentProgress["moduleProgress"],
+    quizAttempts: (quizAttempts ?? []) as StudentProgress["quizAttempts"],
+    decisionLabs: (decisionLabs ?? []) as StudentProgress["decisionLabs"],
+    blueprintSections: (blueprintSections ?? []) as StudentProgress["blueprintSections"],
+    certificates: (certificates ?? []) as StudentProgress["certificates"],
+    finalAttempts: (finalAttempts ?? []) as StudentProgress["finalAttempts"],
   };
 }
 

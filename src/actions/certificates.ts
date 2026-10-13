@@ -110,11 +110,11 @@ export async function manuallyIssueCertificate(
   // Get student progress to check eligibility (informational only — admin override)
   const progress = await getStudentProgress(profileId);
   const progressData: StudentProgressData = {
-    moduleProgress: progress.moduleProgress as any,
-    lessonProgress: progress.lessonProgress as any,
-    decisionLabs: progress.decisionLabs as any,
-    blueprintSections: progress.blueprintSections as any,
-    finalAttempts: progress.finalAttempts as any,
+    moduleProgress: progress.moduleProgress,
+    lessonProgress: progress.lessonProgress,
+    decisionLabs: progress.decisionLabs,
+    blueprintSections: progress.blueprintSections,
+    finalAttempts: progress.finalAttempts,
   };
   const eligibility = checkCertificateEligibility(progressData);
 

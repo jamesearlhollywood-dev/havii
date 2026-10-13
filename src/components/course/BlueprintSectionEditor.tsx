@@ -22,21 +22,19 @@ export function BlueprintSectionEditor({
   initialCompleted: boolean;
   unlocked: boolean;
 }) {
-  const [data, setData] = useState<Record<string, string>>({});
-  const [completed, setCompleted] = useState(initialCompleted);
-  const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
-  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
-
-  // Load initial data
-  useEffect(() => {
+  const [data, setData] = useState<Record<string, string>>(() => {
     if (initialData) {
       const parsed: Record<string, string> = {};
       for (const [k, v] of Object.entries(initialData)) {
         parsed[k] = typeof v === "string" ? v : String(v ?? "");
       }
-      setData(parsed);
+      return parsed;
     }
-  }, [initialData]);
+    return {};
+  });
+  const [completed, setCompleted] = useState(initialCompleted);
+  const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
+  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const autosave = useCallback((newData: Record<string, string>) => {
     if (!unlocked) return;
@@ -44,7 +42,7 @@ export function BlueprintSectionEditor({
     if (timer) clearTimeout(timer);
     const t = setTimeout(async () => {
       try {
-        await saveBlueprintSection(sectionNumber, sectionKey, sectionTitle, newData as any, false);
+        await saveBlueprintSection(sectionNumber, sectionKey, sectionTitle, newData as Record<string, unknown>, false);
         setSaved("saved");
         setTimeout(() => setSaved("idle"), 2000);
       } catch {
@@ -66,7 +64,7 @@ export function BlueprintSectionEditor({
 
   async function handleComplete() {
     try {
-      await saveBlueprintSection(sectionNumber, sectionKey, sectionTitle, data as any, true);
+      await saveBlueprintSection(sectionNumber, sectionKey, sectionTitle, data as Record<string, unknown>, true);
       setCompleted(true);
       setSaved("saved");
       setTimeout(() => setSaved("idle"), 2000);

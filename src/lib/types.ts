@@ -298,6 +298,50 @@ export interface Certificate {
 }
 
 // ---------------------------------------------------------------------------
+// Final Assessment Attempt
+// ---------------------------------------------------------------------------
+export interface FinalAssessmentAttempt {
+  id: string;
+  profile_id: string;
+  score: number;
+  percentage: number;
+  passed: boolean;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Assessment Attempt (unified KC + Final)
+// ---------------------------------------------------------------------------
+export interface AssessmentAttempt {
+  id: string;
+  profile_id: string;
+  assessment_id: string;
+  assessment_type: string;
+  module_id: string;
+  attempt_number: number;
+  started_at: string;
+  submitted_at: string;
+  score: number;
+  percentage: number;
+  passed: boolean;
+  responses: Record<string, unknown>;
+  question_results: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
+// Student Progress (aggregated data for getStudentProgress)
+// ---------------------------------------------------------------------------
+export interface StudentProgress {
+  lessonProgress: LessonProgress[];
+  moduleProgress: ModuleProgressRow[];
+  quizAttempts: QuizAttempt[];
+  decisionLabs: DecisionLabSubmission[];
+  blueprintSections: BlueprintSection[];
+  certificates: Certificate[];
+  finalAttempts: FinalAssessmentAttempt[];
+}
+
+// ---------------------------------------------------------------------------
 // Student Progress Summary (for instructor/admin dashboards)
 // ---------------------------------------------------------------------------
 export interface StudentProgressSummary {

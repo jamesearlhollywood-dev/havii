@@ -17,6 +17,9 @@ import type {
   Certificate,
   StudentProgressSummary,
   AdminSettings,
+  AssessmentAttempt,
+  FinalAssessmentAttempt,
+  StudentProgress,
 } from "@/lib/types";
 import { modules, blueprintSections, TOTAL_LESSONS } from "@/data/course";
 
@@ -389,7 +392,7 @@ export const DEMO_QUIZ_ATTEMPTS: QuizAttempt[] = [
   },
 ];
 
-export const DEMO_ASSESSMENT_ATTEMPTS: any[] = [
+export const DEMO_ASSESSMENT_ATTEMPTS: AssessmentAttempt[] = [
   {
     id: "aa-1",
     profile_id: "demo-student",
@@ -536,9 +539,9 @@ export const DEMO_CERTIFICATE_AUDIT: {
   },
 ];
 
-export const DEMO_FINAL_ATTEMPTS: any[] = [];
+export const DEMO_FINAL_ATTEMPTS: FinalAssessmentAttempt[] = [];
 
-export const DEMO_STUDENT_PROGRESS = {
+export const DEMO_STUDENT_PROGRESS: StudentProgress = {
   lessonProgress: DEMO_LESSON_PROGRESS,
   moduleProgress: DEMO_MODULE_PROGRESS,
   quizAttempts: DEMO_QUIZ_ATTEMPTS,

@@ -11,7 +11,8 @@ import { EndOfCourseSurvey } from "@/components/capstone/EndOfCourseSurvey";
 import { BlueprintCapstone } from "@/components/capstone/BlueprintCapstone";
 import { getCapstoneData, isSurveyCompleted, isBlueprintReviewed } from "@/actions/capstone";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
-import type { Profile } from "@/lib/types";
+import type { Profile, StudentProgress } from "@/lib/types";
+import type { CapstoneData } from "@/data/capstone-types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "RISE Capstone" };
@@ -20,10 +21,10 @@ export default async function CapstonePage() {
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let progress: any;
+  let progress: StudentProgress;
   let surveyDone = false;
   let blueprintReviewed = false;
-  let capstoneData: any = null;
+  let capstoneData: CapstoneData;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -60,9 +61,9 @@ export default async function CapstonePage() {
 
   // Check prerequisites — all modules complete + final assessment passed
   const completedModules = modules.filter((m) =>
-    progress.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed),
+    progress.moduleProgress.some((p) => p.module_id === m.id && p.module_completed),
   ).length;
-  const finalPassed = progress.finalAttempts.some((a: any) => a.passed);
+  const finalPassed = progress.finalAttempts.some((a) => a.passed);
 
   if (completedModules < 6 || !finalPassed) {
     return (
@@ -100,7 +101,7 @@ export default async function CapstonePage() {
   // Build blueprint section data for the capstone
   const sectionData = blueprintSections.map((bs) => {
     const mod = modules.find((m) => m.id === bs.moduleId)!;
-    const bpData = progress.blueprintSections.find((b: any) => b.section_number === bs.number);
+    const bpData = progress.blueprintSections.find((b) => b.section_number === bs.number);
     return {
       number: bs.number,
       title: bs.title,

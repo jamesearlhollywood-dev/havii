@@ -6,7 +6,7 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { modules, PASSING_SCORE } from "@/data/course";
 import { KNOWLEDGE_CHECK_CONFIGS, FINAL_ASSESSMENT_CONFIG } from "@/data/assessment-data";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS, DEMO_ASSESSMENT_ATTEMPTS } from "@/data/demo-data";
-import type { Profile } from "@/lib/types";
+import type { Profile, QuizAttempt, FinalAssessmentAttempt } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My Scores" };
@@ -15,8 +15,8 @@ export default async function ScoresPage() {
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let quizAttempts: any[] = [];
-  let finalAttempts: any[] = [];
+  let quizAttempts: QuizAttempt[] = [];
+  let finalAttempts: FinalAssessmentAttempt[] = [];
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -36,9 +36,9 @@ export default async function ScoresPage() {
   // Build knowledge check summaries
   const kcSummaries = KNOWLEDGE_CHECK_CONFIGS.map((kc) => {
     const mod = modules.find((m) => m.id === kc.moduleId);
-    const modAttempts = quizAttempts.filter((a: any) => a.module_id === kc.moduleId);
-    const highestScore = modAttempts.length > 0 ? Math.max(...modAttempts.map((a: any) => Number(a.score))) : null;
-    const passed = modAttempts.some((a: any) => a.passed);
+    const modAttempts = quizAttempts.filter((a) => a.module_id === kc.moduleId);
+    const highestScore = modAttempts.length > 0 ? Math.max(...modAttempts.map((a) => Number(a.score))) : null;
+    const passed = modAttempts.some((a) => a.passed);
 
     return {
       moduleId: kc.moduleId,
@@ -52,8 +52,8 @@ export default async function ScoresPage() {
   });
 
   // Final assessment summary
-  const finalHighest = finalAttempts.length > 0 ? Math.max(...finalAttempts.map((a: any) => Number(a.score))) : null;
-  const finalPassed = finalAttempts.some((a: any) => a.passed);
+  const finalHighest = finalAttempts.length > 0 ? Math.max(...finalAttempts.map((a) => Number(a.score))) : null;
+  const finalPassed = finalAttempts.some((a) => a.passed);
 
   const totalKCsPassed = kcSummaries.filter((kc) => kc.passed).length;
 

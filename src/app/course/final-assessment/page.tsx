@@ -9,7 +9,7 @@ import { modules, PASSING_SCORE } from "@/data/course";
 import { FINAL_ASSESSMENT_CONFIG, getQuestionsForAssessment } from "@/data/assessment-data";
 import { stripQuestion } from "@/lib/assessment-scoring";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
-import type { Profile } from "@/lib/types";
+import type { Profile, StudentProgress } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Final RISE USA Assessment" };
@@ -18,7 +18,7 @@ export default async function FinalAssessmentPage() {
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let progress: any = null;
+  let progress: StudentProgress;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -37,16 +37,16 @@ export default async function FinalAssessmentPage() {
 
   // Check prerequisites
   const completedModules = modules.filter((m) =>
-    progress.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed)
+    progress.moduleProgress.some((p) => p.module_id === m.id && p.module_completed)
   ).length;
   const decisionLabsCompleted = progress.decisionLabs.length;
-  const blueprintCompleted = progress.blueprintSections.filter((b: any) => b.completed).length;
+  const blueprintCompleted = progress.blueprintSections.filter((b) => b.completed).length;
   const canTake = completedModules === 6 && decisionLabsCompleted === modules.length && blueprintCompleted === 6;
 
-  const previousAttempts = progress.finalAttempts || [];
-  const bestScore = previousAttempts.length > 0 ? Math.max(...previousAttempts.map((a: any) => Number(a.score))) : null;
-  const bestPercentage = previousAttempts.length > 0 ? Math.max(...previousAttempts.map((a: any) => Number(a.percentage ?? a.score))) : null;
-  const passed = previousAttempts.some((a: any) => a.passed);
+  const previousAttempts = progress.finalAttempts;
+  const bestScore = previousAttempts.length > 0 ? Math.max(...previousAttempts.map((a) => Number(a.score))) : null;
+  const bestPercentage = previousAttempts.length > 0 ? Math.max(...previousAttempts.map((a) => Number(a.percentage ?? a.score))) : null;
+  const passed = previousAttempts.some((a) => a.passed);
 
   const allQuestions = getQuestionsForAssessment(FINAL_ASSESSMENT_CONFIG.id);
   const safeQuestions = allQuestions.map(stripQuestion);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import type { StudentProgressSummary } from "@/lib/types";
 import { modules, TOTAL_LESSONS } from "@/data/course";
 import { Card } from "@/components/ui/Card";
@@ -130,12 +131,12 @@ export function InstructorProgressDashboard({
                   )}
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <a
-                    href={`/admin/records/${s.profile_id}`}
+                  <Link
+                    href={`/instructor/reviews`}
                     className="rounded-lg border border-rise-border bg-white px-2 py-1 text-xs font-semibold text-rise-navy hover:bg-rise-sky"
                   >
                     View
-                  </a>
+                  </Link>
                 </td>
               </tr>
             ))}

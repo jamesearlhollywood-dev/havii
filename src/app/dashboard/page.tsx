@@ -8,7 +8,7 @@ import { modules, blueprintSections, TOTAL_LESSONS, getLesson } from "@/data/cou
 import { displayName, formatDate } from "@/lib/utils";
 import { dashboardPathForRole } from "@/lib/roles";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
-import type { Profile, ModuleStatus } from "@/lib/types";
+import type { Profile, ModuleStatus, StudentProgress } from "@/lib/types";
 import { fetchNotificationData } from "@/lib/notification-helpers";
 import { getActiveAnnouncements } from "@/actions/announcements";
 import { StudentFeedbackArea } from "@/components/review/StudentFeedbackArea";
@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let progress: ReturnType<typeof getStudentProgress> extends Promise<infer T> ? T : never;
+  let progress: StudentProgress;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -35,38 +35,38 @@ export default async function DashboardPage() {
     progress = await getStudentProgress(profile.id);
   } else {
     profile = DEMO_STUDENT_PROFILE;
-    progress = DEMO_STUDENT_PROGRESS as any;
+    progress = DEMO_STUDENT_PROGRESS;
   }
 
   // Calculate stats
-  const completedLessons = progress.lessonProgress.filter((l: any) => l.status === "completed").length;
+  const completedLessons = progress.lessonProgress.filter((l) => l.status === "completed").length;
   const overallProgress = TOTAL_LESSONS > 0 ? Math.round((completedLessons / TOTAL_LESSONS) * 100) : 0;
 
   // Find current module (first not-completed module)
   const currentModule = modules.find((m) => {
-    const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
+    const mp = progress.moduleProgress.find((p) => p.module_id === m.id);
     return !mp?.module_completed;
   }) ?? modules[modules.length - 1];
 
   // Find next lesson in current module
-  const moduleLessonProgress = progress.lessonProgress.filter((l: any) => l.module_id === currentModule.id);
+  const moduleLessonProgress = progress.lessonProgress.filter((l) => l.module_id === currentModule.id);
   const nextLesson = currentModule.lessons.find((l) => {
-    const lp = moduleLessonProgress.find((p: any) => p.lesson_id === l.id);
+    const lp = moduleLessonProgress.find((p) => p.lesson_id === l.id);
     return !lp || lp.status !== "completed";
   }) ?? currentModule.lessons[0];
 
   // Last completed activity
   const completedActivities = progress.lessonProgress
-    .filter((l: any) => l.status === "completed")
-    .sort((a: any, b: any) => new Date(b.completed_at || b.updated_at).getTime() - new Date(a.completed_at || a.updated_at).getTime());
+    .filter((l) => l.status === "completed")
+    .sort((a, b) => new Date(b.completed_at || b.updated_at).getTime() - new Date(a.completed_at || a.updated_at).getTime());
   const lastCompleted = completedActivities[0];
   const lastCompletedLesson = lastCompleted ? getLesson(lastCompleted.module_id, lastCompleted.lesson_id) : null;
 
   const completedModules = modules.filter((m) =>
-    progress.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed)
+    progress.moduleProgress.some((p) => p.module_id === m.id && p.module_completed)
   ).length;
 
-  const blueprintCompleted = progress.blueprintSections.filter((b: any) => b.completed).length;
+  const blueprintCompleted = progress.blueprintSections.filter((b) => b.completed).length;
   const hasCertificate = progress.certificates.length > 0;
 
   // Fetch notifications
@@ -80,13 +80,13 @@ export default async function DashboardPage() {
 
   // Module roadmap states
   const moduleStates: ModuleStatus[] = modules.map((m, i) => {
-    const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
+    const mp = progress.moduleProgress.find((p) => p.module_id === m.id);
     if (mp?.module_completed) return "completed";
     if (i === 0) {
       return mp && mp.lessons_completed > 0 ? "in_progress" : "available";
     }
     const prevComplete = progress.moduleProgress.some(
-      (p: any) => p.module_id === modules[i - 1].id && p.module_completed
+      (p) => p.module_id === modules[i - 1].id && p.module_completed
     );
     if (!prevComplete) return "locked";
     return mp && mp.lessons_completed > 0 ? "in_progress" : "available";
@@ -94,9 +94,9 @@ export default async function DashboardPage() {
 
   // Best quiz scores per module
   const quizScores = modules.map((m) => {
-    const attempts = progress.quizAttempts.filter((a: any) => a.module_id === m.id);
-    const best = attempts.length > 0 ? Math.max(...attempts.map((a: any) => Number(a.score))) : null;
-    return { moduleId: m.id, moduleNumber: m.number, title: m.title, score: best, passed: attempts.some((a: any) => a.passed) };
+    const attempts = progress.quizAttempts.filter((a) => a.module_id === m.id);
+    const best = attempts.length > 0 ? Math.max(...attempts.map((a) => Number(a.score))) : null;
+    return { moduleId: m.id, moduleNumber: m.number, title: m.title, score: best, passed: attempts.some((a) => a.passed) };
   });
 
   const stateConfig: Record<ModuleStatus, { label: string; bg: string; text: string; icon: string }> = {
@@ -274,7 +274,7 @@ export default async function DashboardPage() {
             {modules.map((m, i) => {
               const state = moduleStates[i];
               const cfg = stateConfig[state];
-              const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
+              const mp = progress.moduleProgress.find((p) => p.module_id === m.id);
               const lessonsComplete = mp?.lessons_completed ?? 0;
               const pct = Math.round((lessonsComplete / m.lessons.length) * 100);
               return (

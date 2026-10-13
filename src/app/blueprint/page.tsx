@@ -6,7 +6,7 @@ import { BlueprintSectionEditor } from "@/components/course/BlueprintSectionEdit
 import { Card, CardDescription, CardTitle } from "@/components/ui/Card";
 import { modules, blueprintSections } from "@/data/course";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
-import type { Profile } from "@/lib/types";
+import type { Profile, StudentProgress } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Financial Blueprint" };
@@ -14,7 +14,7 @@ export const metadata = { title: "Financial Blueprint" };
 export default async function BlueprintPage() {
   const supabaseConnected = hasValidSupabaseConfig();
   let profile: Profile;
-  let progress: ReturnType<typeof getStudentProgress> extends Promise<infer T> ? T : never;
+  let progress: StudentProgress;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -25,17 +25,17 @@ export default async function BlueprintPage() {
     progress = await getStudentProgress(profile.id);
   } else {
     profile = DEMO_STUDENT_PROFILE;
-    progress = DEMO_STUDENT_PROGRESS as any;
+    progress = DEMO_STUDENT_PROGRESS;
   }
 
   // Determine which sections are unlocked
   const sectionStatus = blueprintSections.map((bs) => {
     const mod = modules.find((m) => m.id === bs.moduleId)!;
-    const mp = progress.moduleProgress.find((p: any) => p.module_id === bs.moduleId);
+    const mp = progress.moduleProgress.find((p) => p.module_id === bs.moduleId);
     // Unlock section if module lessons are at least 50% complete or module is complete
     const lessonsComplete = mp?.lessons_completed ?? 0;
     const unlocked = lessonsComplete >= Math.ceil(mod.lessons.length / 2) || (mp?.module_completed ?? false);
-    const bpData = progress.blueprintSections.find((b: any) => b.section_number === bs.number);
+    const bpData = progress.blueprintSections.find((b) => b.section_number === bs.number);
     return {
       ...bs,
       unlocked,
@@ -95,7 +95,7 @@ export default async function BlueprintPage() {
                 sectionKey={s.key}
                 sectionTitle={s.title}
                 blueprintUpdate={s.mod.blueprintUpdate}
-                initialData={s.data as any}
+                initialData={s.data as Record<string, unknown> | null}
                 initialCompleted={s.completed}
                 unlocked={s.unlocked}
               />

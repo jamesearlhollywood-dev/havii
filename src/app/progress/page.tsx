@@ -9,7 +9,7 @@ import { formatDate } from "@/lib/utils";
 import { dashboardPathForRole } from "@/lib/roles";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
 import { isSurveyCompleted, isBlueprintReviewed } from "@/actions/capstone";
-import type { Profile } from "@/lib/types";
+import type { Profile, StudentProgress } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My Progress" };
@@ -18,7 +18,7 @@ export default async function ProgressPage() {
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let progress: any;
+  let progress: StudentProgress;
   let surveyDone = false;
   let blueprintReviewed = false;
 
@@ -37,29 +37,29 @@ export default async function ProgressPage() {
     progress = DEMO_STUDENT_PROGRESS;
   }
 
-  const completedLessons = progress.lessonProgress.filter((l: any) => l.status === "completed").length;
+  const completedLessons = progress.lessonProgress.filter((l) => l.status === "completed").length;
   const overallPct = Math.round((completedLessons / TOTAL_LESSONS) * 100);
   const completedModules = modules.filter((m) =>
-    progress.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed)
+    progress.moduleProgress.some((p) => p.module_id === m.id && p.module_completed)
   ).length;
 
   // Current module
   const currentModule = modules.find((m) => {
-    const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
+    const mp = progress.moduleProgress.find((p) => p.module_id === m.id);
     return !mp?.module_completed;
   }) ?? modules[modules.length - 1];
 
-  const blueprintCompleted = progress.blueprintSections.filter((b: any) => b.completed).length;
+  const blueprintCompleted = progress.blueprintSections.filter((b) => b.completed).length;
   const decisionLabsCompleted = progress.decisionLabs.length;
   const hasCertificate = progress.certificates.length > 0;
-  const finalPassed = progress.finalAttempts.some((a: any) => a.passed);
+  const finalPassed = progress.finalAttempts.some((a) => a.passed);
   const finalAttempts = progress.finalAttempts.length;
 
   // Quiz scores per module
   const quizScores = modules.map((m) => {
-    const attempts = progress.quizAttempts.filter((a: any) => a.module_id === m.id);
-    const best = attempts.length > 0 ? Math.max(...attempts.map((a: any) => Number(a.score))) : null;
-    const passed = attempts.some((a: any) => a.passed);
+    const attempts = progress.quizAttempts.filter((a) => a.module_id === m.id);
+    const best = attempts.length > 0 ? Math.max(...attempts.map((a) => Number(a.score))) : null;
+    const passed = attempts.some((a) => a.passed);
     const attemptCount = attempts.length;
     return { moduleId: m.id, moduleNumber: m.number, title: m.title, score: best, passed, attemptCount };
   });
@@ -72,12 +72,12 @@ export default async function ProgressPage() {
 
   // Capstone journey steps
   const journeySteps = [
-    { label: "Module 1", done: modules[0] ? progress.moduleProgress.some((p: any) => p.module_id === "module-1" && p.module_completed) : false, link: "/course/module/module-1" },
-    { label: "Module 2", done: progress.moduleProgress.some((p: any) => p.module_id === "module-2" && p.module_completed), link: "/course/module/module-2" },
-    { label: "Module 3", done: progress.moduleProgress.some((p: any) => p.module_id === "module-3" && p.module_completed), link: "/course/module/module-3" },
-    { label: "Module 4", done: progress.moduleProgress.some((p: any) => p.module_id === "module-4" && p.module_completed), link: "/course/module/module-4" },
-    { label: "Module 5", done: progress.moduleProgress.some((p: any) => p.module_id === "module-5" && p.module_completed), link: "/course/module/module-5" },
-    { label: "Module 6", done: progress.moduleProgress.some((p: any) => p.module_id === "module-6" && p.module_completed), link: "/course/module/module-6" },
+    { label: "Module 1", done: modules[0] ? progress.moduleProgress.some((p) => p.module_id === "module-1" && p.module_completed) : false, link: "/course/module/module-1" },
+    { label: "Module 2", done: progress.moduleProgress.some((p) => p.module_id === "module-2" && p.module_completed), link: "/course/module/module-2" },
+    { label: "Module 3", done: progress.moduleProgress.some((p) => p.module_id === "module-3" && p.module_completed), link: "/course/module/module-3" },
+    { label: "Module 4", done: progress.moduleProgress.some((p) => p.module_id === "module-4" && p.module_completed), link: "/course/module/module-4" },
+    { label: "Module 5", done: progress.moduleProgress.some((p) => p.module_id === "module-5" && p.module_completed), link: "/course/module/module-5" },
+    { label: "Module 6", done: progress.moduleProgress.some((p) => p.module_id === "module-6" && p.module_completed), link: "/course/module/module-6" },
     { label: "Final Assessment", done: finalPassed, link: "/course/final-assessment" },
     { label: "End-of-Course Survey", done: surveyDone, link: "/course/capstone" },
     { label: "Financial Blueprint", done: blueprintReviewed, link: "/course/capstone" },
@@ -263,7 +263,7 @@ export default async function ProgressPage() {
         <h2 className="mb-3 text-xl font-bold text-rise-navy">Module Details</h2>
         <div className="space-y-3">
           {modules.map((m) => {
-            const mp = progress.moduleProgress.find((p: any) => p.module_id === m.id);
+            const mp = progress.moduleProgress.find((p) => p.module_id === m.id);
             const lessonsComplete = mp?.lessons_completed ?? 0;
             const pct = Math.round((lessonsComplete / m.lessons.length) * 100);
             const isComplete = mp?.module_completed ?? false;

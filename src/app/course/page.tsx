@@ -6,7 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Card } from "@/components/ui/Card";
 import { course, modules, TOTAL_LESSONS } from "@/data/course";
 import { DEMO_STUDENT_PROFILE, DEMO_STUDENT_PROGRESS } from "@/data/demo-data";
-import type { Profile } from "@/lib/types";
+import type { Profile, StudentProgress } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My Course" };
@@ -15,7 +15,7 @@ export default async function CoursePage() {
   const supabaseConnected = hasValidSupabaseConfig();
 
   let profile: Profile;
-  let progress: any = null;
+  let progress: StudentProgress | null = null;
 
   if (supabaseConnected) {
     const { user, profile: userProfile } = await getCurrentUserAndProfile();
@@ -49,12 +49,12 @@ export default async function CoursePage() {
         {/* Module list with sequential progression */}
         <div className="space-y-4">
           {modules.map((m) => {
-            const mp = progress?.moduleProgress.find((p: any) => p.module_id === m.id);
+            const mp = progress?.moduleProgress.find((p) => p.module_id === m.id);
             const lessonsComplete = mp?.lessons_completed ?? 0;
             const pct = Math.round((lessonsComplete / m.lessons.length) * 100);
             const isComplete = mp?.module_completed ?? false;
             const isLocked = m.number > 1 && !progress?.moduleProgress.some(
-              (p: any) => p.module_id === modules[m.number - 2].id && p.module_completed
+              (p) => p.module_id === modules[m.number - 2].id && p.module_completed
             );
 
             return (
@@ -137,10 +137,10 @@ export default async function CoursePage() {
           {(() => {
             const allModulesComplete = progress?.moduleProgress
               ? modules.every((m) =>
-                  progress.moduleProgress.some((p: any) => p.module_id === m.id && p.module_completed)
+                  progress.moduleProgress.some((p) => p.module_id === m.id && p.module_completed)
                 )
               : false;
-            const finalPassed = progress?.finalAttempts?.some((a: any) => a.passed) ?? false;
+            const finalPassed = progress?.finalAttempts?.some((a) => a.passed) ?? false;
 
             return (
               <Card className={allModulesComplete ? "" : "opacity-60"}>

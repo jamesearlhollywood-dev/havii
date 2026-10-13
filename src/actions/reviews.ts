@@ -285,7 +285,7 @@ export async function getInstructorReviewQueue(
     .select("cohort_id")
     .eq("instructor_profile_id", profile.id);
 
-  const assignedCohortIds = (assignments ?? []).map((a: any) => a.cohort_id);
+  const assignedCohortIds = (assignments ?? []).map((a: { cohort_id: string }) => a.cohort_id);
   if (assignedCohortIds.length === 0) return [];
 
   let query = supabase
@@ -305,24 +305,24 @@ export async function getInstructorReviewQueue(
 
   const { data } = await query.order("submitted_at", { ascending: false });
 
-  let items: ReviewQueueItem[] = (data ?? []).map((s: any) => {
+  let items: ReviewQueueItem[] = (data ?? []).map((s: Record<string, unknown>) => {
     const daysWaiting = Math.floor(
-      (now(s.submitted_at).getTime() - new Date(s.submitted_at).getTime()) / 86400000
+      (now(s.submitted_at as string).getTime() - new Date(s.submitted_at as string).getTime()) / 86400000
     );
     return {
-      id: s.id,
-      student_name: s.student_name,
-      organization_name: s.organization_name ?? "",
-      cohort_name: s.cohort_name ?? "",
-      module_number: s.module_number,
-      module_title: s.module_title,
-      activity_title: s.activity_title,
-      submission_type: s.submission_type,
-      submitted_at: s.submitted_at,
-      review_status: s.review_status,
+      id: s.id as string,
+      student_name: s.student_name as string,
+      organization_name: (s.organization_name as string) ?? "",
+      cohort_name: (s.cohort_name as string) ?? "",
+      module_number: s.module_number as number,
+      module_title: s.module_title as string,
+      activity_title: s.activity_title as string,
+      submission_type: s.submission_type as ReviewQueueItem["submission_type"],
+      submitted_at: s.submitted_at as string,
+      review_status: s.review_status as ReviewStatus,
       days_waiting: daysWaiting,
       is_overdue: daysWaiting > settings.review_target_days,
-      assigned_instructor_name: s.assigned_instructor_name,
+      assigned_instructor_name: s.assigned_instructor_name as string | null,
     };
   });
 
@@ -619,21 +619,21 @@ export async function getStudentFeedback(): Promise<StudentFeedbackItem[]> {
     .eq("student_profile_id", profile.id)
     .order("updated_at", { ascending: false });
 
-  return (data ?? []).map((s: any) => ({
-    submission_id: s.id,
-    activity_title: s.activity_title,
-    module_number: s.module_number,
-    module_title: s.module_title,
-    submission_type: s.submission_type,
-    review_status: s.review_status,
-    instructor_feedback: s.instructor_feedback,
-    score: s.score,
-    max_score: s.max_score,
-    rubric_result: s.rubric_result,
-    resubmission_status: s.resubmission_status,
-    reviewed_at: s.reviewed_at,
-    submitted_at: s.submitted_at,
-    link_url: s.submission_type === "blueprint_section" ? "/blueprint" : `/course/module/${s.module_id}`,
+  return (data ?? []).map((s: Record<string, unknown>) => ({
+    submission_id: s.id as string,
+    activity_title: s.activity_title as string,
+    module_number: s.module_number as number,
+    module_title: s.module_title as string,
+    submission_type: s.submission_type as StudentFeedbackItem["submission_type"],
+    review_status: s.review_status as ReviewStatus,
+    instructor_feedback: s.instructor_feedback as string | null,
+    score: s.score as number | null,
+    max_score: s.max_score as number | null,
+    rubric_result: s.rubric_result as RubricResult | null,
+    resubmission_status: s.resubmission_status as StudentFeedbackItem["resubmission_status"],
+    reviewed_at: s.reviewed_at as string | null,
+    submitted_at: s.submitted_at as string,
+    link_url: s.submission_type === "blueprint_section" ? "/blueprint" : `/course/module/${s.module_id as string}`,
   }));
 }
 
